@@ -1,0 +1,182 @@
+\documentclass[a4]{article}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{lscape}
+\usepackage{amsmath}
+\newcommand{\norm}[1]{\left\Vert#1\right\Vert}
+
+\begin{document}
+
+\title{Software Outlook: FFT Benchmarks for Fortran Codes }
+\author{H. Sue Thorne}
+
+\maketitle
+
+%\begin{abstract}
+%The abstract text goes here.
+%\end{abstract}
+
+\section{Introduction}
+As part of the 2018/19 Software Outlook Work Plan, we will be benchmarking 
+a number of different Fast Four Transform (FFT) libraries with bindings for
+Fortran. The attributes of the different libraries are given in 
+Section~\ref{Sec:libs}.   
+
+
+\section{1D Benchmark}
+Let $A$ be a 2D array with dimensions $n_1\times n_2$ and there be $q$ 
+2D arrays $B_i$ that are the same size as $A$ and satisfy 
+$\sum_i^q \left[B_i(j,k)  \right]^2 = 1$ for each $j=1,\ldots,n_1$ and 
+$k=1,\ldots,n_2.$  The general benchmark will take the form of 
+Algorithm~\ref{Alg:1D}, where $comp\_mult(A,B_i)$ is defined to be 
+component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
+is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
+is the discrete Fast Fourier Transform and $\texttt{IFFT}$ is the 
+discrete inverse Fast Fourier Transform.
+
+
+\begin{algorithm}\caption{1D Benchmark}\label{Alg:1D}
+\noindent \hrulefill
+
+\begin{algorithmic}
+
+
+\FOR {$i=1,\ldots,q$}
+
+\STATE $C_i = comp\_mult(A,B_i)$
+
+\FOR {$k=1,\ldots,n_2$}
+
+
+\STATE $D_k = C_i(:,k)$
+
+\STATE $F_k = \texttt{FFT}(D_k)$
+
+\IF {do\_inverse}
+
+\STATE $G_k = \texttt{IFFT}(F_k)$
+
+\STATE $H(:,k) = G_k$
+
+\ENDIF
+
+
+\ENDFOR
+
+\IF {do\_inverse}
+
+\STATE $J_i = comp\_div(H_i,B_i) $
+
+\STATE $abs\_err = \norm{A-J_i}_2$
+
+\ENDIF
+
+\ENDFOR
+
+\end{algorithmic}
+\noindent \hrulefill
+
+\end{algorithm}
+
+\section{2D Benchmark}
+Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
+3D arrays $B_i$ that are the same size as $A$ and satisfy 
+$\sum_i^q \left[B_i(j,k,l)  \right]^2 = 1$ for each $j=1,\ldots,n_1,$ 
+$k=1,\ldots,n_2$ and $l=1,\ldots,n_3.$  The benchmark will take the form of 
+Algorithm~\ref{Alg:2D}, where $comp\_mult(A,B_i)$ is defined to be 
+component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
+is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
+is the discrete Fast Fourier Transform and $\texttt{IFFT}$ is the 
+discrete inverse Fast Fourier Transform. This benchmark is designed to imitate some of the workload done in CCP\_PETMR's SIRF code.
+
+
+\begin{algorithm}\caption{2D Benchmark}\label{Alg:2D}
+\noindent \hrulefill
+
+\begin{algorithmic}
+
+
+\FOR {$i=1,\ldots,q$}
+
+\STATE $C_i = comp\_mult(A,B_i)$
+
+\FOR {$l=1,\ldots,n_3$}
+
+
+\STATE $D_l = C_i(:,:,l)$
+
+\STATE $F_l = \texttt{FFT}(D_l)$
+
+\IF {do\_inverse}
+
+\STATE $G_l = \texttt{IFFT}(F_l)$
+
+\STATE $H(:,l) = G_l$
+
+\ENDIF
+
+
+\ENDFOR
+
+\IF {do\_inverse}
+
+\STATE $J_i = comp\_div(H_i,B_i) $
+
+\STATE $abs\_err = \norm{A-J_i}_2$
+
+\ENDIF
+
+\ENDFOR
+
+\end{algorithmic}
+\noindent \hrulefill
+
+\end{algorithm}
+
+\section{3D Benchmark}
+Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
+3D arrays $B_i$ that are the same size as $A$ and satisfy 
+$\sum_i^q \left[B_i(j,k,l)  \right]^2 = 1$ for each $j=1,\ldots,n_1,$ 
+$k=1,\ldots,n_2$ and $l=1,\ldots,n_3.$  The benchmark will take the form of 
+Algorithm~\ref{Alg:2D}, where $comp\_mult(A,B_i)$ is defined to be 
+component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
+is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
+is the discrete Fast Fourier Transform and $\texttt{IFFT}$ is the 
+discrete inverse Fast Fourier Transform. 
+
+
+\begin{algorithm}\caption{2D Benchmark}\label{Alg:2D}
+\noindent \hrulefill
+
+\begin{algorithmic}
+
+
+\FOR {$i=1,\ldots,q$}
+
+\STATE $C_i = comp\_mult(A,B_i)$
+
+
+
+\STATE $F_i = \texttt{FFT}(C_i)$
+
+\IF {do\_inverse}
+
+\STATE $H_i = \texttt{IFFT}(F_i)$
+
+\STATE $J_i = comp\_div(H_i,B_i) $
+
+\STATE $abs\_err = \norm{A-J_i}_2$
+
+\ENDIF
+
+\ENDFOR
+
+\end{algorithmic}
+\noindent \hrulefill
+
+\end{algorithm}
+
+\section{FFT Libraries}\label{Sec:libs}
+
+\end{document}
