@@ -3,8 +3,23 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{lscape}
-\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{amssymb,longtable}
+\usepackage[centertags]{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{newlfont}
+\usepackage{caption}
+\usepackage{epsfig}
 \newcommand{\norm}[1]{\left\Vert#1\right\Vert}
+
+\textwidth  17.17cm
+\textheight 23.4cm
+\oddsidemargin -0.7mm
+\evensidemargin -0.7mm
+\def\baselinestretch{1.1}
+
+\topmargin -8.4mm
 
 \begin{document}
 
@@ -25,6 +40,16 @@ Section~\ref{Sec:libs}. Assuming indexing starts at 1, the discrete 1D Fourier t
 \begin{equation}\label{Eqn:fft}
   z(k) = \sum_{m=1}^{n} x(m) \exp(-2\pi i (k-1) (m-1) / n), \quad l=1,\ldots,n.
 \end{equation}
+
+\subsection{Half-complex format}
+For input data that is purely real, the discrete Fourier transform satisfies the ``Hermitian'' redundancy: in 1D, if $x$ is a real array, then $z$ computed via (\ref{Eqn:fft}) will be a complex array satisfying
+$$z(k) = \left[z(n-k+2)\right]^*, \quad k=2,\ldots,n.$$ Also note that the imaginary part of $z(1)$ is always 0; for $n$ even, the imaginary part of $z(n/2 + 1) $ is also always 0. This special symmetry in $z$ means that it can be stored more efficiently using a real array $y$ of length $n$ satsifying
+\begin{eqnarray*}
+y(1) & = & real(z(1)),\\
+y(i) & = & real(z(i)), \quad i=2,\ldots,\lfloor n/2 \rfloor +1,\\
+y(n-i+2) & = & imag(z(i)), \quad i=2,\ldots, \lfloor (n+1)/2  \rfloor.
+\end{eqnarray*} 
+This more efficient storage is known as half-complex and can be extended to more dimensions. Note that if the input vector $x$ is half-complex format, then $z$ will be a real vector.
 
 
 \section{1D Benchmark}
@@ -182,12 +207,31 @@ discrete inverse Fast Fourier Transform.
 
 \section{FFT Libraries}\label{Sec:libs}
 
-We will compare the libraries listed in Table~\ref{Tbl:libs}. The datatypes listed are real (R), complex (C) and half-complex (H). For input data that is purely real, the discrete Fourier transform satisfies the ``Hermitian'' redundancy: in 1D, if $x$ is a real array, then $z$ computed via (\ref{Eqn:fft}) will be a complex array satisfying
-$$z(k) = \left[z(n-k+2)\right]^*, \quad k=2,\ldots,n.$$ Also note that the imaginary part of $z(1)$ is always 0; for $n$ even, the imaginary part of $z(n/2 + 1) $ is also always 0. This special symmetry in $z$ means that it can be stored more efficiently using a real array $y$ of length $n$ satsifying
-\begin{eqnarray*}
-y(1) & = & real(z(1)),\\
-y(i) & = & real(z(i)), \quad i=2,\ldots,\lfloor n/2 \rfloor +1,\\
-y(n-i+2) & = & imag(z(i)), \quad i=2,\ldots, \lfloor (n+1)/2  \rfloor.
-\end{eqnarray*} 
+We will compare the libraries listed in Table~\ref{Tbl:libs}. 
+The datatypes listed are real (R), complex (C) and half-complex (H). 
+
+\begin{table}[h]
+\begin{center}
+\begin{small}
+\begin{tabular}{|l|c|c|c|l|l|c|}
+\hline
+\textbf{Library} & \textbf{Data types} & \textbf{Dimensions} & \textbf{Valid $n$} & \textbf{Parallelism} & \textbf{License} & \textbf{Citation} \\ \hline
+FFTE & R $\rightarrow$ H & 2,3   & $2^a\times 3^b \times 5^c$ & OpenMP, MPI, CUDA & Open source & \cite{FFTE} \\
+     & C $\rightarrow$ C & 1,2,3 & & & & \\
+     & H $\rightarrow$ R & 2,3   & & & & \\ \hline
+FFTW & R $\rightarrow$ H & Any   & Any but optimised for  & Multithreading, MPI & GPL v3 & \cite{FFTW} \\
+     & C $\rightarrow$ C & Any   & $2^a\times 3^b \times 5^c \times 7^d \times 11^e \times 13^f$ & & & \\
+     & H $\rightarrow$ R & Any   & with $e+f = 0$ or $1$ & & & \\ \hline
+
+\end{tabular}
+\caption{Libraries being benchmarked, }\label{Tbl:libs}
+\end{small}
+\end{center}
+\end{table}
+
+
+\bibliographystyle{siam}
+\bibliography{bib2017}
+
 
 \end{document}
