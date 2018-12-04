@@ -21,7 +21,10 @@
 As part of the 2018/19 Software Outlook Work Plan, we will be benchmarking 
 a number of different Fast Four Transform (FFT) libraries with bindings for
 Fortran. The attributes of the different libraries are given in 
-Section~\ref{Sec:libs}.   
+Section~\ref{Sec:libs}. Assuming indexing starts at 1, the discrete 1D Fourier transform of a vector $x$ of length $n$ is defined as
+\begin{equation}\label{Eqn:fft}
+  z(k) = \sum_{m=1}^{n} x(m) \exp(-2\pi i (k-1) (m-1) / n), \quad l=1,\ldots,n.
+\end{equation}
 
 
 \section{1D Benchmark}
@@ -178,5 +181,13 @@ discrete inverse Fast Fourier Transform.
 \end{algorithm}
 
 \section{FFT Libraries}\label{Sec:libs}
+
+We will compare the libraries listed in Table~\ref{Tbl:libs}. The datatypes listed are real (R), complex (C) and half-complex (H). For input data that is purely real, the discrete Fourier transform satisfies the ``Hermitian'' redundancy: in 1D, if $x$ is a real array, then $z$ computed via (\ref{Eqn:fft}) will be a complex array satisfying
+$$z(k) = \left[z(n-k+2)\right]^*, \quad k=2,\ldots,n.$$ Also note that the imaginary part of $z(1)$ is always 0; for $n$ even, the imaginary part of $z(n/2 + 1) $ is also always 0. This special symmetry in $z$ means that it can be stored more efficiently using a real array $y$ of length $n$ satsifying
+\begin{eqnarray*}
+y(1) & = & real(z(1)),\\
+y(i) & = & real(z(i)), \quad i=2,\ldots,\lfloor n/2 \rfloor +1,\\
+y(n-i+2) & = & imag(z(i)), \quad i=2,\ldots, \lfloor (n+1)/2  \rfloor.
+\end{eqnarray*} 
 
 \end{document}
