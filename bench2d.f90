@@ -2,6 +2,8 @@ PROGRAM commandline
   IMPLICIT NONE
   INTEGER :: nargs, n1, n2, n3, q
   CHARACTER(LEN=100) :: option1, option2, option3, option4
+  double precision, allocatable :: A(:,:,:) ! Array A
+  double precision, allocatable :: Q(:,:,:,:) ! Q(:,:,:,i) is cuboid Q_i
 
   !Read input from the command line
   nargs = IARGC()
