@@ -1,6 +1,6 @@
 PROGRAM commandline
   IMPLICIT NONE
-  INTEGER :: nargs, n1, n2, n3, q
+  INTEGER :: nargs, n1, n2, n3, nq
   CHARACTER(LEN=100) :: option1, option2, option3, option4
   double precision, allocatable :: A(:,:,:) ! Array A
   double precision, allocatable :: Q(:,:,:,:) ! Q(:,:,:,i) is cuboid Q_i
@@ -23,13 +23,13 @@ PROGRAM commandline
     read(option1,*) n1 !Now convert string to integer
     read(option2,*) n2 !Now convert string to integer
     read(option3,*) n3 !Now convert string to integer
-    read(option4,*)  q !Now convert string to integer
+    read(option4,*) nq !Now convert string to integer
     write(*,'(a,i8)') "Variable n1 = ", n1
     write(*,'(a,i8)') "Variable n2 = ", n2
     write(*,'(a,i8)') "Variable n3 = ", n3
-    write(*,'(a,i8)') "Variable  q = ", q
+    write(*,'(a,i8)') "Variable nq = ", nq
 
-    if (n1.lt.1 .or. n2.lt.1 .or. n3.lt.1 .or. q.lt.1) then
+    if (n1.lt.1 .or. n2.lt.1 .or. n3.lt.1 .or. nq.lt.1) then
       goto 10
     endif
 
@@ -44,7 +44,7 @@ PROGRAM commandline
     write(*,'(a)') " n1=positive integer : first dimension of cuboid"
     write(*,'(a)') " n2=positive integer : second dimenstion of cuboid"
     write(*,'(a)') " n3=positive integer : third dimenstion of cuboid"
-    write(*,'(a)') "  q=positive integer : number of multiplying cuboids"
+    write(*,'(a)') " nq=positive integer : number of multiplying cuboids"
     return
 
 END PROGRAM commandline
