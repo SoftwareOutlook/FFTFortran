@@ -1,10 +1,18 @@
 PROGRAM commandline
   IMPLICIT NONE
+
+  Integer, Parameter :: wp = Selected_Real_Kind(15,307)  ! double real
+
   INTEGER :: nargs, n1, n2, n3, nq, fftlib ! Input arguments
   integer :: stat ! Allocat/deallocate stat 
-  CHARACTER(LEN=100) :: option1, option2, option3, option4, option5
-  double precision, allocatable :: A(:,:,:) ! Array A
-  double precision, allocatable :: Q(:,:,:,:) ! Q(:,:,:,i) is cuboid Q_i
+  integer :: i, j, k, l, qq, p, m ! indices
+  real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
+  CHARACTER(LEN=100) :: option1, option2, option3, option4, option5 
+  ! For reading inputs
+  real (kind=wp), allocatable :: A(:,:,:) ! Array A
+  real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
+  real (kind=wp), allocatable :: C(:,:,:,) ! C(:,:,:) is cuboid C_i
+  real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
 
   !Read input from the command line
   nargs = IARGC()
@@ -19,7 +27,7 @@ PROGRAM commandline
     ! and store it in temp variable 'option3'
     CALL GETARG(4,option4) !Grab the 4th command line argument
     ! and store it in temp variable 'option4'
-    CALL GETARG(4,option5) !Grab the 5th command line argument
+    CALL GETARG(5,option5) !Grab the 5th command line argument
     ! and store it in temp variable 'option5'
 
 
@@ -42,26 +50,107 @@ PROGRAM commandline
   ENDIF
 
   ! Allocate arrays
-  allocate(A(n1,n2,n3,stat=stat)
+  allocate(A(n1,n2,n3),stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error allocating A"
       return
   end if
 
-  allocate(Q(n1,n2,n3,nq,stat=stat)
+  allocate(B(n1,n2,n3,nq),stat=stat)
   if (stat .ne. 0) then
-      write(*, '(a)') "Error allocating Q"
+      write(*, '(a)') "Error allocating B"
       deallocate(A)
+      return
+  end if
+  allocate(C(n1,n2,n3),stat=stat)
+  if (stat .ne. 0) then
+      write(*, '(a)') "Error allocating C"
+      deallocate(A,B)
       return
   end if
 
   ! Set A
+  xo = 0.6*real(n1,wp)
+  yo = 0.4*real(n2,wp)
+  zo = real(n3,wp)/3.0
+  a1 = 0.3*real(n1,wp)
+  b1 = 0.35*real(n2,wp)
+  c1 = real(n3,wp)/3.0_wp
+  do i=1,n1
+    do j=1,n2
+      do k=1,n3
+         r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2 + &
+             ((real(k,wp)-zo)/c1)**2
+         if (r .le. 1) then
+            A(i,j,k) = r
+         else
+            A(i,j,k) = 0.0_wp
+         end if
+        ! write(*,*) i,j,k, A(i,j,k)
+      end do
+    end do
+  end do
+
+  ! Set B
+
+  
+  m = 0
+  do while (3*m+1.le.nq)
+    do i=1,n1
+      do j=1,n2
+        do k=1,n3
+         s1=1.0_wp
+         s2=1.0_wp
+         s3=1.0_wp
+         t1=1.0_wp
+         t2=1.0_wp
+         do p=1,m+1
+           s1 = s1*(real(i*(m+2),wp)/real(p*n1,wp) - 1.0_wp )
+           s2 = s2*(real(j*(m+2),wp)/real(p*n2,wp) - 1.0_wp )
+           s3 = s3*(real(k*(m+2),wp)/real(p*n3,wp) - 1.0_wp )
+         end do
+         do qq=1,m
+           t1 = t1*(real(j*(m+1),wp)/real(qq*n2,wp) - 1.0_wp )
+           t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
+         end do
+         B(i,j,k,3*m+1) = s1*t1*t2
+         if (3*m+2 .le. nq) then
+           B(i,j,k,3*m+2) = s1*s2*t2
+         end if
+         if (3*m+3 .le. nq) then
+           B(i,j,k,3*m+3) = s1*s2*s3
+         end if
+        end do
+      end do
+    end do
+    m=m+1
+  end do
+
+  ! Normalise norm(B(i,j,k,:),2) to equal 1 
+  do i=1,n1
+    do j=1,n2
+      do k=1,n3
+        s1=0.0_wp
+        do qq=1,nq
+          s1 = s1 + (B(i,j,k,qq))**2
+        end do 
+        s1 = s1**0.5
+        do qq=1,nq
+          B(i,j,k,qq) = B(i,j,k,qq)/s1
+        end do 
+      end do
+    end do
+  end do
+
+
+ ! Set-up each slice and perform FFT
+
 
 
 
 
   ! Deallocate arrays
-  deallocate(A,Q, stat=stat)
+  deallocate(A,B, stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error deallocating arrays"
       return

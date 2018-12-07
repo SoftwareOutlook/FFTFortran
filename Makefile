@@ -28,7 +28,7 @@ all:  bench2d
 
 bench2d:   bench2d.o 
 	 $(f90)  bench2d.o   $(LIBS) -o bench2d.exe
-	 ./bench2d.exe  1  2 3 4
+	 ./bench2d.exe  5  5 5 4 5
 #> temp >&1 < hsl_minresds.data
 #	 diff temp hsl_minresds.output
 
