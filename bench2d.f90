@@ -11,7 +11,7 @@ PROGRAM commandline
   ! For reading inputs
   real (kind=wp), allocatable :: A(:,:,:) ! Array A
   real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
-  real (kind=wp), allocatable :: C(:,:,:,) ! C(:,:,:) is cuboid C_i
+  real (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
   real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
 
   !Read input from the command line
@@ -27,6 +27,11 @@ PROGRAM commandline
     ! and store it in temp variable 'option3'
     CALL GETARG(4,option4) !Grab the 4th command line argument
     ! and store it in temp variable 'option4'
+         !  1: FFTE
+         !  2: FFTW
+         !  3: MKL
+         !  4: P3DFFT
+         !  5: P3DFFT++
     CALL GETARG(5,option5) !Grab the 5th command line argument
     ! and store it in temp variable 'option5'
 
@@ -143,14 +148,31 @@ PROGRAM commandline
   end do
 
 
- ! Set-up each slice and perform FFT
+  ! Set-up each slice and perform FFT
+  ! Each slice formed in C(:,:,:) by performing element-wise multiplaction of 
+  ! A with B(:,:,:,qq)
+  do qq=1,nq
+    do i=1,n1
+      do j=1,n2
+        do k=1,n3
+          C(i,j,k) = A(i,j,k)*B(i,j,k,qq)
+        end do
+      end do
+    end do
+    
+  ! Perform FFT on each slice
 
 
 
+
+  end do
+  
+
+  
 
 
   ! Deallocate arrays
-  deallocate(A,B, stat=stat)
+  deallocate(A,B,C, stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error deallocating arrays"
       return
@@ -164,6 +186,56 @@ PROGRAM commandline
     write(*,'(a)') " n3=positive integer : third dimenstion of cuboid"
     write(*,'(a)') " nq=positive integer : number of multiplying cuboids"
     write(*,'(a)') " fftlib=positive integer less than 6: FFT library to use"
+    write(*,'(a)') "   fftlib=1: FFTE"
+    write(*,'(a)') "   fftlib=2: FFTW"
+    write(*,'(a)') "   fftlib=3: MKL"
+    write(*,'(a)') "   fftlib=4: P3DFFT"
+    write(*,'(a)') "   fftlib=5: P3DFFT++"
     return
+
+
+ contains
+   
+  subroutine fft_bench(n1,n2,n3,C,fftlib,init,check,A,Bi)
+    integer, intent(in) :: n1,n2,n3 ! Array dimensions
+    real (kind=wp), intent(inout) :: C(n1,n2,n3) ! Input array -> 
+                                                ! overwritten with fft of C
+    integer, intent(in) :: fftlib ! fft library to use
+         !  1: FFTE
+         !  2: FFTW
+         !  3: MKL
+         !  4: P3DFFT
+         !  5: P3DFFT++
+    logical, intent(inout) :: init  ! Has fft routine been initialise?
+    logical, intent(in) :: check ! Additionally, perform inverse, element-wise
+                                 ! division by Bi and compare with A
+    real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
+    real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
+
+
+  end subroutine
+
+
+  subroutine check_error(n1,n2,n3,A,C,nrm)
+    integer, intent(in) :: n1,n2,n3 ! Array dimensions
+    real(kind=wp), intent(in) :: A(n1,n2,n3) ! Input array A
+    real(kind=wp), intent(in) :: C(n1,n2,n3) ! Input array C
+    real(kind=wp), intent(out) :: nrm ! 2-norm of A-C
+
+    ! local variables
+    integer :: i,j,k
+
+    nrm = 0.0_wp
+    do i = 1,n1
+      do j= 1,n2
+        do k = 1,n3
+          nrm = nrm + (A(i,j,k)-C(i,j,k))**2
+        end do
+      end do
+    end do
+    
+
+
+  end subroutine
 
 END PROGRAM commandline
