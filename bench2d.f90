@@ -162,7 +162,7 @@ PROGRAM commandline
     
   ! Perform FFT on each slice
 
-
+  
 
 
   end do
@@ -211,6 +211,22 @@ PROGRAM commandline
                                  ! division by Bi and compare with A
     real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
     real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
+
+
+ 
+
+   select case (fftlib)
+
+    case (1)
+    ! FFTE
+
+
+
+
+
+
+    end select
+
 
 
   end subroutine
