@@ -5,6 +5,7 @@ PROGRAM commandline
 
   INTEGER :: nargs, n1, n2, n3, nq, fftlib ! Input arguments
   integer :: stat ! Allocat/deallocate stat 
+  integer :: flag ! Error flag
   integer :: i, j, k, l, qq, p, m ! indices
   real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
   CHARACTER(LEN=100) :: option1, option2, option3, option4, option5 
@@ -13,6 +14,7 @@ PROGRAM commandline
   real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
   real (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
   real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
+  logical :: init, check
 
   !Read input from the command line
   nargs = IARGC()
@@ -91,7 +93,7 @@ PROGRAM commandline
          else
             A(i,j,k) = 0.0_wp
          end if
-        ! write(*,*) i,j,k, A(i,j,k)
+       !  write(*,*) i,j,k, A(i,j,k)
       end do
     end do
   end do
@@ -119,11 +121,14 @@ PROGRAM commandline
            t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
          end do
          B(i,j,k,3*m+1) = s1*t1*t2
+         write(*,*) i,j,k,3*m+1, B(i,j,k,3*m+1)
          if (3*m+2 .le. nq) then
            B(i,j,k,3*m+2) = s1*s2*t2
+         write(*,*) i,j,k,3*m+2, B(i,j,k,3*m+2)
          end if
          if (3*m+3 .le. nq) then
            B(i,j,k,3*m+3) = s1*s2*s3
+         write(*,*) i,j,k,3*m+3, B(i,j,k,3*m+3)
          end if
         end do
       end do
@@ -147,8 +152,10 @@ PROGRAM commandline
     end do
   end do
 
+  ! Set init to true so that fft initilisation performed first
+  init = .true.
 
-  ! Set-up each slice and perform FFT
+  ! Set-up each 2D slice and perform FFT
   ! Each slice formed in C(:,:,:) by performing element-wise multiplaction of 
   ! A with B(:,:,:,qq)
   do qq=1,nq
@@ -160,10 +167,9 @@ PROGRAM commandline
       end do
     end do
     
-  ! Perform FFT on each slice
-
-  
-
+  ! Perform FFT on each 2D slice
+    check=.false.
+    call fft_bench(n1,n2,n3,C,fftlib,init,check,flag)
 
   end do
   
@@ -196,10 +202,9 @@ PROGRAM commandline
 
  contains
    
-  subroutine fft_bench(n1,n2,n3,C,fftlib,init,check,A,Bi)
+  subroutine fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A,Bi)
     integer, intent(in) :: n1,n2,n3 ! Array dimensions
-    real (kind=wp), intent(inout) :: C(n1,n2,n3) ! Input array -> 
-                                                ! overwritten with fft of C
+    real (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
          !  1: FFTE
          !  2: FFTW
@@ -209,24 +214,119 @@ PROGRAM commandline
     logical, intent(inout) :: init  ! Has fft routine been initialise?
     logical, intent(in) :: check ! Additionally, perform inverse, element-wise
                                  ! division by Bi and compare with A
+    integer, intent(out) :: flag ! 0 : all fine
+                                 ! -1: error: check is true but A or Bi missing
     real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
     real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
 
+    ! Local variables and arrays
+    complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
+    integer :: stat, k, i, j, iopt, ntemp
 
+    flag = 0
+    if (check .and. ((.not. present(A)) .or. (.not. present(Bi)))) then
+      flag = -1 ! Should not be possible to reach this error flag
+      goto 20
+    end if
  
 
-   select case (fftlib)
+    select case (fftlib)
 
     case (1)
-    ! FFTE
+      ! FFTE
+      ! Check that n1 and n2 factorise into powers of 2, 3 and 5
+      do i=1,2
+        if (i.eq.1) then
+          ntemp = n1
+        else
+          ntemp = n2
+        end if    
+        do while (mod(ntemp,2).eq.0)
+           ntemp = ntemp/2
+        end do
+        do while (mod(ntemp,3).eq.0)
+           ntemp = ntemp/3
+        end do 
+        do while (mod(ntemp,5).eq.0)
+           ntemp = ntemp/5
+        end do
+        if (ntemp .ne. 1) then
+          flag = -4
+          goto 20
+        end if
+      end do
 
 
+      allocate(Dk(n1,n2),stat=stat)
+      if (stat .ne. 0) then
+       flag = -2
+       goto 20
+      end if
+      allocate(work(n1/2+1,n2),stat=stat)
+      if (stat .ne. 0) then
+       flag = -2
+       goto 20
+      end if
 
+
+      do k=1,n3
+        ! Copy each slice into Dk
+        do i=1,n1
+          do j=1,n2
+       !     write(*,*) 'c',i,j,k,C(i,j,k)
+            Dk(i,j) = cmplx(C(i,j,k),kind=wp)
+       !     write(*,*) i,j,k,Dk(i,j)
+          end do
+        end do
+        if (init) then
+          call DZFFT2D(Dk,n1,n2,0,work)
+
+        end if 
+        call DZFFT2D(Dk,n1,n2,-1,work)
+     !   do i=1,n1
+     !     do j=1,n2
+     !       write(*,*) i,j,k,Dk(i,j)
+     !     end do
+     !   end do
+        
+
+
+      end do
+
+
+      deallocate(Dk, stat=stat)
+      if (stat .ne. 0) then
+       flag = -3
+       goto 20
+      end if
+      deallocate(work, stat=stat)
+      if (stat .ne. 0) then
+       flag = -3
+       goto 20
+      end if
+
+    ! case (2)
 
 
 
     end select
 
+
+    return
+
+20  select case (flag)
+    case (-1)
+       write(*,'(a)') "Error check requested  but either A or Bi missing"
+       ! should never be possible to reach this error
+    case (-2)
+       write(*,'(a)') "Allocation error"
+    case (-3)
+       write(*,'(a)') "Deallocation error"
+    case (-4)
+       write(*,'(a)') "n1 and n2 must be factorisable into powers of 2, 3 and 5"
+       
+
+    end select
 
 
   end subroutine
