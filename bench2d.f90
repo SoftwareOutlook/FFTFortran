@@ -121,14 +121,11 @@ PROGRAM commandline
            t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
          end do
          B(i,j,k,3*m+1) = s1*t1*t2
-         write(*,*) i,j,k,3*m+1, B(i,j,k,3*m+1)
          if (3*m+2 .le. nq) then
            B(i,j,k,3*m+2) = s1*s2*t2
-         write(*,*) i,j,k,3*m+2, B(i,j,k,3*m+2)
          end if
          if (3*m+3 .le. nq) then
            B(i,j,k,3*m+3) = s1*s2*s3
-         write(*,*) i,j,k,3*m+3, B(i,j,k,3*m+3)
          end if
         end do
       end do
@@ -168,8 +165,8 @@ PROGRAM commandline
     end do
     
   ! Perform FFT on each 2D slice
-    check=.false.
-    call fft_bench(n1,n2,n3,C,fftlib,init,check,flag)
+    check=.true.
+    call fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A=A,Bi=B(:,:,:,qq))
 
   end do
   
@@ -221,6 +218,7 @@ PROGRAM commandline
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
+    real(kind=wp) :: nrm
     integer :: stat, k, i, j, iopt, ntemp
 
     flag = 0
@@ -280,16 +278,33 @@ PROGRAM commandline
         end do
         if (init) then
           call DZFFT2D(Dk,n1,n2,0,work)
-
         end if 
         call DZFFT2D(Dk,n1,n2,-1,work)
-     !   do i=1,n1
-     !     do j=1,n2
-     !       write(*,*) i,j,k,Dk(i,j)
-     !     end do
-     !   end do
-        
+    !    do i=1,n1/2+1
+    !      do j=1,n2
+    !        write(*,*) i,j,k,Dk(i,j)
+    !      end do
+    !    end do
+        if (check) then
+          if (init) then
+            call ZDFFT2D(Dk,n1,n2,0,work)
+          end if
+          call ZDFFT2D(Dk,n1,n2,1,work)
 
+          if (k.eq.1) then
+            nrm = 0.0_wp
+          end if
+          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+
+          if (k.eq.n3) then
+            !nrm = sqrt(nrm)
+            write(*,*) 'k, nrm^2:',k,nrm
+          end if
+        end if
+        
+        if (init) then
+          init = .false.
+        end if
 
       end do
 
@@ -332,20 +347,22 @@ PROGRAM commandline
   end subroutine
 
 
-  subroutine check_error(n1,n2,n3,A,C,nrm)
-    integer, intent(in) :: n1,n2,n3 ! Array dimensions
-    real(kind=wp), intent(in) :: A(n1,n2,n3) ! Input array A
-    real(kind=wp), intent(in) :: C(n1,n2,n3) ! Input array C
-    real(kind=wp), intent(out) :: nrm ! 2-norm of A-C
+  subroutine check_error(n1,n2,A,C,nrm)
+    integer, intent(in) :: n1,n2 ! Array dimensions
+    real(kind=wp), intent(in) :: A(n1,n2) ! Input array A
+    complex(kind=wp), intent(in) :: C(n1,n2) ! Input array C
+    real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
     ! local variables
     integer :: i,j,k
+    complex(kind=wp) :: s, t
 
-    nrm = 0.0_wp
     do i = 1,n1
       do j= 1,n2
         do k = 1,n3
-          nrm = nrm + (A(i,j,k)-C(i,j,k))**2
+          s= cmplx(A(i,j))-C(i,j)
+          t = s*conjg(s)
+          nrm = nrm + real(t,kind=wp)
         end do
       end do
     end do

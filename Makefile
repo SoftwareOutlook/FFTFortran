@@ -4,8 +4,16 @@
 #f90 = g95 -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
 
 f90 = gfortran  $(FFLAGS)
+FFLAGS = -fimplicit-none  -fbounds-check -fopenmp
+
+#f90 = g95 
+#FFLAGS= -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
+
+#f90 = f95
+#FFLAGS = -O3 -fomit-frame-pointer -fopenmp -I..
+
+
 FC = $(f90)
-FFLAGS = -fimplicit-none  -fbounds-check
 F77 = $(f90)
 
 LIBS = 	
@@ -29,9 +37,9 @@ ffteparam= ffte-6.0/param.h
 all:  bench2d
 
 
-bench2d:   bench2d.o dzfft2d.o fft235.o factor.o kernel.o
-	 $(f90) $(FFLAGS) bench2d.o  dzfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
-	 ./bench2d.exe  5  5 5 4 5
+bench2d:   bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
+	 $(f90) $(FFLAGS) bench2d.o  dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
+	 ./bench2d.exe  256  256 256 24 1
 #> temp >&1 < hsl_minresds.data
 #	 diff temp hsl_minresds.output
 
@@ -63,6 +71,10 @@ bench2d.o:	bench2d.f90
 
 dzfft2d.o : ffte-6.0/dzfft2d.f fft235.o factor.o param.h
 	$(F77) $(FFLAGS) -c ffte-6.0/dzfft2d.f   -o dzfft2d.o
+
+
+zdfft2d.o : ffte-6.0/zdfft2d.f fft235.o factor.o param.h
+	$(F77) $(FFLAGS) -c ffte-6.0/zdfft2d.f   -o zdfft2d.o
 
 
 fft235.o : ffte-6.0/fft235.f kernel.o  param.h
