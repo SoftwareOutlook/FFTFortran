@@ -3,8 +3,17 @@
 #f90= ifort -C -check noarg_temp_created -u
 #f90 = g95 -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
 
-f90 = gfortran  $(FFLAGS)
-FFLAGS = -fimplicit-none  -fbounds-check -fopenmp
+FCC = gfortran  
+#FFLAGS = -O2 -fimplicit-none  -fbounds-check -fopenmp
+MKLROOT=  /apps/intel/2017/compilers_and_libraries_2017.2.174/linux/mkl
+FFLAGS = -O2 -fbounds-check -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include
+
+FFLAGS77 = -O2 -fbounds-check -fopenmp
+
+
+
+
+
 
 #f90 = g95 
 #FFLAGS= -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
@@ -13,10 +22,10 @@ FFLAGS = -fimplicit-none  -fbounds-check -fopenmp
 #FFLAGS = -O3 -fomit-frame-pointer -fopenmp -I..
 
 
-FC = $(f90)
-F77 = $(f90)
+f90 = $(FCC) $(FFLAGS)
+f77 = $(FCC) $(FFLAGS77)
 
-LIBS = 	
+LIBS = 	-lfftw3 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_gf_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
 
 
 
@@ -37,9 +46,11 @@ ffteparam= ffte-6.0/param.h
 all:  bench2d
 
 
-bench2d:   bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
-	 $(f90) $(FFLAGS) bench2d.o  dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
-	 ./bench2d.exe  256  256 256 24 1
+bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
+	 $(f90) bench2d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
+	echo $(LIBS)
+	echo $(OMP_NUM_THREADS)
+	 ./bench2d.exe  1536  1536 4 4 3
 #> temp >&1 < hsl_minresds.data
 #	 diff temp hsl_minresds.output
 
@@ -60,33 +71,37 @@ param.h:
 
 
 ddeps.o:	ddeps.f
-	$(f90) $(FFLAGS) -c ddeps.f
+	$(f77) -c ddeps.f
 ddeps90.o:	ddeps90.f90
-	$(f90) $(FFLAGS) -c ddeps90.f90
+	$(f90) -c ddeps90.f90
 
-hsl_minress.o:	hsl_minress.f90
-	$(f90) $(FFLAGS) -c hsl_minress.f90
+
 bench2d.o:	bench2d.f90
-	$(f90) $(FFLAGS) -c bench2d.f90
+	$(f90) -c bench2d.f90
+
+
+mkl_dfti.o : mkl_dfti.f90 
+	$(f90) -c mkl_dfti.f90
+
 
 dzfft2d.o : ffte-6.0/dzfft2d.f fft235.o factor.o param.h
-	$(F77) $(FFLAGS) -c ffte-6.0/dzfft2d.f   -o dzfft2d.o
+	$(f77) -c ffte-6.0/dzfft2d.f   -o dzfft2d.o
 
 
 zdfft2d.o : ffte-6.0/zdfft2d.f fft235.o factor.o param.h
-	$(F77) $(FFLAGS) -c ffte-6.0/zdfft2d.f   -o zdfft2d.o
+	$(f77) -c ffte-6.0/zdfft2d.f   -o zdfft2d.o
 
 
 fft235.o : ffte-6.0/fft235.f kernel.o  param.h
-	$(F77) $(FFLAGS) -c ffte-6.0/fft235.f   -o fft235.o
+	$(f77) -c ffte-6.0/fft235.f   -o fft235.o
 
 
 factor.o : ffte-6.0/factor.f  param.h
-	$(F77) $(FFLAGS) -c ffte-6.0/factor.f   -o factor.o
+	$(f77) -c ffte-6.0/factor.f   -o factor.o
 
 
 kernel.o : ffte-6.0/kernel.f  param.h
-	$(F77) $(FFLAGS) -c ffte-6.0/kernel.f   -o kernel.o
+	$(f77) -c ffte-6.0/kernel.f   -o kernel.o
 
 clean:
 	rm a.out *.o  temp *deps.f *.mod *deps90.f90 
