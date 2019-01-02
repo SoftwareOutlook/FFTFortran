@@ -65,10 +65,11 @@ C
       COMPLEX*16 DA(NX,*)
       INTEGER LNX(*),LNY(*)
       INTEGER NX,NY,I,II,J
+!!$OMP PARALLEL
 C
       DN=1.0D0/(DBLE(NX)*DBLE(NY))
 C
-!$OMP DO
+!$OMP DO 
       DO 60 II=1,NX/2+1,NBLK
         DO 20 I=II,MIN0(II+NBLK-1,NX/2+1)
 !DIR$ VECTOR ALIGNED
@@ -86,6 +87,7 @@ C
    40     CONTINUE
    50   CONTINUE
    60 CONTINUE
+!$OMP END DO
       IF (MOD(NY,2) .EQ. 0) THEN
 !$OMP DO PRIVATE(TEMP)
         DO 90 J=1,NY,2
@@ -129,5 +131,6 @@ C
           DA(I,NY)=DBLE(CX(I))*DN
   140   CONTINUE
       END IF
+!!$OMP END PARALLEL
       RETURN
       END

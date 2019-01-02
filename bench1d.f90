@@ -10,16 +10,16 @@ PROGRAM commandline
 
 
 
-  INTEGER :: nargs, n1, n2, n3, nq, fftlib ! Input arguments
+  INTEGER :: nargs, n1, n2, nq, fftlib ! Input arguments
   integer :: stat ! Allocat/deallocate stat 
   integer :: flag ! Error flag
   integer :: i, j, k, l, qq, p, m ! indices
   real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
-  CHARACTER(LEN=100) :: option1, option2, option3, option4, option5 
+  CHARACTER(LEN=100) :: option1, option2, option3, option4 
   ! For reading inputs
-  real (kind=wp), allocatable :: A(:,:,:) ! Array A
-  real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
-  real (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
+  real (kind=wp), allocatable :: A(:,:) ! Array A
+  real (kind=wp), allocatable :: B(:,:,:) ! B(:,:,i) is cube B_i
+  real (kind=wp), allocatable :: C(:,:) ! C(:,:,:) is cube C_i
   real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
   real (kind=wp) :: tm1, tm2
   logical :: init, check
@@ -27,7 +27,7 @@ PROGRAM commandline
   !Read input from the command line
   !nargs = IARGC()
   nargs = COMMAND_ARGUMENT_COUNT() 
-  IF (nargs .ne. 5) THEN
+  IF (nargs .ne. 4) THEN
     goto 10
   ELSE
     CALL GET_COMMAND_ARGUMENT(1,option1) !Grab the first command line argument
@@ -36,49 +36,45 @@ PROGRAM commandline
     ! and store it in temp variable 'option2'
     CALL GET_COMMAND_ARGUMENT(3,option3) !Grab the 3rd command line argument
     ! and store it in temp variable 'option3'
-    CALL GET_COMMAND_ARGUMENT(4,option4) !Grab the 4th command line argument
-    ! and store it in temp variable 'option4'
          !  1: FFTE
          !  2: FFTW
          !  3: MKL
          !  4: P3DFFT NOT included due to fussy installation scripts
          !  5: P3DFFT++ NOT included due to poor installation instructions
-    CALL GET_COMMAND_ARGUMENT(5,option5) !Grab the 5th command line argument
-    ! and store it in temp variable 'option5'
+    CALL GET_COMMAND_ARGUMENT(4,option4) !Grab the 4th command line argument
+    ! and store it in temp variable 'option4'
 
 
     read(option1,*) n1 !Now convert string to integer
     read(option2,*) n2 !Now convert string to integer
-    read(option3,*) n3 !Now convert string to integer
-    read(option4,*) nq !Now convert string to integer
-    read(option5,*) fftlib !Now convert string to integer
+    read(option3,*) nq !Now convert string to integer
+    read(option4,*) fftlib !Now convert string to integer
     write(*,'(a,i8)') "Variable n1 = ", n1
     write(*,'(a,i8)') "Variable n2 = ", n2
-    write(*,'(a,i8)') "Variable n3 = ", n3
     write(*,'(a,i8)') "Variable nq = ", nq
     write(*,'(a,i8)') "Variable fftlib = ", fftlib
 
-    if (n1.lt.1 .or. n2.lt.1 .or. n3.lt.1 .or. nq.lt.1 .or. fftlib .lt. 1 &
-        .or. fftlib .gt. 5) then
+    if (n1.lt.1 .or. n2.lt.1 .or. nq.lt.1 .or. fftlib .lt. 1 &
+        .or. fftlib .gt. 3) then
       goto 10
     endif
 
   ENDIF
 
   ! Allocate arrays
-  allocate(A(n1,n2,n3),stat=stat)
+  allocate(A(n1,n2),stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error allocating A"
       goto 100
   end if
 
-  allocate(B(n1,n2,n3,nq),stat=stat)
+  allocate(B(n1,n2,nq),stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error allocating B"
       deallocate(A)
       goto 100
   end if
-  allocate(C(n1,n2,n3),stat=stat)
+  allocate(C(n1,n2),stat=stat)
   if (stat .ne. 0) then
       write(*, '(a)') "Error allocating C"
       deallocate(A,B)
@@ -86,14 +82,16 @@ PROGRAM commandline
   end if
 
   ! Set A
+
   if (n1.eq.1) then
     xo = real(n1,wp)
   else
     xo = 0.6*real(n1,wp)
   end if
+
   if (n2.eq.1) then
     yo = real(n2,kind=wp)
-  else 
+  else
     yo = 0.4*real(n2,wp)
   end if
   if (n3.eq.1) then
@@ -101,30 +99,26 @@ PROGRAM commandline
   else
     zo = real(n3,wp)/3.0
   end if
+
+
   a1 = 0.3*real(n1,wp)
   b1 = 0.35*real(n2,wp)
   c1 = real(n3,wp)/3.0_wp
 !$ tm1=omp_get_wtime()
   do i=1,n1
     do j=1,n2
-      do k=1,n3
-         r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2 + &
-             ((real(k,wp)-zo)/c1)**2
-         
-        ! write(*,*) i,j,k, r
-
+         r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2
          if (r .le. 1) then
-            A(i,j,k) = r
+            A(i,j) = r
          else
-            A(i,j,k) = 0.0_wp
+            A(i,j) = 0.0_wp
          end if
        !  write(*,*) i,j,k, A(i,j,k)
-      end do
     end do
   end do
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up A time=', tm2-tm1
-
+   write(*,*) A
   ! Set B
 
   
@@ -139,7 +133,6 @@ PROGRAM commandline
 !$OMP PARALLEL DO PRIVATE (j,k)
     do i=1,n1
       do j=1,n2
-        do k=1,n3
  !        s1=1.0_wp
  !        s2=1.0_wp
  !        s3=1.0_wp
@@ -161,8 +154,7 @@ PROGRAM commandline
  !        if (3*m+3 .le. nq) then
  !          B(i,j,k,3*m+3) = s1*s2*s3
  !        end if
-          B(i,j,k,qq) = real(i*j,kind=wp)/real(k*qq,kind=wp)
-        end do
+          B(i,j,qq) = real(i*j,kind=wp)/real(qq,kind=wp)
       end do
     end do
     !$OMP END PARALLEL DO
@@ -172,33 +164,34 @@ PROGRAM commandline
 
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up B time (no norm)=', tm2-tm1
+
+
+   write(*,*) B
+
+
  !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
 
   ! Normalise norm(B(i,j,k,:),2) to equal 1 
 
 
-  
 !$ tm1=omp_get_wtime()
 
-
- !$OMP PARALLEL DO PRIVATE(j,k,s1)
+ !$OMP PARALLEL DO PRIVATE(j,s1)
 
   do i=1,n1
     do j=1,n2
-      do k=1,n3
         s1=0.0_wp
         do qq=1,nq
-          s1 = s1 + (B(i,j,k,qq))**2
+          s1 = s1 + (B(i,j,qq))**2
         end do 
         s1 = s1**0.5
         if (s1 .ge. 0.00000001_wp) then
           do qq=1,nq
-            B(i,j,k,qq) = B(i,j,k,qq)/s1
+            B(i,j,qq) = B(i,j,qq)/s1
           end do 
         else
-          B(i,j,k,:) = 1.0_wp/(real(nq,kind=wp)**0.5)
+            B(i,j,:) = 1.0_wp/(real(nq,kind=wp)**0.5)
         end if
-      end do
     end do
   end do
   !$OMP END PARALLEL DO
@@ -207,6 +200,8 @@ PROGRAM commandline
 
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up B time=', tm2-tm1
+
+   write(*,*) B
 
 !   write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:)
 
@@ -219,29 +214,30 @@ PROGRAM commandline
   ! A with B(:,:,:,qq)
   do qq=1,nq
 !$  tm1=omp_get_wtime()
-!$OMP PARALLEL DO PRIVATE (j,k,s1,s2)
+!$OMP PARALLEL DO PRIVATE (j,s1,s2)
     do i=1,n1
       do j=1,n2
-        do k=1,n3
-          s1 = A(i,j,k)
-          s2 = B(i,j,k,qq)
-          C(i,j,k) = s1*s2
-       
-        end do
+          s1 = A(i,j)
+          s2 = B(i,j,qq)
+          C(i,j) = s1*s2
       end do
     end do
 !$OMP END PARALLEL DO
+
+   write(*,*) 'qq',qq
+   write(*,*) C
+
 
 
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up Cq time=', tm2-tm1
 
- !  write(*,*) 'C(n1/2,n2/2,n3/2)', C
+  ! write(*,*) 'C(n1/2,n2/2,n3/2)', C(n1/2,n2/2,n3/3)
 
     
   ! Perform FFT on each 2D slice
     check=.true.
-    call fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A=A,Bi=B(:,:,:,qq))
+    call fft_bench(n1,n2,C,fftlib,init,check,flag,A=A,Bi=B(:,:,qq))
 
   end do
   
@@ -260,24 +256,23 @@ PROGRAM commandline
 
 10  write(*,'(a)') "usage: ./bench2d.exe n1 n2 n3 nq fftlib"
     write(*,'(a)') " n1=positive integer : first dimension of cuboid"
-    write(*,'(a)') " n2=positive integer : second dimenstion of cuboid"
-    write(*,'(a)') " n3=positive integer : third dimenstion of cuboid"
+    write(*,'(a)') " n2=positive integer : second dimension of cuboid"
     write(*,'(a)') " nq=positive integer : number of multiplying cuboids"
-    write(*,'(a)') " fftlib=positive integer less than 6: FFT library to use"
+    write(*,'(a)') " fftlib=positive integer less than 4: FFT library to use"
     write(*,'(a)') "   fftlib=1: FFTE"
     write(*,'(a)') "   fftlib=2: FFTW"
     write(*,'(a)') "   fftlib=3: MKL"
-    write(*,'(a)') "   fftlib=4: P3DFFT"
-    write(*,'(a)') "   fftlib=5: P3DFFT++"
+   ! write(*,'(a)') "   fftlib=4: P3DFFT"
+   ! write(*,'(a)') "   fftlib=5: P3DFFT++"
 
 
 100 continue
 
  contains
    
-  subroutine fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A,Bi)
-    integer, intent(in) :: n1,n2,n3 ! Array dimensions
-    real (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
+  subroutine fft_bench(n1,n2,C,fftlib,init,check,flag,A,Bi)
+    integer, intent(in) :: n1,n2 ! Array dimensions
+    real (kind=wp), intent(in) :: C(n1,n2) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
          !  1: FFTE
          !  2: FFTW
@@ -289,8 +284,8 @@ PROGRAM commandline
                                  ! division by Bi and compare with A
     integer, intent(out) :: flag ! 0 : all fine
                                  ! -1: error: check is true but A or Bi missing
-    real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
-    real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
+    real(kind=wp), intent(in), optional :: A(n1,n2) ! Input array A
+    real(kind=wp), intent(in), optional :: Bi(n1,n2) ! Input array Bi
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
@@ -306,30 +301,33 @@ PROGRAM commandline
 
     type(C_PTR) :: plan, iplan
 
-    real(C_DOUBLE), dimension(n1,n2) :: in, iout
-    real(C_DOUBLE), dimension(n1,n2) :: out, iin
+    real(C_DOUBLE), dimension(n1) :: in, iout
+    real(C_DOUBLE), dimension(n1) :: out, iin
 
     flag = 0
     if (check .and. ((.not. present(A)) .or. (.not. present(Bi)))) then
       flag = -1 ! Should not be possible to reach this error flag
       goto 20
     end if
+
+    
+   write(*,*) 'benchfft'
+   write(*,*) A
+
+   write(*,*) B
+
+   write(*,*) C
+
  
-!     write(*,*) 'a',A
-!     write(*,*) 'B',B
-!     write(*,*) 'C',C
 
     select case (fftlib)
 
     case (1)
       ! FFTE
-      ! Check that n1 and n2 factorise into powers of 2, 3 and 5
-      do i=1,2
-        if (i.eq.1) then
-          ntemp = n1
-        else
-          ntemp = n2
-        end if    
+      ! Check that n1 factorises into powers of 2, 3 and 5
+    
+    
+        ntemp = n1
         do while (mod(ntemp,2).eq.0)
            ntemp = ntemp/2
         end do
@@ -343,36 +341,34 @@ PROGRAM commandline
           flag = -4
           goto 20
         end if
-      end do
+    
 
 
-      allocate(Dk(n1,n2),stat=stat)
+      allocate(Dk(n1,1),stat=stat)
       if (stat .ne. 0) then
        flag = -2
        goto 20
       end if
-      allocate(work(n1/2+1,n2),stat=stat)
+      allocate(work(n1/2+1,1),stat=stat)
       if (stat .ne. 0) then
        flag = -2
        goto 20
       end if
 
 
-      do k=1,n3
+      do k=1,n2
         ! Copy each slice into Dk
         do i=1,n1
-          do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            Dk(i,j) = cmplx(C(i,j,k),kind=wp)
+            Dk(i,1) = cmplx(C(i,k),kind=wp)
        !     write(*,*) i,j,k,Dk(i,j)
-          end do
        
        end do
-        if (init) then
-          call DZFFT2D(Dk,n1,n2,0,work)
+        if (k.eq.1) then
+          call DZFFT2D(Dk,n1,1,0,work)
         end if 
 !$   tm1 = omp_get_wtime()
-        call DZFFT2D(Dk,n1,n2,-1,work)
+        call DZFFT2D(Dk,n1,1,-1,work)
 !$   tm2 = omp_get_wtime()
         write(*,*) 'fft time=', tm2-tm1
 
@@ -383,28 +379,23 @@ PROGRAM commandline
     !      end do
     !    end do
         if (check) then
-          if (init) then
-            call ZDFFT2D(Dk,n1,n2,0,work)
+          if (k.eq.1) then
+            call ZDFFT2D(Dk,n1,1,0,work)
           end if
-          call ZDFFT2D(Dk,n1,n2,1,work)
+          call ZDFFT2D(Dk,n1,1,1,work)
 
           if (k.eq.1) then
             nrm = 0.0_wp
           end if
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error(n1,C(:,k),Dk,nrm)
 
-          if (k.eq.n3) then
+          if (k.eq.n2) then
             !nrm = sqrt(nrm)
             write(*,*) 'k, nrm^2:',k,nrm
           end if
         end if
-        
-        if (init) then
-          init = .false.
-        end if
 
       end do
-
 
       deallocate(Dk, stat=stat)
       if (stat .ne. 0) then
@@ -419,25 +410,20 @@ PROGRAM commandline
 
      case (2)
      ! FFTW
-       do k=1,n3
+       do k=1,n2
 
         if (k.eq.1) then 
            n1_4 = int(n1,kind=ip4)
-           n2_4 = int(n2,kind=ip4)
            flags = int(0,kind=ip4)
-           plan = fftw_plan_r2r_2d(n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
-
-         
+           plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
         end if 
 
 
         ! Copy each slice into in
         do i=1,n1
-          do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            in(i,j) = C(i,j,k)
+            in(i) = C(i,k)
        !     write(*,*) i,j,k,Dk(i,j)
-          end do
 
         end do
 
@@ -448,10 +434,10 @@ PROGRAM commandline
 
         if (check) then
          if (k.eq.1) then
-           iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_HC2R,&
-                   FFTW_HC2R,flags)
+           iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
+                   flags)
 
-           allocate(Dk(n1,n2),stat=stat)
+           allocate(Dk(n1,1),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
@@ -461,11 +447,9 @@ PROGRAM commandline
 
          ! Copy out into iin
          do i=1,n1
-           do j=1,n2
         !     write(*,*) 'c',i,j,k,C(i,j,k)
-             iin(i,j) = out(i,j)
+             iin(i) = out(i)
         !     write(*,*) i,j,k,Dk(i,j)
-           end do
 
         end do
 
@@ -480,18 +464,16 @@ PROGRAM commandline
 
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
-            do j=1,n2
-              Dk(i,j) = real(iout(i,j),kind=wp)/real(n1*n2,kind=wp)
-            end do
+             Dk(i,1) = real(iout(i),kind=wp)/real(n1,kind=wp)
           end do
 !$OMP END PARALLEL DO
 
 !          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
 
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error(n1,C(:,k),Dk,nrm)
 
 
-         if (k.eq.n3) then
+         if (k.eq.n2) then
 
             write(*,*) 'k, nrm^2:',k,nrm
 
@@ -509,7 +491,7 @@ PROGRAM commandline
 
 
    
-        if (k.eq.n3) then
+        if (k.eq.n2) then
            call fftw_destroy_plan(plan)
         end if
 
@@ -518,26 +500,23 @@ PROGRAM commandline
          end do
     case (3) ! MKL
 
-      do k=1,n3     
+      
+
+     do k=1,n2     
         if (k.eq.1) then
           !allocate(X_2D(2*(n1/2+1),n2),stat=stat)
           !if (stat .ne. 0) then
           !  flag = -2
           !  goto 20
           !end if
-          allocate(X(2*(n1/2+1)*n2),stat=stat)
+          allocate(X(2*(n1/2+1)),stat=stat)
           if (stat .ne. 0) then
             flag = -2
             goto 20
           end if
-          
-        end if
-          X(:) = 0.0_wp
 !             equivalence(X_2D,X)
-          
-          
           L(1) = n1
-          L(2) = n2
+          L(2) = 1
 
           strides_in(1) = 0
           strides_in(2) = 1
@@ -548,7 +527,7 @@ PROGRAM commandline
 
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
             DFTI_REAL, 2, L )
-        !  write(*,*) 'Status1', Status
+          write(*,*) 'Status1', Status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
@@ -558,52 +537,42 @@ PROGRAM commandline
 
           Status = DftiSetValue(My_Desc_Handle, DFTI_CONJUGATE_EVEN_STORAGE,&
             DFTI_COMPLEX_COMPLEX)
-        !  write(*,*) 'Status2', Status
+          write(*,*) 'Status2', Status
 
           Status = DftiSetValue(My_Desc_Handle, DFTI_INPUT_STRIDES, strides_in)
-        !  write(*,*) 'Status3', Status
+          write(*,*) 'Status3', Status
 
           Status = DftiSetValue(My_Desc_Handle, DFTI_OUTPUT_STRIDES, &
             strides_out)
-        !  write(*,*) 'Status4', Status
+          write(*,*) 'Status4', Status
 
           Status = DftiCommitDescriptor( My_Desc_Handle)
           write(*,*) 'Status5', Status
 
 
-        ! end if
+        end if
 
         ! Copy slice from C(:,:,k)
         do i=1,n1
-          do j=1,n2
-             t = 0.1**12
-             if (C(i,j,k) .lt. t) then
-                s=0.0_wp
-             else
-                s=C(i,j,k)
-             end if
+          do j=1,1
+            t = 0.1**12
+            if (C(i,k).lt. t) then
+               s = 0.0_wp
+            else
+               s = C(i,k)
+            end if
              X(i+(j-1)*2*(n1/2+1)) = s
           end do
         end do
 
-!         write(*,*) X
+
 !$      tm1 = omp_get_wtime()
-        
+
 
         Status = DftiComputeForward( My_Desc_Handle, X )
 
-          write(*,*) 'Status4', Status
-
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
 !$      tm2 = omp_get_wtime()
         write(*,*) 'fft time=', tm2-tm1
-
-!         write(*,*) X
 
         if (check) then
      
@@ -624,8 +593,9 @@ PROGRAM commandline
              flag = -2
              goto 20
            end if
-           Dk(:,:) = 0.0_wp
+Dk(:,:) = 0.0_wp
            nrm = 0.0_wp
+
           end if
 
 
@@ -633,41 +603,33 @@ PROGRAM commandline
 
           Status = DftiComputeBackward( My_Desc_Handle_Inv, X )
 
-          write(*,*) 'Status4', Status
-
 !$          tm2 = omp_get_wtime()
             write(*,*) 'ifft time=', tm2-tm1
- !           write(*,*) X
+
+
+
         ! Copy slice from X to Dk
         do i=1,n1
-          do j=1,n2
+          do j=1,1
 
-             Dk(i,j) = X(i+(j-1)*2*(n1/2+1))/real(n1*n2,kind=wp)
+Dk(i,j) = X(i+(j-1)*2*(n1/2+1))/real(n1,kind=wp)
           end do
         end do
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
-  !      write(*,*) 'nrm',nrm,k
+call check_error(n1,C(:,k),Dk,nrm)
+ !       write(*,*) 'nrm',nrm,k
 
-          if (k.eq.n3) then
-            write(*,*) 'k,nrm',k,nrm
+          if (k.eq.n2) then
+
             Status = DftiFreeDescriptor(My_Desc_Handle_Inv)
-
-           deallocate(Dk,stat=stat)
-           if (stat .ne. 0) then
-             flag = -3
-             goto 20
-           end if
-
 
           end if
 
         end if
 
-
-!        if (k.eq.n3) then
+        if (k.eq.n2) then
           Status = DftiFreeDescriptor(My_Desc_Handle)
-         if (k.eq.n3) then
-          deallocate(X,stat=stat)
+
+          deallocate(X,Dk,stat=stat)
           if (stat .ne. 0) then
             flag = -3
             goto 20
@@ -681,9 +643,6 @@ PROGRAM commandline
 
  
       end do
-
-
-
     end select
 
 
@@ -707,29 +666,25 @@ PROGRAM commandline
   end subroutine
 
 
-  subroutine check_error(n1,n2,A,C,nrm)
-    integer, intent(in) :: n1,n2 ! Array dimensions
-    real(kind=wp), intent(in) :: A(n1,n2) ! Input array A
-    complex(kind=wp), intent(in) :: C(n1,n2) ! Input array C
+  subroutine check_error(n1,A,C,nrm)
+    integer, intent(in) :: n1 ! Array dimensions
+    real(kind=wp), intent(in) :: A(n1,1) ! Input array A
+    complex(kind=wp), intent(in) :: C(n1,1) ! Input array C
     real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
     ! local variables
     integer :: i,j,k
     complex(kind=wp) :: s, t
+    write(*,*) 'nrm',nrm
 
     do i = 1,n1
-      do j= 1,n2
-        do k = 1,n3
+      do j= 1,1
           s= cmplx(A(i,j))-C(i,j)
           t = s*conjg(s)
+          write(*,*) 's,t',s,t, real(t,kind=wp)
           nrm = nrm + real(t,kind=wp)
-!          write(*,*) A(i,j), C(i,j),s,t,nrm
-        end do
       end do
     end do
-    
-
-
   end subroutine
 
 END PROGRAM commandline

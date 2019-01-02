@@ -31,8 +31,12 @@ C
 C     WRITTEN BY DAISUKE TAKAHASHI
 C
       SUBROUTINE DZFFT2D(A,NX,NY,IOPT,B)
+C$    use omp_lib
+
       IMPLICIT REAL*8 (A-H,O-Z)
       INCLUDE 'param.h'
+
+
       COMPLEX*16 A(*),B(*)
       COMPLEX*16 C((NDA2+NP)*NBLK),D(NDA2)
       COMPLEX*16 WX(NDA2),WY(NDA2)
@@ -49,7 +53,7 @@ C
         RETURN
       END IF
 C
-!!$OMP PARALLEL PRIVATE(C,D)
+!!$OMP PARALLEL PRIVATE(C,D) 
       CALL DZFFT2D0(A,A,B,C,C,D,WX,WY,NX,NY,LNX,LNY)
 !!$OMP END PARALLEL
       RETURN
@@ -65,19 +69,26 @@ C
       INTEGER  LNX(*),LNY(*), NX, NY, I, II, J
 C
       IF (MOD(NY,2) .EQ. 0) THEN
-!$OMP DO
+!!$OMP DO
         DO 30 J=1,NY,2
-          DO 10 I=1,NX
+!$OMP PARALLEL DO 
+         DO 10 I=1,NX
             CX(I)=DCMPLX(REAL(DA(I,J)),REAL(DA(I,J+1)))
    10     CONTINUE
+!$OMP END PARALLEL DO
           CALL FFT235(CX,D,WX,NX,LNX)
           B(1,J)=DBLE(CX(1))
           B(1,J+1)=DIMAG(CX(1))
+
+!$OMP PARALLEL DO
+
 !DIR$ VECTOR ALIGNED
           DO 20 I=2,NX/2+1
             B(I,J)=0.5D0*(CX(I)+DCONJG(CX(NX-I+2)))
             B(I,J+1)=(0.0D0,-0.5D0)*(CX(I)-DCONJG(CX(NX-I+2)))
    20     CONTINUE
+!$OMP END PARALLEL DO
+
    30   CONTINUE
       ELSE
 !$OMP DO
