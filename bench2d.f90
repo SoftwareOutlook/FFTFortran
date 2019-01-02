@@ -79,10 +79,7 @@ PROGRAM commandline
       goto 100
   end if
   allocate(C(n1,n2,n3),stat=stat)
-  if (stat .ne. 0) then    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
-    real(kind=wp), intent(out) :: tm_fft ! total time fft
-    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
-    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
+  if (stat .ne. 0) then   
       write(*, '(a)') "Error allocating C"
       deallocate(A,B)
       goto 100
