@@ -681,9 +681,9 @@ PROGRAM commandline
         end if
 
 
-!        if (k.eq.n3) then
+        if (k.eq.n3) then
           Status = DftiFreeDescriptor(My_Desc_Handle)
-         if (k.eq.n3) then
+!         if (k.eq.n3) then
           deallocate(X,stat=stat)
           if (stat .ne. 0) then
             flag = -3
