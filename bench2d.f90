@@ -153,10 +153,7 @@ PROGRAM commandline
  !        do qq=1,m
  !          t1 = t1*(real(j*(m+1),wp)/real(qq*n2,wp) - 1.0_wp )
  !          t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
- !        end do    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
-    real(kind=wp), intent(out) :: tm_fft ! total time fft
-    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
-    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
+ !        end do
  !        B(i,j,k,3*m+1) = s1*t1*t2
  !        if (3*m+2 .le. nq) then
  !           B(i,j,k,3*m+2) = s1*s2*t2
