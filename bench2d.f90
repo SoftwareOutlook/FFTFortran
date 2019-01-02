@@ -21,8 +21,8 @@ PROGRAM commandline
   real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
   real (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
   real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
-  real (kind=wp) :: tm1, tm2
-  logical :: init, check
+  real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
+  logical :: check
 
   !Read input from the command line
   !nargs = IARGC()
@@ -79,7 +79,10 @@ PROGRAM commandline
       goto 100
   end if
   allocate(C(n1,n2,n3),stat=stat)
-  if (stat .ne. 0) then
+  if (stat .ne. 0) then    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
+    real(kind=wp), intent(out) :: tm_fft ! total time fft
+    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
+    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
       write(*, '(a)') "Error allocating C"
       deallocate(A,B)
       goto 100
@@ -153,7 +156,10 @@ PROGRAM commandline
  !        do qq=1,m
  !          t1 = t1*(real(j*(m+1),wp)/real(qq*n2,wp) - 1.0_wp )
  !          t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
- !        end do
+ !        end do    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
+    real(kind=wp), intent(out) :: tm_fft ! total time fft
+    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
+    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
  !        B(i,j,k,3*m+1) = s1*t1*t2
  !        if (3*m+2 .le. nq) then
  !           B(i,j,k,3*m+2) = s1*s2*t2
@@ -211,9 +217,6 @@ PROGRAM commandline
 !   write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:)
 
 
-  ! Set init to true so that fft initilisation performed first
-  init = .true.
-
   ! Set-up each 2D slice and perform FFT
   ! Each slice formed in C(:,:,:) by performing element-wise multiplaction of 
   ! A with B(:,:,:,qq)
@@ -241,7 +244,9 @@ PROGRAM commandline
     
   ! Perform FFT on each 2D slice
     check=.true.
-    call fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A=A,Bi=B(:,:,:,qq))
+    call fft_bench(n1,n2,n3,C,fftlib,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft,A=A,Bi=B(:,:,:,qq))
+    write(*,*) qq,tm_fft_init,tm_fft,tm_ifft_init,tm_ifft
 
   end do
   
@@ -275,7 +280,8 @@ PROGRAM commandline
 
  contains
    
-  subroutine fft_bench(n1,n2,n3,C,fftlib,init,check,flag,A,Bi)
+  subroutine fft_bench(n1,n2,n3,C,fftlib,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft,A,Bi)
     integer, intent(in) :: n1,n2,n3 ! Array dimensions
     real (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
@@ -284,18 +290,21 @@ PROGRAM commandline
          !  3: MKL
          !  4: P3DFFT
          !  5: P3DFFT++
-    logical, intent(inout) :: init  ! Has fft routine been initialise?
     logical, intent(in) :: check ! Additionally, perform inverse, element-wise
                                  ! division by Bi and compare with A
     integer, intent(out) :: flag ! 0 : all fine
                                  ! -1: error: check is true but A or Bi missing
+    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
+    real(kind=wp), intent(out) :: tm_fft ! total time fft
+    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
+    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
     real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
     real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
     real(kind=wp), allocatable :: X_2D(:,:), X(:)
-    real(kind=wp) :: nrm,tm1,tm2
+    real(kind=wp) :: nrm,tm1,tm2, n1n2
     integer :: stat, k, i, j, iopt, ntemp
     integer(kind=4) :: n1_4,n2_4, flags
 
@@ -314,6 +323,10 @@ PROGRAM commandline
       flag = -1 ! Should not be possible to reach this error flag
       goto 20
     end if
+    tm_fft_init = 0.0_wp
+    tm_fft = 0.0_wp
+    tm_ifft_init = 0.0_wp
+    tm_ifft = 0.0_wp
  
 !     write(*,*) 'a',A
 !     write(*,*) 'B',B
@@ -363,17 +376,21 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
+!$          tm1 = omp_get_wtime()
             Dk(i,j) = cmplx(C(i,j,k),kind=wp)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
        !     write(*,*) i,j,k,Dk(i,j)
           end do
        
        end do
-        if (init) then
+        if (k.eq.1) then
           call DZFFT2D(Dk,n1,n2,0,work)
         end if 
-!$   tm1 = omp_get_wtime()
+!$      tm1 = omp_get_wtime()
         call DZFFT2D(Dk,n1,n2,-1,work)
-!$   tm2 = omp_get_wtime()
+!$      tm2 = omp_get_wtime()
+        tm_fft = tm_fft + tm2 - tm1
         write(*,*) 'fft time=', tm2-tm1
 
 
@@ -383,10 +400,16 @@ PROGRAM commandline
     !      end do
     !    end do
         if (check) then
-          if (init) then
+          if (k.eq.1) then
+!$          tm1 = omp_get_wtime()
             call ZDFFT2D(Dk,n1,n2,0,work)
+!$          tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
           end if
+!$        tm1 = omp_get_wtime()
           call ZDFFT2D(Dk,n1,n2,1,work)
+!$        tm2 = omp_get_wtime()
+          tm_ifft = tm_ifft + tm2 - tm1
 
           if (k.eq.1) then
             nrm = 0.0_wp
@@ -398,11 +421,6 @@ PROGRAM commandline
             write(*,*) 'k, nrm^2:',k,nrm
           end if
         end if
-        
-        if (init) then
-          init = .false.
-        end if
-
       end do
 
 
@@ -425,7 +443,10 @@ PROGRAM commandline
            n1_4 = int(n1,kind=ip4)
            n2_4 = int(n2,kind=ip4)
            flags = int(0,kind=ip4)
+!$          tm1 = omp_get_wtime()
            plan = fftw_plan_r2r_2d(n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
 
          
         end if 
@@ -438,18 +459,21 @@ PROGRAM commandline
             in(i,j) = C(i,j,k)
        !     write(*,*) i,j,k,Dk(i,j)
           end do
-
         end do
 
 !$   tm1 = omp_get_wtime()
         call fftw_execute_r2r(plan, in, out)
 !$   tm2 = omp_get_wtime()
         write(*,*) 'fft time=', tm2-tm1
+        tm_fft = tm_fft + tm2 - tm1
 
         if (check) then
          if (k.eq.1) then
+!$   tm1 = omp_get_wtime()
            iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_HC2R,&
                    FFTW_HC2R,flags)
+!$   tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
 
            allocate(Dk(n1,n2),stat=stat)
            if (stat .ne. 0) then
@@ -473,49 +497,42 @@ PROGRAM commandline
         call fftw_execute_r2r(iplan, iin, iout)
 !$      tm2 = omp_get_wtime()
         write(*,*) 'ifft time=', tm2-tm1
+        tm_ifft = tm_ifft + tm2 - tm1
 
           if (k.eq.1) then
             nrm = 0.0_wp
           end if
 
+          n1n2 = real(n1*n2,kind=wp)
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
             do j=1,n2
-              Dk(i,j) = real(iout(i,j),kind=wp)/real(n1*n2,kind=wp)
+              Dk(i,j) = real(iout(i,j),kind=wp)/n1n2
             end do
           end do
 !$OMP END PARALLEL DO
 
 !          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
-
           call check_error(n1,n2,C(:,:,k),Dk,nrm)
-
 
          if (k.eq.n3) then
 
             write(*,*) 'k, nrm^2:',k,nrm
-
            call fftw_destroy_plan(iplan)
            deallocate(Dk, stat=stat)
            if (stat .ne. 0) then
              flag = -3
              goto 20
-           end if
-         
+           end if         
          end if
-
-
         end if
 
-
-   
         if (k.eq.n3) then
            call fftw_destroy_plan(plan)
         end if
+      end do
 
-      
 
-         end do
     case (3) ! MKL
 
       do k=1,n3     
@@ -531,10 +548,8 @@ PROGRAM commandline
             goto 20
           end if
           
-        end if
+!        end if
           X(:) = 0.0_wp
-!             equivalence(X_2D,X)
-          
           
           L(1) = n1
           L(2) = n2
@@ -546,6 +561,7 @@ PROGRAM commandline
           strides_out(2) = 1
           strides_out(3) = n1/2+1
 
+!$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
             DFTI_REAL, 2, L )
         !  write(*,*) 'Status1', Status
@@ -568,10 +584,12 @@ PROGRAM commandline
         !  write(*,*) 'Status4', Status
 
           Status = DftiCommitDescriptor( My_Desc_Handle)
-          write(*,*) 'Status5', Status
+        !  write(*,*) 'Status5', Status
 
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
 
-        ! end if
+         end if
 
         ! Copy slice from C(:,:,k)
         do i=1,n1
@@ -592,7 +610,7 @@ PROGRAM commandline
 
         Status = DftiComputeForward( My_Desc_Handle, X )
 
-          write(*,*) 'Status4', Status
+    !      write(*,*) 'Status4', Status
 
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -602,12 +620,14 @@ PROGRAM commandline
 
 !$      tm2 = omp_get_wtime()
         write(*,*) 'fft time=', tm2-tm1
+            tm_fft = tm_fft + tm2 - tm1
 
 !         write(*,*) X
 
         if (check) then
      
           if (k.eq.1) then
+!$      tm1 = omp_get_wtime()
             Status = DftiCreateDescriptor( My_Desc_Handle_Inv, DFTI_DOUBLE,&
               DFTI_REAL, 2, L )
             Status = DftiSetValue(My_Desc_Handle_Inv,&
@@ -619,6 +639,8 @@ PROGRAM commandline
               strides_in)
             Status = DftiCommitDescriptor( My_Desc_Handle_Inv)
 
+!$      tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
            allocate(Dk(n1,n2),stat=stat)
            if (stat .ne. 0) then
              flag = -2
@@ -633,9 +655,10 @@ PROGRAM commandline
 
           Status = DftiComputeBackward( My_Desc_Handle_Inv, X )
 
-          write(*,*) 'Status4', Status
+        !  write(*,*) 'Status4', Status
 
 !$          tm2 = omp_get_wtime()
+            tm_ifft = tm_ifft + tm2 - tm1
             write(*,*) 'ifft time=', tm2-tm1
  !           write(*,*) X
         ! Copy slice from X to Dk
