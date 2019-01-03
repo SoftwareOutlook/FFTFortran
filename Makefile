@@ -6,13 +6,9 @@
 FCC = gfortran  
 #FFLAGS = -O2 -fimplicit-none  -fbounds-check -fopenmp
 MKLROOT=  /apps/intel/2017/compilers_and_libraries_2017.2.174/linux/mkl
-FFLAGS = -O2 -fbounds-check -fopenmp -std=f2003   -fdefault-integer-8 -fbacktrace -ggdb -I${MKLROOT}/include
+FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include
 
-FFLAGS77 = -O2 -fbounds-check -fopenmp
-
-
-
-
+FFLAGS77 = -O3  -fopenmp
 
 
 #f90 = g95 
@@ -50,7 +46,7 @@ bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench2d.exe  10  3 3 1 3
+	 ./bench2d.exe  256  256 256 2 2
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1d.exe
 	echo $(LIBS)
