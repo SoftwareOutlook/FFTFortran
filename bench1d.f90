@@ -21,7 +21,10 @@ PROGRAM commandline
   real (kind=wp), allocatable :: B(:,:,:) ! B(:,:,i) is cube B_i
   real (kind=wp), allocatable :: C(:,:) ! C(:,:,:) is cube C_i
   real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
-  real (kind=wp) :: tm1, tm2
+  real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
+
+  real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, tm_ifft_tot
+
   logical :: init, check
 
   !Read input from the command line
@@ -81,6 +84,13 @@ PROGRAM commandline
       goto 100
   end if
 
+  ! Initialise total times
+  tm_fft_init_tot=0.0_wp
+  tm_fft_tot=0.0_wp
+  tm_ifft_init_tot=0.0_wp
+  tm_ifft_tot=0.0_wp
+
+
   ! Set A
 
   if (n1.eq.1) then
@@ -118,55 +128,27 @@ PROGRAM commandline
   end do
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up A time=', tm2-tm1
-   write(*,*) A
+ !  write(*,*) A
   ! Set B
 
   
   m = 0
 !$ tm1=omp_get_wtime()
 
-
- ! do while (3*m+1.le.nq)
-  do qq=1,nq
-    
-!!$OMP PARALLEL DO PRIVATE (s1,s2,s3,t1,t2)
-!$OMP PARALLEL DO PRIVATE (j,k)
+!$OMP PARALLEL DO PRIVATE (j,k,qq) SHARED(n1,n2,nq,B) COLLAPSE(3)
     do i=1,n1
       do j=1,n2
- !        s1=1.0_wp
- !        s2=1.0_wp
- !        s3=1.0_wp
- !        t1=1.0_wp
- !        t2=1.0_wp
- !        do p=1,m+1
- !          s1 = s1*(real(i*(m+2),wp)/real(p*n1,wp) - 1.0_wp )
- !          s2 = s2*(real(j*(m+2),wp)/real(p*n2,wp) - 1.0_wp )
- !          s3 = s3*(real(k*(m+2),wp)/real(p*n3,wp) - 1.0_wp )
- !        end do
- !        do qq=1,m
- !          t1 = t1*(real(j*(m+1),wp)/real(qq*n2,wp) - 1.0_wp )
- !          t2 = t2*(real(k*(m+1),wp)/real(qq*n3,wp) - 1.0_wp )
- !        end do
- !        B(i,j,k,3*m+1) = s1*t1*t2
- !        if (3*m+2 .le. nq) then
- !           B(i,j,k,3*m+2) = s1*s2*t2
- !        end if
- !        if (3*m+3 .le. nq) then
- !          B(i,j,k,3*m+3) = s1*s2*s3
- !        end if
-          B(i,j,qq) = real(i*j,kind=wp)/real(qq,kind=wp)
+        do qq=1,nq
+          B(i,j,qq) = real(i*qq,kind=wp)/real(j,kind=wp)
+        end do
       end do
     end do
-    !$OMP END PARALLEL DO
+!$OMP END PARALLEL DO
 
-    m=m+1
-  end do
 
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up B time (no norm)=', tm2-tm1
 
-
-   write(*,*) B
 
 
  !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
@@ -174,34 +156,34 @@ PROGRAM commandline
   ! Normalise norm(B(i,j,k,:),2) to equal 1 
 
 
-!$ tm1=omp_get_wtime()
+!!$ tm1=omp_get_wtime()
 
- !$OMP PARALLEL DO PRIVATE(j,s1)
+! !$OMP PARALLEL DO PRIVATE(j,s1)
 
-  do i=1,n1
-    do j=1,n2
-        s1=0.0_wp
-        do qq=1,nq
-          s1 = s1 + (B(i,j,qq))**2
-        end do 
-        s1 = s1**0.5
-        if (s1 .ge. 0.00000001_wp) then
-          do qq=1,nq
-            B(i,j,qq) = B(i,j,qq)/s1
-          end do 
-        else
-            B(i,j,:) = 1.0_wp/(real(nq,kind=wp)**0.5)
-        end if
-    end do
-  end do
-  !$OMP END PARALLEL DO
+!  do i=1,n1
+!    do j=1,n2
+!        s1=0.0_wp
+!        do qq=1,nq
+!          s1 = s1 + (B(i,j,qq))**2
+!        end do 
+!        s1 = s1**0.5
+!        if (s1 .ge. 0.00000001_wp) then
+!          do qq=1,nq
+!            B(i,j,qq) = B(i,j,qq)/s1
+!          end do 
+!        else
+!            B(i,j,:) = 1.0_wp/(real(nq,kind=wp)**0.5)
+!        end if
+!    end do
+!  end do
+!  !$OMP END PARALLEL DO
 
 
 
-!$ tm2=omp_get_wtime()
-   write(*,*) 'Set-up B time=', tm2-tm1
+!!$ tm2=omp_get_wtime()
+!   write(*,*) 'Set-up B time=', tm2-tm1
 
-   write(*,*) B
+!   write(*,*) B
 
 !   write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:)
 
@@ -214,7 +196,7 @@ PROGRAM commandline
   ! A with B(:,:,:,qq)
   do qq=1,nq
 !$  tm1=omp_get_wtime()
-!$OMP PARALLEL DO PRIVATE (j,s1,s2)
+!$OMP PARALLEL DO PRIVATE (j,s1,s2) COLLAPSE(2)
     do i=1,n1
       do j=1,n2
           s1 = A(i,j)
@@ -224,8 +206,8 @@ PROGRAM commandline
     end do
 !$OMP END PARALLEL DO
 
-   write(*,*) 'qq',qq
-   write(*,*) C
+ !  write(*,*) 'qq',qq
+ !  write(*,*) C
 
 
 
@@ -237,9 +219,23 @@ PROGRAM commandline
     
   ! Perform FFT on each 2D slice
     check=.true.
-    call fft_bench(n1,n2,C,fftlib,init,check,flag,A=A,Bi=B(:,:,qq))
+    call fft_bench(n1,n2,C,fftlib,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft,A=A,Bi=B(:,:,qq))
+
+    write(*,'(a10,i8,4e10.3e2)') "Matrix",qq,tm_fft_init,tm_fft,tm_ifft_init,tm_ifft
+    tm_fft_init_tot = tm_fft_init_tot + tm_fft_init
+    tm_fft_tot = tm_fft_tot +tm_fft
+    tm_ifft_init_tot = tm_ifft_init_tot +tm_ifft_init
+    tm_ifft_tot = tm_ifft_tot +tm_ifft
 
   end do
+    tm1 = real(nq*n2,kind=wp)
+    tm2 = real(nq,kind=wp)
+!    write(*,*) tm1,tm2, tm_fft_tot, tm_ifft_tot
+    write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&
+       tm_fft_tot,tm_fft_tot/tm1,tm_ifft_init_tot/tm2,tm_ifft_tot/tm1,&
+       tm_ifft_tot
+
   
 
   
@@ -270,7 +266,8 @@ PROGRAM commandline
 
  contains
    
-  subroutine fft_bench(n1,n2,C,fftlib,init,check,flag,A,Bi)
+  subroutine fft_bench(n1,n2,C,fftlib,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft,A,Bi)
     integer, intent(in) :: n1,n2 ! Array dimensions
     real (kind=wp), intent(in) :: C(n1,n2) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
@@ -279,11 +276,14 @@ PROGRAM commandline
          !  3: MKL
          !  4: P3DFFT
          !  5: P3DFFT++
-    logical, intent(inout) :: init  ! Has fft routine been initialise?
     logical, intent(in) :: check ! Additionally, perform inverse, element-wise
                                  ! division by Bi and compare with A
     integer, intent(out) :: flag ! 0 : all fine
                                  ! -1: error: check is true but A or Bi missing
+    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
+    real(kind=wp), intent(out) :: tm_fft ! total time fft
+    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
+    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
     real(kind=wp), intent(in), optional :: A(n1,n2) ! Input array A
     real(kind=wp), intent(in), optional :: Bi(n1,n2) ! Input array Bi
 
@@ -309,14 +309,19 @@ PROGRAM commandline
       flag = -1 ! Should not be possible to reach this error flag
       goto 20
     end if
+    tm_fft_init = 0.0_wp
+    tm_fft = 0.0_wp
+    tm_ifft_init = 0.0_wp
+    tm_ifft = 0.0_wp
+
 
     
-   write(*,*) 'benchfft'
-   write(*,*) A
+!   write(*,*) 'benchfft'
+   !write(*,*) A
 
-   write(*,*) B
+!   write(*,*) B
 
-   write(*,*) C
+!   write(*,*) C
 
  
 
@@ -358,19 +363,27 @@ PROGRAM commandline
 
       do k=1,n2
         ! Copy each slice into Dk
+!$OMP PARALLEL DO 
         do i=1,n1
        !     write(*,*) 'c',i,j,k,C(i,j,k)
             Dk(i,1) = cmplx(C(i,k),kind=wp)
        !     write(*,*) i,j,k,Dk(i,j)
        
        end do
+!$OMP END PARALLEL DO
+
         if (k.eq.1) then
+!$          tm1 = omp_get_wtime()
           call DZFFT2D(Dk,n1,1,0,work)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
+
         end if 
 !$   tm1 = omp_get_wtime()
         call DZFFT2D(Dk,n1,1,-1,work)
 !$   tm2 = omp_get_wtime()
-        write(*,*) 'fft time=', tm2-tm1
+        tm_fft = tm_fft + tm2 - tm1
+!        write(*,*) 'fft time=', tm2-tm1
 
 
     !    do i=1,n1/2+1
@@ -380,9 +393,15 @@ PROGRAM commandline
     !    end do
         if (check) then
           if (k.eq.1) then
+!$          tm1 = omp_get_wtime()
             call ZDFFT2D(Dk,n1,1,0,work)
+!$          tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
           end if
+!$        tm1 = omp_get_wtime()
           call ZDFFT2D(Dk,n1,1,1,work)
+!$        tm2 = omp_get_wtime()
+          tm_ifft = tm_ifft + tm2 - tm1
 
           if (k.eq.1) then
             nrm = 0.0_wp
@@ -415,7 +434,10 @@ PROGRAM commandline
         if (k.eq.1) then 
            n1_4 = int(n1,kind=ip4)
            flags = int(0,kind=ip4)
+!$          tm1 = omp_get_wtime()
            plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
         end if 
 
 
@@ -430,12 +452,17 @@ PROGRAM commandline
 !$   tm1 = omp_get_wtime()
         call fftw_execute_r2r(plan, in, out)
 !$   tm2 = omp_get_wtime()
-        write(*,*) 'fft time=', tm2-tm1
+        tm_fft = tm_fft + tm2 - tm1
+
+!        write(*,*) 'fft time=', tm2-tm1
 
         if (check) then
          if (k.eq.1) then
+!$   tm1 = omp_get_wtime()
            iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
                    flags)
+!$   tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
 
            allocate(Dk(n1,1),stat=stat)
            if (stat .ne. 0) then
@@ -456,13 +483,14 @@ PROGRAM commandline
 !$      tm1 = omp_get_wtime()
         call fftw_execute_r2r(iplan, iin, iout)
 !$      tm2 = omp_get_wtime()
-        write(*,*) 'ifft time=', tm2-tm1
+!        write(*,*) 'ifft time=', tm2-tm1
+        tm_ifft = tm_ifft + tm2 - tm1
 
           if (k.eq.1) then
             nrm = 0.0_wp
           end if
 
-!$OMP PARALLEL DO PRIVATE(j)
+!$OMP PARALLEL DO PRIVATE(i)
           do i=1,n1
              Dk(i,1) = real(iout(i),kind=wp)/real(n1,kind=wp)
           end do
@@ -525,9 +553,10 @@ PROGRAM commandline
           strides_out(2) = 1
           strides_out(3) = n1/2+1
 
+!$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
-            DFTI_REAL, 2, L )
-          write(*,*) 'Status1', Status
+            DFTI_REAL, 1, L(1) )
+  !        write(*,*) 'Status1', Status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
@@ -537,17 +566,32 @@ PROGRAM commandline
 
           Status = DftiSetValue(My_Desc_Handle, DFTI_CONJUGATE_EVEN_STORAGE,&
             DFTI_COMPLEX_COMPLEX)
-          write(*,*) 'Status2', Status
+!          write(*,*) 'Status2', Status
 
-          Status = DftiSetValue(My_Desc_Handle, DFTI_INPUT_STRIDES, strides_in)
-          write(*,*) 'Status3', Status
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
 
-          Status = DftiSetValue(My_Desc_Handle, DFTI_OUTPUT_STRIDES, &
-            strides_out)
-          write(*,*) 'Status4', Status
+          !Status = DftiSetValue(My_Desc_Handle, DFTI_INPUT_STRIDES, strides_in)
+          !write(*,*) 'Status3', Status
+
+          !Status = DftiSetValue(My_Desc_Handle, DFTI_OUTPUT_STRIDES, &
+          !  strides_out)
+          !write(*,*) 'Status4', Status
 
           Status = DftiCommitDescriptor( My_Desc_Handle)
-          write(*,*) 'Status5', Status
+!          write(*,*) 'Status5', Status
+
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
+
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
 
 
         end if
@@ -570,23 +614,51 @@ PROGRAM commandline
 
 
         Status = DftiComputeForward( My_Desc_Handle, X )
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
 
 !$      tm2 = omp_get_wtime()
-        write(*,*) 'fft time=', tm2-tm1
+            tm_fft = tm_fft + tm2 - tm1
+!        write(*,*) 'fft time=', tm2-tm1
 
         if (check) then
      
           if (k.eq.1) then
+
+!$      tm1 = omp_get_wtime()
             Status = DftiCreateDescriptor( My_Desc_Handle_Inv, DFTI_DOUBLE,&
-              DFTI_REAL, 2, L )
+              DFTI_REAL, 1, L(1) )
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
+
             Status = DftiSetValue(My_Desc_Handle_Inv,&
               DFTI_CONJUGATE_EVEN_STORAGE,&
               DFTI_COMPLEX_COMPLEX)
-            Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_INPUT_STRIDES,&
-              strides_out)
-            Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_OUTPUT_STRIDES, &
-              strides_in)
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
+
+           ! Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_INPUT_STRIDES,&
+           !   strides_out)
+           ! Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_OUTPUT_STRIDES, &
+           !   strides_in)
             Status = DftiCommitDescriptor( My_Desc_Handle_Inv)
+          if (status .ne. 0) then
+            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
+                write(*,*) 'Error: ', DftiErrorMessage(status)
+            endif
+endif
+
+!$      tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
 
            allocate(Dk(n1,n2),stat=stat)
            if (stat .ne. 0) then
@@ -604,7 +676,9 @@ Dk(:,:) = 0.0_wp
           Status = DftiComputeBackward( My_Desc_Handle_Inv, X )
 
 !$          tm2 = omp_get_wtime()
-            write(*,*) 'ifft time=', tm2-tm1
+!            write(*,*) 'ifft time=', tm2-tm1
+
+            tm_ifft = tm_ifft + tm2 - tm1
 
 
 
@@ -619,6 +693,8 @@ call check_error(n1,C(:,k),Dk,nrm)
  !       write(*,*) 'nrm',nrm,k
 
           if (k.eq.n2) then
+
+            write(*,*) 'k,nrm',k,nrm
 
             Status = DftiFreeDescriptor(My_Desc_Handle_Inv)
 
@@ -673,18 +749,18 @@ call check_error(n1,C(:,k),Dk,nrm)
     real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
     ! local variables
-    integer :: i,j,k
+    integer :: i
     complex(kind=wp) :: s, t
-    write(*,*) 'nrm',nrm
+ !   write(*,*) 'nrm',nrm
 
+!$OMP PARALLEL DO PRIVATE(s,t) REDUCTION(+:nrm)
     do i = 1,n1
-      do j= 1,1
-          s= cmplx(A(i,j))-C(i,j)
+          s= cmplx(A(i,1))-C(i,1)
           t = s*conjg(s)
-          write(*,*) 's,t',s,t, real(t,kind=wp)
+!          write(*,*) 's,t',s,t, real(t,kind=wp)
           nrm = nrm + real(t,kind=wp)
-      end do
     end do
+!$OMP END PARALLEL DO
   end subroutine
 
 END PROGRAM commandline

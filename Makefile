@@ -39,7 +39,7 @@ dtdeps90=
 ffteparam= ffte-6.0/param.h
 
 
-all:  bench2d
+all:  bench1d
 
 
 bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o

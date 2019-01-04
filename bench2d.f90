@@ -145,11 +145,11 @@ PROGRAM commandline
 
     
 
-!$OMP PARALLEL PRIVATE (j,k,nthreads,qq) &
+!$OMP PARALLEL PRIVATE (i,j,k,qq) &
 !$OMP SHARED (n1,n2,n3,B,nq)
 !  nthreads = omp_get_num_threads()
 !  write(*,*) 'nthreads',nthreads
-!$OMP DO SCHEDULE(STATIC)
+!$OMP DO COLLAPSE(4)
     do i=1,n1
       do j=1,n2
         do k=1,n3
@@ -246,7 +246,7 @@ PROGRAM commandline
     tm_ifft_tot = tm_ifft_tot +tm_ifft
 
   end do
-    tm1 = real(nq*n3,kind=wp) 
+        tm1 = real(3q*n3,kind=wp) 
     tm2 = real(nq,kind=wp)
 !    write(*,*) tm1,tm2, tm_fft_tot, tm_ifft_tot
     write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&
@@ -375,16 +375,16 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-!$          tm1 = omp_get_wtime()
             Dk(i,j) = cmplx(C(i,j,k),kind=wp)
-!$          tm2 = omp_get_wtime()
-            tm_fft_init = tm_fft_init + tm2 - tm1
        !     write(*,*) i,j,k,Dk(i,j)
           end do
        
        end do
         if (k.eq.1) then
+!$          tm1 = omp_get_wtime()
           call DZFFT2D(Dk,n1,n2,0,work)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
         end if 
 !$      tm1 = omp_get_wtime()
         call DZFFT2D(Dk,n1,n2,-1,work)
@@ -728,6 +728,7 @@ PROGRAM commandline
         !  write(*,*) 'Status4', Status
 
 !$          tm2 = omp_get_wtime()
+
             tm_ifft = tm_ifft + tm2 - tm1
     !        write(*,*) 'ifft time=', tm2-tm1
  !           write(*,*) X
