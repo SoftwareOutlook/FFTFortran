@@ -126,9 +126,9 @@ PROGRAM commandline
         ! write(*,*) i,j,k, r
 
          if (r .le. 1) then
-            A(i,j,k) = r
+            A(i,j,k) = r + 0.5_wp
          else
-            A(i,j,k) = 0.0_wp
+            A(i,j,k) = 0.5_wp
          end if
        !  write(*,*) i,j,k, A(i,j,k)
       end do
@@ -246,7 +246,8 @@ PROGRAM commandline
     tm_ifft_tot = tm_ifft_tot +tm_ifft
 
   end do
-        tm1 = real(3q*n3,kind=wp) 
+  
+    tm1 = real(nq*n3,kind=wp) 
     tm2 = real(nq,kind=wp)
 !    write(*,*) tm1,tm2, tm_fft_tot, tm_ifft_tot
     write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&

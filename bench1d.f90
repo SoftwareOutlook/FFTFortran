@@ -119,9 +119,9 @@ PROGRAM commandline
     do j=1,n2
          r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2
          if (r .le. 1) then
-            A(i,j) = r
+            A(i,j) = r + 0.5_wp
          else
-            A(i,j) = 0.0_wp
+            A(i,j) = 0.5_wp
          end if
        !  write(*,*) i,j,k, A(i,j,k)
     end do
