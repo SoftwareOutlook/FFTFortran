@@ -64,9 +64,7 @@ half-complex format, then $z$ will be a real vector.
 
 \section{1D Benchmark}
 Let $A$ be a 2D array with dimensions $n_1\times n_2$ and there be $q$ 
-2D arrays $B_i$ that are the same size as $A$ and satisfy 
-$\sum_i^q \left[B_i(j,k)  \right]^2 = 1$ for each $j=1,\ldots,n_1$ and 
-$k=1,\ldots,n_2.$  The general benchmark will take the form of 
+2D arrays $B_i$ that are the same size as $A.$  The general benchmark will take the form of 
 Algorithm~\ref{Alg:1D}, where $comp\_mult(A,B_i)$ is defined to be 
 component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
 is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
@@ -106,7 +104,7 @@ discrete inverse Fast Fourier Transform.
 
 \STATE $J_i = comp\_div(H_i,B_i) $
 
-\STATE $abs\_err = \norm{A-J_i}_2$
+\STATE $abs\_err_i = \norm{A-J_i}_2$
 
 \ENDIF
 
@@ -119,9 +117,7 @@ discrete inverse Fast Fourier Transform.
 
 \section{2D Benchmark}
 Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
-3D arrays $B_i$ that are the same size as $A$ and satisfy 
-$\sum_i^q \left[B_i(j,k,l)  \right]^2 = 1$ for each $j=1,\ldots,n_1,$ 
-$k=1,\ldots,n_2$ and $l=1,\ldots,n_3.$  The benchmark will take the form of 
+3D arrays $B_i$ that are the same size as $A.$  The benchmark will take the form of 
 Algorithm~\ref{Alg:2D}, where $comp\_mult(A,B_i)$ is defined to be 
 component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
 is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
@@ -162,7 +158,7 @@ some of the workload done in CCP\_PETMR's SIRF code.
 
 \STATE $J_i = comp\_div(H_i,B_i) $
 
-\STATE $abs\_err = \norm{A-J_i}_2$
+\STATE $abs\_err_i = \norm{A-J_i}_2$
 
 \ENDIF
 
@@ -175,17 +171,15 @@ some of the workload done in CCP\_PETMR's SIRF code.
 
 \section{3D Benchmark}
 Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
-3D arrays $B_i$ that are the same size as $A$ and satisfy 
-$\sum_i^q \left[B_i(j,k,l)  \right]^2 = 1$ for each $j=1,\ldots,n_1,$ 
-$k=1,\ldots,n_2$ and $l=1,\ldots,n_3.$  The benchmark will take the form of 
-Algorithm~\ref{Alg:2D}, where $comp\_mult(A,B_i)$ is defined to be 
+3D arrays $B_i$ that are the same size as $A.$  The benchmark will take the form of 
+Algorithm~\ref{Alg:3D}, where $comp\_mult(A,B_i)$ is defined to be 
 component-wise multiplication of $A$ with $B_i;$  $comp\_div(H_i,B_i)$ 
 is defined to be component-wise division of $H_i$ by $B_i;$ $\texttt{FFT}$ 
 is the discrete Fast Fourier Transform and $\texttt{IFFT}$ is the 
 discrete inverse Fast Fourier Transform. 
 
 
-\begin{algorithm}\caption{2D Benchmark}\label{Alg:2D}
+\begin{algorithm}\caption{3D Benchmark}\label{Alg:3D}
 \noindent \hrulefill
 
 \begin{algorithmic}
@@ -205,7 +199,7 @@ discrete inverse Fast Fourier Transform.
 
 \STATE $J_i = comp\_div(H_i,B_i) $
 
-\STATE $abs\_err = \norm{A-J_i}_2$
+\STATE $abs\_err_i = \norm{A-J_i}_2$
 
 \ENDIF
 
