@@ -141,7 +141,7 @@ PROGRAM commandline
       do j=1,n2
         do qq=1,nq
           s1 = real(i*qq,kind=wp)/real(j,kind=wp)
-          B(i,j,qq) = cmplx(s1,-0.5_wp*s1))          
+          B(i,j,qq) = cmplx(s1,-0.5_wp*s1)          
         end do
       end do
     end do
@@ -289,8 +289,9 @@ PROGRAM commandline
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
-    real(kind=wp), allocatable :: X(:)
+    complex(kind=wp), allocatable :: X(:)
     real(kind=wp) :: nrm,tm1,tm2
+    complex(kind=wp) :: t1,s
     integer :: stat, k, i, j, iopt, ntemp
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
@@ -439,7 +440,7 @@ PROGRAM commandline
           !  flag = -2
           !  goto 20
           !end if
-          allocate(X(n1)),stat=stat)
+          allocate(X(n1),stat=stat)
           if (stat .ne. 0) then
             flag = -2
             goto 20
@@ -451,8 +452,8 @@ PROGRAM commandline
 
 !$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
-            DFTI_COMPLEX, 1, L(1) )
-  !        write(*,*) 'Status1', Status
+            DFTI_COMPLEX, 1, n1 )
+        !  write(*,*) 'Status1', Status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
@@ -463,7 +464,7 @@ PROGRAM commandline
   
 
           Status = DftiCommitDescriptor( My_Desc_Handle)
-!          write(*,*) 'Status5', Status
+        !  write(*,*) 'Status5', Status
 
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -491,9 +492,13 @@ endif
 
 
 !$      tm1 = omp_get_wtime()
-
+      !  write(*,*) X
 
         Status = DftiComputeForward( My_Desc_Handle, X )
+                                                
+       ! write(*,*) X
+
+      !  write(*,*) 'stat',status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
@@ -528,7 +533,7 @@ endif
 !$      tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-           allocate(Dk(n1),stat=stat)
+           allocate(Dk(n1,1),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
@@ -547,6 +552,8 @@ Dk(:,:) = 0.0_wp
 !            write(*,*) 'ifft time=', tm2-tm1
 
             tm_ifft = tm_ifft + tm2 - tm1
+                                                
+        !    write(*,*) X
 
 
 
@@ -556,6 +563,9 @@ Dk(:,:) = 0.0_wp
 
             Dk(i,1) = X(i)/s
         end do
+       ! write(*,*) Dk
+       ! write(*,*) C(:,k)
+
         call check_error(n1,C(:,k),Dk,nrm)
  !       write(*,*) 'nrm',nrm,k
 
@@ -630,8 +640,8 @@ Dk(:,:) = 0.0_wp
 
     type(C_PTR) :: plan, iplan
 
-    real(C_DOUBLE), dimension(n1) :: in, iout
-    real(C_DOUBLE), dimension(n1) :: out, iin
+    complex(C_DOUBLE), dimension(n1) :: in, iout
+    complex(C_DOUBLE), dimension(n1) :: out, iin
 
     flag = 0
 
@@ -647,7 +657,7 @@ Dk(:,:) = 0.0_wp
            n1_4 = int(n1,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_1d(n1_4, in,out,FFTW_FORWARD,flags)
+           plan = fftw_plan_dft_1d(n1_4, in,out,FFTW_FORWARD,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
         end if 
@@ -763,7 +773,7 @@ Dk(:,:) = 0.0_wp
 
   subroutine check_error(n1,A,C,nrm)
     integer, intent(in) :: n1 ! Array dimensions
-    real(kind=wp), intent(in) :: A(n1,1) ! Input array A
+    complex(kind=wp), intent(in) :: A(n1,1) ! Input array A
     complex(kind=wp), intent(in) :: C(n1,1) ! Input array C
     real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
@@ -776,7 +786,7 @@ Dk(:,:) = 0.0_wp
     do i = 1,n1
           s= A(i,1)-C(i,1)
           t = s*conjg(s)
-!          write(*,*) 's,t',s,t, real(t,kind=wp)
+        !  write(*,*) 's,t',s,t, real(t,kind=wp)
           nrm = nrm + real(t,kind=wp)
     end do
 !$OMP END PARALLEL DO
