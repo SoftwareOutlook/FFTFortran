@@ -304,17 +304,12 @@ PROGRAM commandline
     real(kind=wp), allocatable :: X_2D(:,:), X(:)
     real(kind=wp) :: nrm,tm1,tm2, n1n2
     integer :: stat, k, i, j, iopt, ntemp
-    integer(kind=4) :: n1_4,n2_4, flags
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
     integer :: strides_in(3)
     integer :: strides_out(3)
 
-    type(C_PTR) :: plan, iplan
-
-    real(C_DOUBLE), dimension(n1,n2) :: in, iout
-    real(C_DOUBLE), dimension(n1,n2) :: out, iin
 
     flag = 0
     tm_fft_init = 0.0_wp

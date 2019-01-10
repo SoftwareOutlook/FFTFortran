@@ -17,10 +17,11 @@ PROGRAM commandline
   real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
   CHARACTER(LEN=100) :: option1, option2, option3, option4, option5 
   ! For reading inputs
-  real (kind=wp), allocatable :: A(:,:,:) ! Array A
-  real (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
-  real (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
-  real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
+  complex (kind=wp), allocatable :: A(:,:,:) ! Array A
+  complex (kind=wp), allocatable :: B(:,:,:,:) ! B(:,:,:,i) is cuboid B_i
+  complex (kind=wp), allocatable :: C(:,:,:) ! C(:,:,:) is cuboid C_i
+  real (kind=wp) :: s1,s2 ! used to define B
+  complex (kind=wp) :: t1,t2 ! used to define C
   real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
           
   real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, tm_ifft_tot
@@ -126,9 +127,9 @@ PROGRAM commandline
         ! write(*,*) i,j,k, r
 
          if (r .le. 1) then
-            A(i,j,k) = r + 0.5_wp
+            A(i,j,k) = complex(r + 0.5_wp,-2.0_wp*r + 0.5_wp)
          else
-            A(i,j,k) = 0.5_wp
+            A(i,j,k) = complex(0.5_wp,-1.5_wp)
          end if
        !  write(*,*) i,j,k, A(i,j,k)
       end do
@@ -154,8 +155,9 @@ PROGRAM commandline
       do j=1,n2
         do k=1,n3
           do qq=1,nq
-          B(i,j,k,qq) = (real(i*qq,kind=wp)/real(j*k,kind=wp))
-
+            s1 = (real(i*qq,kind=wp)/real(j*k,kind=wp))
+            s2 = -0.5*s1
+            B(i,j,k,qq) = complex(s1,s2)
           end do
         end do
       end do
@@ -167,47 +169,6 @@ PROGRAM commandline
    write(*,*) 'Set-up B time (no norm)=', tm2-tm1
  !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
 
-  ! Normalise norm(B(i,j,k,:),2) to equal 1 
-
-
-  
-!!$ tm1=omp_get_wtime()
-
-
-!!$OMP PARALLEL PRIVATE(j,k,s1,qq) SHARED(n1,n2,n3,nq,B)
-
-!!$OMP DO SCHEDULE(STATIC)
-!  do i=1,n1
-   ! nthreads = omp_get_thread_num()
-   ! write(*,*) "thread_num",nthreads   
-!    do j=1,n2
-!      do k=1,n3
-!        s1=0.0_wp
-!        do qq=1,nq
-!          s1 = s1 + (B(i,j,k,qq))**2
-!        end do 
-!        s1 = s1**0.5
-!        if (s1 .ge. 0.00000001_wp) then
-!          do qq=1,nq
-!            B(i,j,k,qq) = B(i,j,k,qq)/s1
-!          end do 
-!        else
-!          do qq=1,nq
-!            B(i,j,k,qq) = 1.0_wp/(real(nq,kind=wp)**0.5)
-!          end do
-!        end if
-!      end do
-!    end do
-!  end do
-!!$OMP END DO
-!!$OMP END PARALLEL
-
-
-
-!!$ tm2=omp_get_wtime()
-!   write(*,*) 'Set-up B time=', tm2-tm1
-
-!   write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:)
 
 
   ! Set-up each 2D slice and perform FFT
@@ -219,9 +180,9 @@ PROGRAM commandline
     do i=1,n1
       do j=1,n2
         do k=1,n3
-          s1 = A(i,j,k)
-          s2 = B(i,j,k,qq)
-          C(i,j,k) = s1*s2
+          t1 = A(i,j,k)
+          t2 = B(i,j,k,qq)
+          C(i,j,k) = t1*t2
        
         end do
       end do
@@ -283,7 +244,7 @@ PROGRAM commandline
   subroutine fft_bench(n1,n2,n3,C,fftlib,check,flag,tm_fft_init,tm_fft,&
        tm_ifft_init,tm_ifft)
     integer, intent(in) :: n1,n2,n3 ! Array dimensions
-    real (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
+    complex (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
          !  1: FFTE
          !  2: FFTW
@@ -301,20 +262,15 @@ PROGRAM commandline
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
-    real(kind=wp), allocatable :: X_2D(:,:), X(:)
+    complex(kind=wp), allocatable :: X_2D(:,:), X(:)
     real(kind=wp) :: nrm,tm1,tm2, n1n2
     integer :: stat, k, i, j, iopt, ntemp
-    integer(kind=4) :: n1_4,n2_4, flags
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
     integer :: strides_in(3)
     integer :: strides_out(3)
 
-    type(C_PTR) :: plan, iplan
-
-    real(C_DOUBLE), dimension(n1,n2) :: in, iout
-    real(C_DOUBLE), dimension(n1,n2) :: out, iin
 
     flag = 0
     tm_fft_init = 0.0_wp
@@ -369,19 +325,19 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            Dk(i,j) = cmplx(C(i,j,k),kind=wp)
+            Dk(i,j) = C(i,j,k)
        !     write(*,*) i,j,k,Dk(i,j)
           end do
        
        end do
         if (k.eq.1) then
 !$          tm1 = omp_get_wtime()
-          call DZFFT2D(Dk,n1,n2,0,work)
+          call ZFFT2D(Dk,n1,n2,0,work)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
         end if 
 !$      tm1 = omp_get_wtime()
-        call DZFFT2D(Dk,n1,n2,-1,work)
+        call ZFFT2D(Dk,n1,n2,-1,work)
 !$      tm2 = omp_get_wtime()
         tm_fft = tm_fft + tm2 - tm1
 !        write(*,*) 'fft time=', tm2-tm1
@@ -395,12 +351,12 @@ PROGRAM commandline
         if (check) then
           if (k.eq.1) then
 !$          tm1 = omp_get_wtime()
-            call ZDFFT2D(Dk,n1,n2,0,work)
+        !    call ZDFFT2D(Dk,n1,n2,0,work)
 !$          tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
           end if
 !$        tm1 = omp_get_wtime()
-          call ZDFFT2D(Dk,n1,n2,1,work)
+          call ZFFT2D(Dk,n1,n2,1,work)
 !$        tm2 = omp_get_wtime()
           tm_ifft = tm_ifft + tm2 - tm1
 
@@ -441,33 +397,21 @@ PROGRAM commandline
 
       do k=1,n3     
         if (k.eq.1) then
-          !allocate(X_2D(2*(n1/2+1),n2),stat=stat)
-          !if (stat .ne. 0) then
-          !  flag = -2
-          !  goto 20
-          !end if
-          allocate(X(2*(n1/2+1)*n2),stat=stat)
+          allocate(X(n1*n2),stat=stat)
           if (stat .ne. 0) then
             flag = -2
             goto 20
           end if
           
-!        end if
           X(:) = 0.0_wp
           
           L(1) = n1
           L(2) = n2
 
-          strides_in(1) = 0
-          strides_in(2) = 1
-          strides_in(3) = 2*(n1/2+1)
-          strides_out(1) = 0
-          strides_out(2) = 1
-          strides_out(3) = n1/2+1
 
 !$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
-            DFTI_REAL, 2, L )
+            DFTI_COMPLEX, 2, L )
         !  write(*,*) 'Status1', Status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -476,35 +420,6 @@ PROGRAM commandline
            endif 
 
 
-          Status = DftiSetValue(My_Desc_Handle, DFTI_CONJUGATE_EVEN_STORAGE,&
-            DFTI_COMPLEX_COMPLEX)                                           
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
-        !  write(*,*) 'Status2', Status
-
-          Status = DftiSetValue(My_Desc_Handle, DFTI_INPUT_STRIDES, strides_in)                                         
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
-        !  write(*,*) 'Status3', Status
-
-          Status = DftiSetValue(My_Desc_Handle, DFTI_OUTPUT_STRIDES, &
-            strides_out)
-                                           
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
-        !  write(*,*) 'Status4', Status
 
           Status = DftiCommitDescriptor( My_Desc_Handle)
         !  write(*,*) 'Status5', Status
@@ -547,11 +462,6 @@ PROGRAM commandline
 
     !      write(*,*) 'Status4', Status
 
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
 
 !$      tm2 = omp_get_wtime()
    !     write(*,*) 'fft time=', tm2-tm1
@@ -572,33 +482,6 @@ PROGRAM commandline
             endif
            endif
 
-            Status = DftiSetValue(My_Desc_Handle_Inv,&
-              DFTI_CONJUGATE_EVEN_STORAGE,&
-              DFTI_COMPLEX_COMPLEX)
-                                           
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
-            Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_INPUT_STRIDES,&
-              strides_out)
-                                           
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
-
-            Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_OUTPUT_STRIDES, &
-              strides_in)
-                                           
-          if (status .ne. 0) then
-            if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-            endif
-           endif
 
             Status = DftiCommitDescriptor( My_Desc_Handle_Inv)
                                            
@@ -722,7 +605,7 @@ PROGRAM commandline
   subroutine fft_bench_fftw(n1,n2,n3,C,check,flag,tm_fft_init,tm_fft,&
        tm_ifft_init,tm_ifft)
     integer, intent(in) :: n1,n2,n3 ! Array dimensions
-    real (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
+    complex (kind=wp), intent(in) :: C(n1,n2,n3) ! Input array 
     logical, intent(in) :: check ! Additionally, perform inverse, element-wise
                                  ! division by Bi and compare with A
     integer, intent(out) :: flag ! 0 : all fine
@@ -741,8 +624,8 @@ PROGRAM commandline
 
     type(C_PTR) :: plan, iplan
 
-    real(C_DOUBLE), dimension(n1,n2) :: in, iout
-    real(C_DOUBLE), dimension(n1,n2) :: out, iin
+    complex(C_DOUBLE), dimension(n1,n2) :: in, iout
+    complex(C_DOUBLE), dimension(n1,n2) :: out, iin
 
     flag = 0
     tm_fft_init = 0.0_wp
@@ -757,7 +640,7 @@ PROGRAM commandline
            n2_4 = int(n2,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_r2r_2d(n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
+           plan = fftw_plan_dft_2d(n2_4,n1_4, in,out,FFTW_FORWARD)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
 
@@ -775,7 +658,7 @@ PROGRAM commandline
         end do
 
 !$   tm1 = omp_get_wtime()
-        call fftw_execute_r2r(plan, in, out)
+        call fftw_execute_dft(plan, in, out)
 !$   tm2 = omp_get_wtime()
  !       write(*,*) 'fft time=', tm2-tm1
         tm_fft = tm_fft + tm2 - tm1
@@ -783,8 +666,7 @@ PROGRAM commandline
         if (check) then
          if (k.eq.1) then
 !$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_HC2R,&
-                   FFTW_HC2R,flags)
+           iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD)
 !$   tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
@@ -820,7 +702,7 @@ PROGRAM commandline
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
             do j=1,n2
-              Dk(i,j) = real(iout(i,j),kind=wp)/n1n2
+              Dk(i,j) = iout(i,j)/n1n2
             end do
           end do
 !$OMP END PARALLEL DO
@@ -863,7 +745,7 @@ PROGRAM commandline
 
   subroutine check_error(n1,n2,A,C,nrm)
     integer, intent(in) :: n1,n2 ! Array dimensions
-    real(kind=wp), intent(in) :: A(n1,n2) ! Input array A
+    complex(kind=wp), intent(in) :: A(n1,n2) ! Input array A
     complex(kind=wp), intent(in) :: C(n1,n2) ! Input array C
     real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
@@ -873,7 +755,7 @@ PROGRAM commandline
 !$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(2)
     do i = 1,n1
       do j= 1,n2
-          s= cmplx(A(i,j))-C(i,j)
+          s = A(i,j)-C(i,j)
           t = s*conjg(s)
           nrm = nrm + real(t,kind=wp)
 !          write(*,*) A(i,j), C(i,j),s,t,nrm
