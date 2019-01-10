@@ -153,8 +153,7 @@ PROGRAM commandline
 
  !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
 
-  ! Normalise norm(B(i,j,k,:
-),2) to equal 1 
+  ! Normalise norm(B(i,j,k,:),2) to equal 1 
 
 
 !!$ tm1=omp_get_wtime()
