@@ -126,10 +126,10 @@ PROGRAM commandline
          
         ! write(*,*) i,j,k, r
 
-         if (r .le. 1) then
-            A(i,j,k) = complex(r + 0.5_wp,-2.0_wp*r + 0.5_wp)
+         if (r .le. 1.0_wp) then
+            A(i,j,k) = cmplx(r + 0.5_wp,-2.0_wp*r + 0.5_wp)
          else
-            A(i,j,k) = complex(0.5_wp,-1.5_wp)
+            A(i,j,k) = cmplx(0.5_wp,-1.5_wp)
          end if
        !  write(*,*) i,j,k, A(i,j,k)
       end do
@@ -157,7 +157,7 @@ PROGRAM commandline
           do qq=1,nq
             s1 = (real(i*qq,kind=wp)/real(j*k,kind=wp))
             s2 = -0.5*s1
-            B(i,j,k,qq) = complex(s1,s2)
+            B(i,j,k,qq) = cmplx(s1,s2)
           end do
         end do
       end do
@@ -439,12 +439,13 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
              t = 0.1**12
-             if (C(i,j,k) .lt. t) then
+             t1 = C(i,j,k)
+             if (real(t1*conjg(t1),kind=wp) .lt. t) then
                 s=0.0_wp
              else
                 s=C(i,j,k)
              end if
-             X(i+(j-1)*2*(n1/2+1)) = s
+             X(i+(j-1)*n1) = s
           end do
         end do
 
@@ -524,7 +525,7 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
 
-             Dk(i,j) = X(i+(j-1)*2*(n1/2+1))/real(n1*n2,kind=wp)
+             Dk(i,j) = X(i+(j-1)*n1)/real(n1*n2,kind=wp)
           end do
         end do
           call check_error(n1,n2,C(:,:,k),Dk,nrm)
@@ -640,7 +641,7 @@ PROGRAM commandline
            n2_4 = int(n2,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_dft_2d(n2_4,n1_4, in,out,FFTW_FORWARD)
+           plan = fftw_plan_dft_2d(n2_4,n1_4, in,out,FFTW_FORWARD,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
 
@@ -666,7 +667,7 @@ PROGRAM commandline
         if (check) then
          if (k.eq.1) then
 !$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD)
+           iplan = fftw_plan_dft_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD,flags)
 !$   tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
@@ -689,7 +690,7 @@ PROGRAM commandline
         end do
 
 !$      tm1 = omp_get_wtime()
-        call fftw_execute_r2r(iplan, iin, iout)
+        call fftw_execute_dft(iplan, iin, iout)
 !$      tm2 = omp_get_wtime()
   !      write(*,*) 'ifft time=', tm2-tm1
         tm_ifft = tm_ifft + tm2 - tm1

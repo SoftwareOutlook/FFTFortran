@@ -2,7 +2,7 @@
 
 FCC = gfortran  
 FFLAGS77 = -O3  -fopenmp
-FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include 
+FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
 
 #FCC = mpif90
@@ -40,7 +40,7 @@ dtdeps90=
 ffteparam= ffte-6.0/param.h
 
 
-all:  bench2d
+all:  bench2dc
 
 
 bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
@@ -50,10 +50,10 @@ bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	 ./bench2d.exe  256  256 256 2 2
 
 bench2dc:   mkl_dfti.o bench2dc.o zfft2d.o fft235.o factor.o kernel.o
-         $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
+	 $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2dc.exe
 	echo $(LIBS)
-        echo $(OMP_NUM_THREADS)
-         ./bench2dc.exe  256  256 256 2 2
+	echo $(OMP_NUM_THREADS)
+	./bench2dc.exe  256  256 256 2 2
 
 
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
@@ -89,7 +89,7 @@ ddeps90.o:	ddeps90.f90
 	$(f90) -c ddeps90.f90
 
 bench2dc.o:      bench2dc.f90
-        $(f90) -c bench2dc.f90
+	$(f90) -c bench2dc.f90
 
 bench2d.o:	bench2d.f90
 	$(f90) -c bench2d.f90
