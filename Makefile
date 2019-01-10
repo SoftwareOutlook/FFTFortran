@@ -4,11 +4,15 @@
 #f90 = g95 -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
 
 FCC = gfortran  
-#FFLAGS = -O2 -fimplicit-none  -fbounds-check -fopenmp
-MKLROOT=  /apps/intel/2017/compilers_and_libraries_2017.2.174/linux/mkl
-FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include
-
 FFLAGS77 = -O3  -fopenmp
+FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include 
+
+
+#FCC = mpif90
+#FFLAGS = -O3 -qopenmp -integer-size 64 -I${MKLROOT}/include 
+#FFLAGS77 = -O3  -qopenmp
+
+MKLROOT=  /apps/intel/2017/compilers_and_libraries_2017.2.174/linux/mkl
 
 
 #f90 = g95 
