@@ -238,7 +238,7 @@ PROGRAM commandline
   ! Perform FFT on each 2D slice
     check=.true.
     call fft_bench(n1,n2,n3,C,fftlib,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft,A=A,Bi=B(:,:,:,qq))
+       tm_ifft_init,tm_ifft)
     write(*,'(a10,i8,4e10.3e2)') "Matrix",qq,tm_fft_init,tm_fft,tm_ifft_init,tm_ifft
     tm_fft_init_tot = tm_fft_init_tot + tm_fft_init
     tm_fft_tot = tm_fft_tot +tm_fft
@@ -298,8 +298,6 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_fft ! total time fft
     real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
-    real(kind=wp), intent(in), optional :: A(n1,n2,n3) ! Input array A
-    real(kind=wp), intent(in), optional :: Bi(n1,n2,n3) ! Input array Bi
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
@@ -365,17 +363,6 @@ PROGRAM commandline
        flag = -2
        goto 20
       end if
-! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
-    real(kind=wp), allocatable :: X_2D(:,:), X(:)
-    real(kind=wp) :: nrm,tm1,tm2, n1n2
-    integer :: stat, k, i, j, iopt, ntemp
-
-    type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
-    integer :: Status, L(2)
-    integer :: strides_in(3)
-    integer :: strides_out(3)
-
 
       do k=1,n3
         ! Copy each slice into Dk
@@ -857,6 +844,19 @@ PROGRAM commandline
            call fftw_destroy_plan(plan)
         end if
     end do
+
+    return
+
+20  select case (flag)
+    case (-2)
+       write(*,'(a)') "Allocation error"
+    case (-3)
+       write(*,'(a)') "Deallocation error"
+    case (-4)
+       write(*,'(a)') "n1 and n2 must be factorisable into powers of 2, 3 and 5"
+       
+
+    end select
 
   end subroutine
 
