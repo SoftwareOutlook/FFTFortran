@@ -1,7 +1,4 @@
-#f90= nagfor -dcfuns -C=all -C=undefined -gline -f95 
-# ifort not available on fox
-#f90= ifort -C -check noarg_temp_created -u
-#f90 = g95 -fintrinsic-extensions -std=f2003  -Wimplicit-none -ftrace=full
+
 
 FCC = gfortran  
 FFLAGS77 = -O3  -fopenmp
@@ -51,6 +48,14 @@ bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
 	 ./bench2d.exe  256  256 256 2 2
+
+bench2dc:   mkl_dfti.o bench2dc.o zfft2d.o fft235.o factor.o kernel.o
+         $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
+	echo $(LIBS)
+        echo $(OMP_NUM_THREADS)
+         ./bench2dc.exe  256  256 256 2 2
+
+
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1d.exe
 	echo $(LIBS)
@@ -83,6 +88,8 @@ ddeps.o:	ddeps.f
 ddeps90.o:	ddeps90.f90
 	$(f90) -c ddeps90.f90
 
+bench2dc.o:      bench2dc.f90
+        $(f90) -c bench2dc.f90
 
 bench2d.o:	bench2d.f90
 	$(f90) -c bench2d.f90
@@ -101,6 +108,10 @@ dzfft2d.o : ffte-6.0/dzfft2d.f fft235.o factor.o param.h
 
 zdfft2d.o : ffte-6.0/zdfft2d.f fft235.o factor.o param.h
 	$(f77) -c ffte-6.0/zdfft2d.f   -o zdfft2d.o
+
+
+zfft2d.o : ffte-6.0/zfft2d.f fft235.o factor.o param.h
+	$(f77) -c ffte-6.0/zfft2d.f   -o zfft2d.o
 
 
 fft235.o : ffte-6.0/fft235.f kernel.o  param.h
