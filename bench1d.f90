@@ -153,7 +153,8 @@ PROGRAM commandline
 
  !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
 
-  ! Normalise norm(B(i,j,k,:),2) to equal 1 
+  ! Normalise norm(B(i,j,k,:
+),2) to equal 1 
 
 
 !!$ tm1=omp_get_wtime()
@@ -220,7 +221,7 @@ PROGRAM commandline
   ! Perform FFT on each 2D slice
     check=.true.
     call fft_bench(n1,n2,C,fftlib,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft,A=A,Bi=B(:,:,qq))
+       tm_ifft_init,tm_ifft)
 
     write(*,'(a10,i8,4e10.3e2)') "Matrix",qq,tm_fft_init,tm_fft,tm_ifft_init,tm_ifft
     tm_fft_init_tot = tm_fft_init_tot + tm_fft_init
@@ -267,7 +268,7 @@ PROGRAM commandline
  contains
    
   subroutine fft_bench(n1,n2,C,fftlib,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft,A,Bi)
+       tm_ifft_init,tm_ifft)
     integer, intent(in) :: n1,n2 ! Array dimensions
     real (kind=wp), intent(in) :: C(n1,n2) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
@@ -284,31 +285,21 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_fft ! total time fft
     real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
-    real(kind=wp), intent(in), optional :: A(n1,n2) ! Input array A
-    real(kind=wp), intent(in), optional :: Bi(n1,n2) ! Input array Bi
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
     real(kind=wp), allocatable :: X_2D(:,:), X(:)
     real(kind=wp) :: nrm,tm1,tm2
     integer :: stat, k, i, j, iopt, ntemp
-    integer(kind=4) :: n1_4,n2_4, flags
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
     integer :: strides_in(3)
     integer :: strides_out(3)
 
-    type(C_PTR) :: plan, iplan
-
-    real(C_DOUBLE), dimension(n1) :: in, iout
-    real(C_DOUBLE), dimension(n1) :: out, iin
 
     flag = 0
-    if (check .and. ((.not. present(A)) .or. (.not. present(Bi)))) then
-      flag = -1 ! Should not be possible to reach this error flag
-      goto 20
-    end if
+
     tm_fft_init = 0.0_wp
     tm_fft = 0.0_wp
     tm_ifft_init = 0.0_wp
@@ -338,6 +329,7 @@ PROGRAM commandline
         end do
         do while (mod(ntemp,3).eq.0)
            ntemp = ntemp/3
+
         end do 
         do while (mod(ntemp,5).eq.0)
            ntemp = ntemp/5
@@ -369,6 +361,7 @@ PROGRAM commandline
             Dk(i,1) = cmplx(C(i,k),kind=wp)
        !     write(*,*) i,j,k,Dk(i,j)
        
+
        end do
 !$OMP END PARALLEL DO
 
@@ -429,103 +422,11 @@ PROGRAM commandline
 
      case (2)
      ! FFTW
-       do k=1,n2
 
-        if (k.eq.1) then 
-           n1_4 = int(n1,kind=ip4)
-           flags = int(0,kind=ip4)
-!$          tm1 = omp_get_wtime()
-           plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
-!$          tm2 = omp_get_wtime()
-            tm_fft_init = tm_fft_init + tm2 - tm1
-        end if 
+      call fft_bench_fftw(n1,n2,C,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft)
 
 
-        ! Copy each slice into in
-        do i=1,n1
-       !     write(*,*) 'c',i,j,k,C(i,j,k)
-            in(i) = C(i,k)
-       !     write(*,*) i,j,k,Dk(i,j)
-
-        end do
-
-!$   tm1 = omp_get_wtime()
-        call fftw_execute_r2r(plan, in, out)
-!$   tm2 = omp_get_wtime()
-        tm_fft = tm_fft + tm2 - tm1
-
-!        write(*,*) 'fft time=', tm2-tm1
-
-        if (check) then
-         if (k.eq.1) then
-!$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
-                   flags)
-!$   tm2 = omp_get_wtime()
-            tm_ifft_init = tm_ifft_init + tm2 - tm1
-
-           allocate(Dk(n1,1),stat=stat)
-           if (stat .ne. 0) then
-             flag = -2
-             goto 20
-           end if
-
-         end if
-
-         ! Copy out into iin
-         do i=1,n1
-        !     write(*,*) 'c',i,j,k,C(i,j,k)
-             iin(i) = out(i)
-        !     write(*,*) i,j,k,Dk(i,j)
-
-        end do
-
-!$      tm1 = omp_get_wtime()
-        call fftw_execute_r2r(iplan, iin, iout)
-!$      tm2 = omp_get_wtime()
-!        write(*,*) 'ifft time=', tm2-tm1
-        tm_ifft = tm_ifft + tm2 - tm1
-
-          if (k.eq.1) then
-            nrm = 0.0_wp
-          end if
-
-!$OMP PARALLEL DO PRIVATE(i)
-          do i=1,n1
-             Dk(i,1) = real(iout(i),kind=wp)/real(n1,kind=wp)
-          end do
-!$OMP END PARALLEL DO
-
-!          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
-
-          call check_error(n1,C(:,k),Dk,nrm)
-
-
-         if (k.eq.n2) then
-
-            write(*,*) 'k, nrm^2:',k,nrm
-
-           call fftw_destroy_plan(iplan)
-           deallocate(Dk, stat=stat)
-           if (stat .ne. 0) then
-             flag = -3
-             goto 20
-           end if
-         
-         end if
-
-
-        end if
-
-
-   
-        if (k.eq.n2) then
-           call fftw_destroy_plan(plan)
-        end if
-
-      
-
-         end do
     case (3) ! MKL
 
       
@@ -720,6 +621,158 @@ call check_error(n1,C(:,k),Dk,nrm)
  
       end do
     end select
+
+
+    return
+
+20  select case (flag)
+    case (-1)
+       write(*,'(a)') "Error check requested  but either A or Bi missing"
+       ! should never be possible to reach this error
+    case (-2)
+       write(*,'(a)') "Allocation error"
+    case (-3)
+       write(*,'(a)') "Deallocation error"
+    case (-4)
+       write(*,'(a)') "n1 and n2 must be factorisable into powers of 2, 3 and 5"
+       
+
+    end select
+
+
+  end subroutine
+
+  subroutine fft_bench_fftw(n1,n2,C,check,flag,tm_fft_init,tm_fft,&
+       tm_ifft_init,tm_ifft)
+    integer, intent(in) :: n1,n2 ! Array dimensions
+    real (kind=wp), intent(in) :: C(n1,n2) ! Input array 
+    logical, intent(in) :: check ! Additionally, perform inverse, element-wise
+                                 ! division by Bi and compare with A
+    integer, intent(out) :: flag ! 0 : all fine
+                                 ! -1: error: check is true but A or Bi missing
+    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
+    real(kind=wp), intent(out) :: tm_fft ! total time fft
+    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
+    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
+
+    ! Local variables and arrays
+    complex(kind=wp), allocatable :: Dk(:,:)
+    real(kind=wp) :: nrm,tm1,tm2
+    integer :: stat, k, i, j, iopt, ntemp
+    integer(kind=4) :: n1_4,n2_4, flags
+
+
+    type(C_PTR) :: plan, iplan
+
+    real(C_DOUBLE), dimension(n1) :: in, iout
+    real(C_DOUBLE), dimension(n1) :: out, iin
+
+    flag = 0
+
+    tm_fft_init = 0.0_wp
+    tm_fft = 0.0_wp
+    tm_ifft_init = 0.0_wp
+    tm_ifft = 0.0_wp
+
+
+       do k=1,n2
+
+        if (k.eq.1) then 
+           n1_4 = int(n1,kind=ip4)
+           flags = int(0,kind=ip4)
+!$          tm1 = omp_get_wtime()
+           plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
+!$          tm2 = omp_get_wtime()
+            tm_fft_init = tm_fft_init + tm2 - tm1
+        end if 
+
+
+        ! Copy each slice into in
+        do i=1,n1
+       !     write(*,*) 'c',i,j,k,C(i,j,k)
+            in(i) = C(i,k)
+       !     write(*,*) i,j,k,Dk(i,j)
+
+        end do
+
+!$   tm1 = omp_get_wtime()
+        call fftw_execute_r2r(plan, in, out)
+!$   tm2 = omp_get_wtime()
+        tm_fft = tm_fft + tm2 - tm1
+
+!        write(*,*) 'fft time=', tm2-tm1
+
+        if (check) then
+         if (k.eq.1) then
+!$   tm1 = omp_get_wtime()
+           iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
+                   flags)
+!$   tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
+
+           allocate(Dk(n1,1),stat=stat)
+           if (stat .ne. 0) then
+             flag = -2
+             goto 20
+           end if
+
+         end if
+
+         ! Copy out into iin
+         do i=1,n1
+        !     write(*,*) 'c',i,j,k,C(i,j,k)
+             iin(i) = out(i)
+        !     write(*,*) i,j,k,Dk(i,j)
+
+        end do
+
+!$      tm1 = omp_get_wtime()
+        call fftw_execute_r2r(iplan, iin, iout)
+!$      tm2 = omp_get_wtime()
+!        write(*,*) 'ifft time=', tm2-tm1
+        tm_ifft = tm_ifft + tm2 - tm1
+
+          if (k.eq.1) then
+            nrm = 0.0_wp
+          end if
+
+!$OMP PARALLEL DO PRIVATE(i)
+          do i=1,n1
+             Dk(i,1) = real(iout(i),kind=wp)/real(n1,kind=wp)
+          end do
+!$OMP END PARALLEL DO
+
+!          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
+
+          call check_error(n1,C(:,k),Dk,nrm)
+
+
+         if (k.eq.n2) then
+
+            write(*,*) 'k, nrm^2:',k,nrm
+
+           call fftw_destroy_plan(iplan)
+           deallocate(Dk, stat=stat)
+           if (stat .ne. 0) then
+             flag = -3
+             goto 20
+           end if
+         
+         end if
+
+
+        end if
+
+
+   
+        if (k.eq.n2) then
+           call fftw_destroy_plan(plan)
+        end if
+
+      
+
+         end do
+
 
 
     return
