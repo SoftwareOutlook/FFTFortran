@@ -13,8 +13,8 @@ PROGRAM commandline
   INTEGER :: nargs, n1, n2, nq, fftlib ! Input arguments
   integer :: stat ! Allocat/deallocate stat 
   integer :: flag ! Error flag
-  integer :: i, j, k, l, qq, p, m ! indices
-  real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
+  integer :: i, j, k, qq, m ! indices
+  real(kind=wp) :: xo, yo, a1, b1, r  ! Used in definition of ellipsoid
   CHARACTER(LEN=100) :: option1, option2, option3, option4 
   ! For reading inputs
   complex (kind=wp), allocatable :: A(:,:) ! Array A
@@ -105,24 +105,24 @@ PROGRAM commandline
   else
     yo = 0.4*real(n2,wp)
   end if
-  if (n3.eq.1) then
-    zo = real(n3,wp)
-  else
-    zo = real(n3,wp)/3.0
-  end if
+!  if (n3.eq.1) then
+!    zo = real(n3,wp)
+!  else
+!    zo = real(n3,wp)/3.0
+!  end if
 
 
   a1 = 0.3*real(n1,wp)
   b1 = 0.35*real(n2,wp)
-  c1 = real(n3,wp)/3.0_wp
+!  c1 = real(n3,wp)/3.0_wp
 !$ tm1=omp_get_wtime()
   do i=1,n1
     do j=1,n2
          r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2
          if (r .le. 1) then
-            A(i,j) = cmplx(r + 0.5_wp,-2.0_wp*r+0.5_wp)
+            A(i,j) = cmplx(r + 0.5_wp,-2.0_wp*r+0.5_wp,kind=wp)
          else
-            A(i,j) = cmplx(0.5_wp,-1.5_wp)
+            A(i,j) = cmplx(0.5_wp,-1.5_wp,kind=wp)
          end if
        !  write(*,*) i,j,k, A(i,j,k)
     end do
@@ -141,7 +141,7 @@ PROGRAM commandline
       do j=1,n2
         do qq=1,nq
           s1 = real(i*qq,kind=wp)/real(j,kind=wp)
-          B(i,j,qq) = cmplx(s1,-0.5_wp*s1)          
+          B(i,j,qq) = cmplx(s1,-0.5_wp*s1,kind=wp)          
         end do
       end do
     end do
@@ -290,14 +290,12 @@ PROGRAM commandline
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
     complex(kind=wp), allocatable :: X(:)
-    real(kind=wp) :: nrm,tm1,tm2
+    real(kind=wp) :: nrm,tm1,tm2, t
     complex(kind=wp) :: t1,s
-    integer :: stat, k, i, j, iopt, ntemp
+    integer :: stat, k, i, ntemp
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
-    integer :: strides_in(3)
-    integer :: strides_out(3)
 
 
     flag = 0
@@ -634,8 +632,8 @@ Dk(:,:) = 0.0_wp
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:)
     real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, j, iopt, ntemp
-    integer(kind=4) :: n1_4,n2_4, flags
+    integer :: stat, k, i
+    integer(kind=4) :: n1_4, flags
 
 
     type(C_PTR) :: plan, iplan
@@ -649,19 +647,28 @@ Dk(:,:) = 0.0_wp
     tm_fft = 0.0_wp
     tm_ifft_init = 0.0_wp
     tm_ifft = 0.0_wp
+      n1_4 = int(n1,kind=ip4)
+      flags = int(0,kind=ip4)
+!$    tm1 = omp_get_wtime()
+      plan = fftw_plan_dft_1d(n1_4, in,out,FFTW_FORWARD,flags)
+!$    tm2 = omp_get_wtime()
+      tm_fft_init = tm_fft_init + tm2 - tm1
 
+      if (check) then
+!$   tm1 = omp_get_wtime()
+           iplan = fftw_plan_dft_1d(n1_4, iin,iout,FFTW_BACKWARD,&
+                   flags)
+!$   tm2 = omp_get_wtime()
+            tm_ifft_init = tm_ifft_init + tm2 - tm1
+
+           allocate(Dk(n1,1),stat=stat)
+           if (stat .ne. 0) then
+             flag = -2
+             goto 20
+           end if
+      end if
 
        do k=1,n2
-
-        if (k.eq.1) then 
-           n1_4 = int(n1,kind=ip4)
-           flags = int(0,kind=ip4)
-!$          tm1 = omp_get_wtime()
-           plan = fftw_plan_dft_1d(n1_4, in,out,FFTW_FORWARD,flags)
-!$          tm2 = omp_get_wtime()
-            tm_fft_init = tm_fft_init + tm2 - tm1
-        end if 
-
 
         ! Copy each slice into in
         do i=1,n1
@@ -679,20 +686,6 @@ Dk(:,:) = 0.0_wp
 !        write(*,*) 'fft time=', tm2-tm1
 
         if (check) then
-         if (k.eq.1) then
-!$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_dft_1d(n1_4, iin,iout,FFTW_BACKWARD,&
-                   flags)
-!$   tm2 = omp_get_wtime()
-            tm_ifft_init = tm_ifft_init + tm2 - tm1
-
-           allocate(Dk(n1,1),stat=stat)
-           if (stat .ne. 0) then
-             flag = -2
-             goto 20
-           end if
-
-         end if
 
          ! Copy out into iin
          do i=1,n1

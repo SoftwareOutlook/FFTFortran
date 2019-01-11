@@ -2,7 +2,7 @@
 
 FCC = gfortran  
 FFLAGS77 = -O3  -fopenmp
-FFLAGS = -O3  -fopenmp -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
+FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
 
 #FCC = mpif90
@@ -40,7 +40,7 @@ dtdeps90=
 ffteparam= ffte-6.0/param.h
 
 
-all:  bench1dc
+all:  bench2dc
 
 
 bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o

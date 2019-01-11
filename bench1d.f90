@@ -13,14 +13,14 @@ PROGRAM commandline
   INTEGER :: nargs, n1, n2, nq, fftlib ! Input arguments
   integer :: stat ! Allocat/deallocate stat 
   integer :: flag ! Error flag
-  integer :: i, j, k, l, qq, p, m ! indices
-  real(kind=wp) :: xo, yo, zo, a1, b1, c1, r  ! Used in definition of ellipsoid
+  integer :: i, j, k, qq, m ! indices
+  real(kind=wp) :: xo, yo, a1, b1, r  ! Used in definition of ellipsoid
   CHARACTER(LEN=100) :: option1, option2, option3, option4 
   ! For reading inputs
   real (kind=wp), allocatable :: A(:,:) ! Array A
   real (kind=wp), allocatable :: B(:,:,:) ! B(:,:,i) is cube B_i
   real (kind=wp), allocatable :: C(:,:) ! C(:,:,:) is cube C_i
-  real (kind=wp) :: s1,s2,s3,t1,t2 ! used to define B
+  real (kind=wp) :: s1,s2 ! used to define B
   real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
 
   real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, tm_ifft_tot
@@ -104,16 +104,11 @@ PROGRAM commandline
   else
     yo = 0.4*real(n2,wp)
   end if
-  if (n3.eq.1) then
-    zo = real(n3,wp)
-  else
-    zo = real(n3,wp)/3.0
-  end if
 
 
   a1 = 0.3*real(n1,wp)
   b1 = 0.35*real(n2,wp)
-  c1 = real(n3,wp)/3.0_wp
+
 !$ tm1=omp_get_wtime()
   do i=1,n1
     do j=1,n2
@@ -287,9 +282,9 @@ PROGRAM commandline
 
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
-    real(kind=wp), allocatable :: X_2D(:,:), X(:)
-    real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, j, iopt, ntemp
+    real(kind=wp), allocatable :: X(:)
+    real(kind=wp) :: nrm,tm1,tm2,s,t
+    integer :: stat, k, i, j, ntemp
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
@@ -657,8 +652,8 @@ call check_error(n1,C(:,k),Dk,nrm)
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:)
     real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, j, iopt, ntemp
-    integer(kind=4) :: n1_4,n2_4, flags
+    integer :: stat, k, i
+    integer(kind=4) :: n1_4, flags
 
 
     type(C_PTR) :: plan, iplan
@@ -674,16 +669,32 @@ call check_error(n1,C(:,k),Dk,nrm)
     tm_ifft = 0.0_wp
 
 
-       do k=1,n2
-
-        if (k.eq.1) then 
            n1_4 = int(n1,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
            plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
-        end if 
+
+       if (check) then
+
+!$   tm1 = omp_get_wtime()
+           iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
+                   flags)
+!$   tm2 = omp_get_wtime()
+    
+           tm_ifft_init = tm_ifft_init + tm2 - tm1
+
+           allocate(Dk(n1,1),stat=stat)
+           if (stat .ne. 0) then
+             flag = -2
+             goto 20
+           end if
+
+
+       end if
+
+       do k=1,n2
 
 
         ! Copy each slice into in
@@ -702,20 +713,6 @@ call check_error(n1,C(:,k),Dk,nrm)
 !        write(*,*) 'fft time=', tm2-tm1
 
         if (check) then
-         if (k.eq.1) then
-!$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_r2r_1d(n1_4, iin,iout,FFTW_HC2R,&
-                   flags)
-!$   tm2 = omp_get_wtime()
-            tm_ifft_init = tm_ifft_init + tm2 - tm1
-
-           allocate(Dk(n1,1),stat=stat)
-           if (stat .ne. 0) then
-             flag = -2
-             goto 20
-           end if
-
-         end if
 
          ! Copy out into iin
          do i=1,n1
@@ -807,7 +804,8 @@ call check_error(n1,C(:,k),Dk,nrm)
 
 !$OMP PARALLEL DO PRIVATE(s,t) REDUCTION(+:nrm)
     do i = 1,n1
-          s= cmplx(A(i,1))-C(i,1)
+
+          s= cmplx(A(i,1),kind=wp)-C(i,1)
           t = s*conjg(s)
 !          write(*,*) 's,t',s,t, real(t,kind=wp)
           nrm = nrm + real(t,kind=wp)
