@@ -299,7 +299,7 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
+    complex(kind=wp), allocatable :: Dk1(:,:,:), Dk(:,:), work(:,:,:)
     real(kind=wp), allocatable :: X(:)
     real(kind=wp) :: nrm,tm1,tm2, t, s1
     integer :: stat, k, i, j, ntemp
@@ -347,12 +347,12 @@ PROGRAM commandline
       end do
 
 
-      allocate(Dk(n1,n2),stat=stat)
+      allocate(Dk1(n1,n2,n3),stat=stat)
       if (stat .ne. 0) then
        flag = -2
        goto 20
       end if
-      allocate(work(n1/2+1,n2),stat=stat)
+      allocate(work(n1/2+1,n2,n3),stat=stat)
       if (stat .ne. 0) then
        flag = -2
        goto 20
@@ -363,19 +363,20 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            Dk(i,j) = cmplx(C(i,j,k),kind=wp)
+            Dk(i,j,k) = cmplx(C(i,j,k),kind=wp)
        !     write(*,*) i,j,k,Dk(i,j)
           end do
        
        end do
-        if (k.eq.1) then
+      end do
+
 !$          tm1 = omp_get_wtime()
-          call DZFFT2D(Dk,n1,n2,0,work)
+          call DZFFT3D(Dk,n1,n2,n3,0,work)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
-        end if 
+ 
 !$      tm1 = omp_get_wtime()
-        call DZFFT2D(Dk,n1,n2,-1,work)
+        call DZFFT3D(Dk,n1,n2,n3,-1,work)
 !$      tm2 = omp_get_wtime()
         tm_fft = tm_fft + tm2 - tm1
 !        write(*,*) 'fft time=', tm2-tm1
@@ -387,31 +388,27 @@ PROGRAM commandline
     !      end do
     !    end do
         if (check) then
-          if (k.eq.1) then
+
 !$          tm1 = omp_get_wtime()
-            call ZDFFT2D(Dk,n1,n2,0,work)
+            call ZDFFT3D(Dk,n1,n2,n3,0,work)
 !$          tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
-          end if
+
 !$        tm1 = omp_get_wtime()
-          call ZDFFT2D(Dk,n1,n2,1,work)
+          call ZDFFT3D(Dk,n1,n2,n3,1,work)
 !$        tm2 = omp_get_wtime()
           tm_ifft = tm_ifft + tm2 - tm1
+          nrm = 0.0_wp
 
-          if (k.eq.1) then
-            nrm = 0.0_wp
-          end if
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk,nrm)
 
-          if (k.eq.n3) then
+ 
             !nrm = sqrt(nrm)
             write(*,*) 'k, nrm^2:',k,nrm
-          end if
+
         end if
-      end do
 
-
-      deallocate(Dk, stat=stat)
+      deallocate(Dk1, stat=stat)
       if (stat .ne. 0) then
        flag = -3
        goto 20
@@ -854,6 +851,32 @@ endif
 
   end subroutine
 
+
+  subroutine check_error_3d(n1,n2,n3,A,C,nrm)
+    integer, intent(in) :: n1,n2,n3 ! Array dimensions
+    real(kind=wp), intent(in) :: A(n1,n2,n3) ! Input array A
+    complex(kind=wp), intent(in) :: C(n1,n2,n3) ! Input array C
+    real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
+
+    ! local variables
+    integer :: i,j,k
+    complex(kind=wp) :: s, t
+!$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(3)
+    do i = 1,n1
+      do j= 1,n2
+        do k = 1,n3
+          s= cmplx(A(i,j,k),kind=wp)-C(i,j,k)
+          t = s*conjg(s)
+          nrm = nrm + real(t,kind=wp)
+!          write(*,*) A(i,j), C(i,j),s,t,nrm
+        end do
+      end do
+    end do
+!$OMP END PARALLEL DO
+    
+
+
+  end subroutine
 
   subroutine check_error(n1,n2,A,C,nrm)
     integer, intent(in) :: n1,n2 ! Array dimensions
