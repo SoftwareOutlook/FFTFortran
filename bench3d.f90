@@ -305,9 +305,9 @@ PROGRAM commandline
     integer :: stat, k, i, j, ntemp
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
-    integer :: Status, L(2)
-    integer :: strides_in(3)
-    integer :: strides_out(3)
+    integer :: Status, L(3)
+    integer :: strides_in(4)
+    integer :: strides_out(4)
 
 
     flag = 0
@@ -430,7 +430,7 @@ PROGRAM commandline
 
     case (3) ! MKL
 
-          allocate(X(2*(n1/2+1)*n2),stat=stat)
+          allocate(X(2*(n1/2+1)*n2*n3),stat=stat)
           if (stat .ne. 0) then
             flag = -2
             goto 20
@@ -441,13 +441,16 @@ PROGRAM commandline
 
           L(1) = n1
           L(2) = n2
+          L(3) = n3
 
           strides_in(1) = 0
           strides_in(2) = 1
           strides_in(3) = 2*(n1/2+1)
+          strides_in(4) = 2*(n1/2+1)*n2
           strides_out(1) = 0
           strides_out(2) = 1
           strides_out(3) = n1/2+1
+          strides_out(4) = (n1/2+1)*n2
 
 !$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
@@ -474,7 +477,7 @@ PROGRAM commandline
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
             endif
-endif
+          endif
 
         !  write(*,*) 'Status3', Status
 
@@ -521,7 +524,7 @@ endif
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
             endif
-endif
+          endif
 
             Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_INPUT_STRIDES,&
               strides_out)
@@ -530,7 +533,7 @@ endif
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
                 write(*,*) 'Error: ', DftiErrorMessage(status)
             endif
-endif
+          endif
 
             Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_OUTPUT_STRIDES, &
               strides_in)
@@ -551,7 +554,7 @@ endif
 
 !$      tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
-           allocate(Dk(n1,n2),stat=stat)
+           allocate(Dk1(n1,n2,n3),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
@@ -575,9 +578,10 @@ endif
              else
                 s1=C(i,j,k)
              end if
-             X(i+(j-1)*2*(n1/2+1)) = s1
+             X(i+(j-1)*strides_in(3) + (k-1)*strides_in(4)) = s1
           end do
         end do
+       end do
 
 !         write(*,*) X
 !$      tm1 = omp_get_wtime()
@@ -629,14 +633,17 @@ endif
         ! Copy slice from X to Dk
         do i=1,n1
           do j=1,n2
+            do k=1,n3
 
-             Dk(i,j) = X(i+(j-1)*2*(n1/2+1))/real(n1*n2,kind=wp)
+             Dk1(i,j,k) = X(i+(j-1)*strides_in(3)+(k-1)*strides_in(4))/ &
+                 real(n1*n2*n2,kind=wp)
+            end do
           end do
         end do
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk1,nrm)
   !      write(*,*) 'nrm',nrm,k
 
-          if (k.eq.n3) then
+         ! if (k.eq.n3) then
             write(*,*) 'k,nrm',k,nrm
             Status = DftiFreeDescriptor(My_Desc_Handle_Inv)
                                            
@@ -646,19 +653,19 @@ endif
             endif
            endif
 
-           deallocate(Dk,stat=stat)
+           deallocate(Dk1,stat=stat)
            if (stat .ne. 0) then
              flag = -3
              goto 20
            end if
 
 
-          end if
+         ! end if
 
         end if
 
 
-        if (k.eq.n3) then
+       ! if (k.eq.n3) then
           Status = DftiFreeDescriptor(My_Desc_Handle)
                                            
           if (status .ne. 0) then
@@ -666,7 +673,6 @@ endif
                 write(*,*) 'Error: ', DftiErrorMessage(status)
             endif
            endif
-
 
 !         if (k.eq.n3) then
           deallocate(X,stat=stat)
@@ -679,10 +685,10 @@ endif
  !         if (stat .ne. 0) then
  !           flag = -3
  !           goto 20
-          end if
+  !        end if
 
  
-      end do
+    !  end do
 
 
 
@@ -722,16 +728,16 @@ endif
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
       ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:)
+    complex(kind=wp), allocatable :: Dk(:,:,:)
     real(kind=wp) :: nrm,tm1,tm2, n1n2
     integer :: stat, k, i, j
-    integer(kind=4) :: n1_4,n2_4, flags
+    integer(kind=4) :: n1_4,n2_4,n3_4, flags
 
 
     type(C_PTR) :: plan, iplan
 
-    real(C_DOUBLE), dimension(n1,n2) :: in, iout
-    real(C_DOUBLE), dimension(n1,n2) :: out, iin
+    real(C_DOUBLE), dimension(n1,n2,n3) :: in, iout
+    real(C_DOUBLE), dimension(n1,n2,n3) :: out, iin
 
     flag = 0
     tm_fft_init = 0.0_wp
@@ -742,21 +748,22 @@ endif
 
            n1_4 = int(n1,kind=ip4)
            n2_4 = int(n2,kind=ip4)
+           n3_4 = int(n3,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_r2r_2d(n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
+           plan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
 
     if (check) then
 
 !$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_r2r_2d(n2_4,n1_4, iin,iout,FFTW_HC2R,&
+           iplan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, iin,iout,FFTW_HC2R,&
                    FFTW_HC2R,flags)
 !$   tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-           allocate(Dk(n1,n2),stat=stat)
+           allocate(Dk(n1,n2,n3),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
@@ -774,10 +781,11 @@ endif
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            in(i,j) = C(i,j,k)
+            in(i,j,k) = C(i,j,k)
        !     write(*,*) i,j,k,Dk(i,j)
           end do
         end do
+    end do
 
 !$   tm1 = omp_get_wtime()
         call fftw_execute_r2r(plan, in, out)
@@ -790,9 +798,11 @@ endif
          ! Copy out into iin
          do i=1,n1
            do j=1,n2
+            do k=1,n3
         !     write(*,*) 'c',i,j,k,C(i,j,k)
-             iin(i,j) = out(i,j)
+             iin(i,j,k) = out(i,j,k)
         !     write(*,*) i,j,k,Dk(i,j)
+            end do
            end do
 
         end do
@@ -803,23 +813,25 @@ endif
   !      write(*,*) 'ifft time=', tm2-tm1
         tm_ifft = tm_ifft + tm2 - tm1
 
-          if (k.eq.1) then
+       !   if (k.eq.1) then
             nrm = 0.0_wp
-          end if
+     !     end if
 
-          n1n2 = real(n1*n2,kind=wp)
+          n1n2 = real(n1*n2*n3,kind=wp)
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
             do j=1,n2
-              Dk(i,j) = real(iout(i,j),kind=wp)/n1n2
+             do k=1,n3
+              Dk(i,j,k) = real(iout(i,j,k),kind=wp)/n1n2
+             end do
             end do
           end do
 !$OMP END PARALLEL DO
 
 !          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk,nrm)
 
-         if (k.eq.n3) then
+   !      if (k.eq.n3) then
 
             write(*,*) 'k, nrm^2:',k,nrm
            call fftw_destroy_plan(iplan)
@@ -828,13 +840,13 @@ endif
              flag = -3
              goto 20
            end if         
-         end if
+    !     end if
         end if
 
-        if (k.eq.n3) then
+    !    if (k.eq.n3) then
            call fftw_destroy_plan(plan)
-        end if
-    end do
+     !   end if
+   ! end do
 
     return
 
