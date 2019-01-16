@@ -69,10 +69,10 @@ bench1dc:   mkl_dfti.o bench1dc.o zfft2d.o fft235.o factor.o kernel.o
 	./bench1dc.exe  7  1 1 3
 
 bench3d:   mkl_dfti.o bench3d.o dzfft3d.o zdfft3d.o fft235.o factor.o kernel.o
-	 $(f90) bench3d.o mkl_dfti.o dzfft3d.o zdfft23.o fft235.o factor.o kernel.o $(LIBS) -o bench3d.exe
+	 $(f90) bench3d.o mkl_dfti.o dzfft3d.o zdfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench3d.exe  256  256 256 2 1
+	 ./bench3d.exe  3  3 2 2 1
 
 bench3dc:   mkl_dfti.o bench3dc.o zfft3d.o fft235.o factor.o kernel.o
 	 $(f90) bench3dc.o mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3dc.exe
@@ -142,15 +142,15 @@ zfft2d.o : ffte-6.0/zfft2d.f fft235.o factor.o param.h
 
 
 dzfft3d.o : ffte-6.0/dzfft3d.f fft235.o factor.o param.h
-	$(f77) -c ffte-6.0/dzfft3d.f   -o dzfft2d.o
+	$(f77) -c ffte-6.0/dzfft3d.f   -o dzfft3d.o
 
 
 zdfft3d.o : ffte-6.0/zdfft3d.f fft235.o factor.o param.h
-	$(f77) -c ffte-6.0/zdfft3d.f   -o zdfft2d.o
+	$(f77) -c ffte-6.0/zdfft3d.f   -o zdfft3d.o
 
 
 zfft3d.o : ffte-6.0/zfft3d.f fft235.o factor.o param.h
-	$(f77) -c ffte-6.0/zfft3d.f   -o zfft2d.o
+	$(f77) -c ffte-6.0/zfft3d.f   -o zfft3d.o
 
 
 fft235.o : ffte-6.0/fft235.f kernel.o  param.h

@@ -299,7 +299,7 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk1(:,:,:), Dk(:,:), work(:,:,:)
+    complex(kind=wp), allocatable :: Dk1(:,:,:), work(:,:,:)
     real(kind=wp), allocatable :: X(:)
     real(kind=wp) :: nrm,tm1,tm2, t, s1
     integer :: stat, k, i, j, ntemp
@@ -362,45 +362,50 @@ PROGRAM commandline
         ! Copy each slice into Dk
         do i=1,n1
           do j=1,n2
-       !     write(*,*) 'c',i,j,k,C(i,j,k)
-            Dk(i,j,k) = cmplx(C(i,j,k),kind=wp)
-       !     write(*,*) i,j,k,Dk(i,j)
+            write(*,*) 'c',i,j,k,C(i,j,k)
+            Dk1(i,j,k) = cmplx(C(i,j,k),kind=wp)
+            write(*,*) i,j,k,Dk1(i,j,k)
           end do
        
        end do
       end do
 
 !$          tm1 = omp_get_wtime()
-          call DZFFT3D(Dk,n1,n2,n3,0,work)
+          call DZFFT3D(Dk1,n1,n2,n3,0,work)
 !$          tm2 = omp_get_wtime()
+
             tm_fft_init = tm_fft_init + tm2 - tm1
  
 !$      tm1 = omp_get_wtime()
-        call DZFFT3D(Dk,n1,n2,n3,-1,work)
+        call DZFFT3D(Dk1,n1,n2,n3,-1,work)
 !$      tm2 = omp_get_wtime()
+
         tm_fft = tm_fft + tm2 - tm1
 !        write(*,*) 'fft time=', tm2-tm1
 
 
-    !    do i=1,n1/2+1
-    !      do j=1,n2
-    !        write(*,*) i,j,k,Dk(i,j)
-    !      end do
-    !    end do
+        do i=1,n1/2+1
+          do j=1,n2
+           do k=1,n3
+            write(*,*) i,j,k,Dk1(i,j,k)
+           end do
+          end do
+        end do
         if (check) then
 
 !$          tm1 = omp_get_wtime()
-            call ZDFFT3D(Dk,n1,n2,n3,0,work)
+            call ZDFFT3D(Dk1,n1,n2,n3,0,work)
 !$          tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
+
 !$        tm1 = omp_get_wtime()
-          call ZDFFT3D(Dk,n1,n2,n3,1,work)
+          call ZDFFT3D(Dk1,n1,n2,n3,1,work)
 !$        tm2 = omp_get_wtime()
           tm_ifft = tm_ifft + tm2 - tm1
           nrm = 0.0_wp
 
-          call check_error_3d(n1,n2,n3,C(:,:,:),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk1,nrm)
 
  
             !nrm = sqrt(nrm)
@@ -560,7 +565,7 @@ PROGRAM commandline
              goto 20
            end if
 
-           Dk(:,:) = 0.0_wp
+           Dk1(:,:,:) = 0.0_wp
            nrm = 0.0_wp
 
 
@@ -751,7 +756,8 @@ PROGRAM commandline
            n3_4 = int(n3,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, in,out,FFTW_R2HC,FFTW_R2HC,flags)
+           plan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, in,out,&
+               FFTW_R2HC,FFTW_R2HC,FFTW_R2HC,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
 
@@ -759,7 +765,7 @@ PROGRAM commandline
 
 !$   tm1 = omp_get_wtime()
            iplan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, iin,iout,FFTW_HC2R,&
-                   FFTW_HC2R,flags)
+                   FFTW_HC2R,FFTW_HC2R,flags)
 !$   tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
@@ -880,7 +886,7 @@ PROGRAM commandline
           s= cmplx(A(i,j,k),kind=wp)-C(i,j,k)
           t = s*conjg(s)
           nrm = nrm + real(t,kind=wp)
-!          write(*,*) A(i,j), C(i,j),s,t,nrm
+          write(*,*) i,j,k,A(i,j,k), C(i,j,k),s,t,nrm
         end do
       end do
     end do
@@ -890,28 +896,28 @@ PROGRAM commandline
 
   end subroutine
 
-  subroutine check_error(n1,n2,A,C,nrm)
-    integer, intent(in) :: n1,n2 ! Array dimensions
-    real(kind=wp), intent(in) :: A(n1,n2) ! Input array A
-    complex(kind=wp), intent(in) :: C(n1,n2) ! Input array C
-    real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
+!  subroutine check_error(n1,n2,A,C,nrm)
+!    integer, intent(in) :: n1,n2 ! Array dimensions
+!    real(kind=wp), intent(in) :: A(n1,n2) ! Input array A
+!    complex(kind=wp), intent(in) :: C(n1,n2) ! Input array C
+!    real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
 
-    ! local variables
-    integer :: i,j,k
-    complex(kind=wp) :: s, t
-!$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(2)
-    do i = 1,n1
-      do j= 1,n2
-          s= cmplx(A(i,j),kind=wp)-C(i,j)
-          t = s*conjg(s)
-          nrm = nrm + real(t,kind=wp)
-!          write(*,*) A(i,j), C(i,j),s,t,nrm
-      end do
-    end do
-!$OMP END PARALLEL DO
+!    ! local variables
+!    integer :: i,j,k
+!    complex(kind=wp) :: s, t
+!!$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(2)
+!    do i = 1,n1
+!      do j= 1,n2
+!          s= cmplx(A(i,j),kind=wp)-C(i,j)
+!          t = s*conjg(s)
+!          nrm = nrm + real(t,kind=wp)
+!!          write(*,*) A(i,j), C(i,j),s,t,nrm
+!      end do
+!    end do
+!!$OMP END PARALLEL DO
     
 
 
-  end subroutine
+!  end subroutine
 
 END PROGRAM commandline
