@@ -2,6 +2,7 @@
 
 FCC = gfortran  
 FFLAGS77 = -O3  -fopenmp
+FFLAGS77 = -O3
 FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
 
@@ -68,11 +69,11 @@ bench1dc:   mkl_dfti.o bench1dc.o zfft2d.o fft235.o factor.o kernel.o
 	echo $(OMP_NUM_THREADS)
 	./bench1dc.exe  7  1 1 3
 
-bench3d:   mkl_dfti.o bench3d.o dzfft3d.o zdfft3d.o fft235.o factor.o kernel.o
-	 $(f90) bench3d.o mkl_dfti.o dzfft3d.o zdfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3d.exe
+bench3d:   mkl_dfti.o bench3d.o
+	 $(f90) bench3d.o mkl_dfti.o $(LIBS) -o bench3d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench3d.exe  3  3 2 2 1
+	 ./bench3d.exe  6  3 2 1 2
 
 bench3dc:   mkl_dfti.o bench3dc.o zfft3d.o fft235.o factor.o kernel.o
 	 $(f90) bench3dc.o mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3dc.exe
