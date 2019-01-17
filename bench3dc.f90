@@ -759,4 +759,31 @@ PROGRAM commandline
 
   end subroutine
 
+
+  subroutine check_error_3d(n1,n2,n3,A,C,nrm)
+    integer, intent(in) :: n1,n2,n3 ! Array dimensions
+    complex(kind=wp), intent(in) :: A(n1,n2,n3) ! Input array A
+    complex(kind=wp), intent(in) :: C(n1,n2,n3) ! Input array C
+    real(kind=wp), intent(inout) :: nrm ! 2-norm of A-C
+
+    ! local variables
+    integer :: i,j,k
+    complex(kind=wp) :: s, t
+!$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(2)
+    do i = 1,n1
+      do j= 1,n2
+        do k = 1,n3
+          s = A(i,j,k)-C(i,j,k)
+          t = s*conjg(s)
+          nrm = nrm + real(t,kind=wp)
+!          write(*,*) A(i,j), C(i,j),s,t,nrm
+        end do
+      end do
+    end do
+!$OMP END PARALLEL DO
+    
+
+
+  end subroutine
+
 END PROGRAM commandline
