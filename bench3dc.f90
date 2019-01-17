@@ -610,16 +610,16 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
       ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:)
+    complex(kind=wp), allocatable :: Dk(:,:,:)
     real(kind=wp) :: nrm,tm1,tm2, n1n2
     integer :: stat, k, i, j
-    integer(kind=4) :: n1_4,n2_4, flags
+    integer(kind=4) :: n1_4, n2_4, n3_4, flags
 
 
     type(C_PTR) :: plan, iplan
 
-    complex(C_DOUBLE), dimension(n1,n2) :: in, iout
-    complex(C_DOUBLE), dimension(n1,n2) :: out, iin
+    complex(C_DOUBLE), dimension(n1,n2,n3) :: in, iout
+    complex(C_DOUBLE), dimension(n1,n2,n3) :: out, iin
 
     flag = 0
     tm_fft_init = 0.0_wp
@@ -630,19 +630,20 @@ PROGRAM commandline
 
            n1_4 = int(n1,kind=ip4)
            n2_4 = int(n2,kind=ip4)
+           n3_4 = int(n3,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
-           plan = fftw_plan_dft_2d(n2_4,n1_4, in,out,FFTW_FORWARD,flags)
+           plan = fftw_plan_dft_3d(n3_4,n2_4,n1_4, in,out,FFTW_FORWARD,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
     if (check) then
       
 !$   tm1 = omp_get_wtime()
-           iplan = fftw_plan_dft_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD,flags)
+           iplan = fftw_plan_dft_3d(n3_4,n2_4,n1_4, iin,iout,FFTW_BACKWARD,flags)
 !$   tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-           allocate(Dk(n1,n2),stat=stat)
+           allocate(Dk(n1,n2,n3),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
@@ -657,10 +658,11 @@ PROGRAM commandline
         do i=1,n1
           do j=1,n2
        !     write(*,*) 'c',i,j,k,C(i,j,k)
-            in(i,j) = C(i,j,k)
+            in(i,j,k) = C(i,j,k)
        !     write(*,*) i,j,k,Dk(i,j)
           end do
         end do
+   end do
 
 !$   tm1 = omp_get_wtime()
         call fftw_execute_dft(plan, in, out)
@@ -673,9 +675,11 @@ PROGRAM commandline
          ! Copy out into iin
          do i=1,n1
            do j=1,n2
+             do k=1,n3
         !     write(*,*) 'c',i,j,k,C(i,j,k)
-             iin(i,j) = out(i,j)
+             iin(i,j,k) = out(i,j,k)
         !     write(*,*) i,j,k,Dk(i,j)
+             end do
            end do
 
         end do
@@ -686,23 +690,25 @@ PROGRAM commandline
   !      write(*,*) 'ifft time=', tm2-tm1
         tm_ifft = tm_ifft + tm2 - tm1
 
-          if (k.eq.1) then
+   !       if (k.eq.1) then
             nrm = 0.0_wp
-          end if
+   !       end if
 
-          n1n2 = real(n1*n2,kind=wp)
+          n1n2 = real(n1*n2*n3,kind=wp)
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
             do j=1,n2
-              Dk(i,j) = iout(i,j)/n1n2
+             do k=1,n3
+              Dk(i,j,k) = iout(i,j,k)/n1n2
+             end do
             end do
           end do
 !$OMP END PARALLEL DO
 
 !          write(*,*) iout(n1/2,n2/2), Dk(n1/2,n2/2), C(n1/2,n2/2,k)
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk,nrm)
 
-         if (k.eq.n3) then
+!         if (k.eq.n3) then
 
             write(*,*) 'k, nrm^2:',k,nrm
            call fftw_destroy_plan(iplan)
@@ -711,13 +717,13 @@ PROGRAM commandline
              flag = -3
              goto 20
            end if         
-         end if
+!         end if
         end if
 
-        if (k.eq.n3) then
+ !       if (k.eq.n3) then
            call fftw_destroy_plan(plan)
-        end if
-    end do
+ !       end if
+   ! end do
 
     return
 
