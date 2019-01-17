@@ -331,12 +331,12 @@ PROGRAM commandline
        end do
         if (k.eq.1) then
 !$          tm1 = omp_get_wtime()
-          call ZFFT2D(Dk,n1,n2,0,work)
+          call ZFFT2D(Dk,n1,n2,0)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
         end if 
 !$      tm1 = omp_get_wtime()
-        call ZFFT2D(Dk,n1,n2,-1,work)
+        call ZFFT2D(Dk,n1,n2,-1)
 !$      tm2 = omp_get_wtime()
         tm_fft = tm_fft + tm2 - tm1
 !        write(*,*) 'fft time=', tm2-tm1
