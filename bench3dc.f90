@@ -358,7 +358,7 @@ PROGRAM commandline
 !          if (k.eq.1) then
             nrm = 0.0_wp
 !          end if
-          call check_error_3d(n1,n2,C(:,:,k),Dk1,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk1,nrm)
 
 !          if (k.eq.n3) then
             !nrm = sqrt(nrm)
