@@ -41,7 +41,7 @@ dtdeps90=
 ffteparam= ffte-6.0/param.h
 
 
-all:  bench3d
+all:  bench2dc
 
 
 bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
@@ -54,7 +54,7 @@ bench2dc:   mkl_dfti.o bench2dc.o zfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench2dc.exe  256  256 256 2 2
+	./bench2dc.exe  6  3 2 1 3
 
 
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
@@ -79,7 +79,7 @@ bench3dc:   mkl_dfti.o bench3dc.o zfft3d.o fft235.o factor.o kernel.o
 	 $(f90) bench3dc.o mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench3dc.exe  256  256 256 2 1
+	./bench3dc.exe  6  3 2 1 3
 
 
 #> temp >&1 < hsl_minresds.data

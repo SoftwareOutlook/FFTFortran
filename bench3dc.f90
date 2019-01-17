@@ -428,7 +428,7 @@ PROGRAM commandline
        
 !$      tm1 = omp_get_wtime()
             Status = DftiCreateDescriptor( My_Desc_Handle_Inv, DFTI_DOUBLE,&
-              DFTI_REAL, 3, L )
+              DFTI_COMPLEX, 3, L )
 
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
