@@ -267,7 +267,7 @@ PROGRAM commandline
     integer :: stat, k, i, j, ntemp
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
-    integer :: Status, L(2)
+    integer :: Status, L(3)
 
 
 
@@ -386,7 +386,7 @@ PROGRAM commandline
     case (3) ! MKL
 
 
-          allocate(X(n1*n2),stat=stat)
+          allocate(X(n1*n2*n3),stat=stat)
           if (stat .ne. 0) then
             flag = -2
             goto 20
@@ -396,11 +396,12 @@ PROGRAM commandline
 
           L(1) = n1
           L(2) = n2
+          L(3) = n3
 
 
 !$          tm1 = omp_get_wtime()
           Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
-            DFTI_COMPLEX, 2, L )
+            DFTI_COMPLEX, 3, L )
         !  write(*,*) 'Status1', Status
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -427,7 +428,7 @@ PROGRAM commandline
        
 !$      tm1 = omp_get_wtime()
             Status = DftiCreateDescriptor( My_Desc_Handle_Inv, DFTI_DOUBLE,&
-              DFTI_REAL, 2, L )
+              DFTI_REAL, 3, L )
 
           if (status .ne. 0) then
             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -446,12 +447,12 @@ PROGRAM commandline
 
 !$      tm2 = omp_get_wtime()
             tm_ifft_init = tm_ifft_init + tm2 - tm1
-           allocate(Dk(n1,n2),stat=stat)
+           allocate(Dk1(n1,n2,n3),stat=stat)
            if (stat .ne. 0) then
              flag = -2
              goto 20
            end if
-           Dk(:,:) = 0.0_wp
+           Dk1(:,:,:) = 0.0_wp
            nrm = 0.0_wp
 
 
@@ -469,9 +470,10 @@ PROGRAM commandline
              else
                 s=C(i,j,k)
              end if
-             X(i+(j-1)*n1) = s
+             X(i+(j-1)*n1 + (k-1)*n1*n2) = s
           end do
         end do
+      end do
 
 !         write(*,*) X
 !$      tm1 = omp_get_wtime()
@@ -517,14 +519,15 @@ PROGRAM commandline
         ! Copy slice from X to Dk
         do i=1,n1
           do j=1,n2
-
-             Dk(i,j) = X(i+(j-1)*n1)/real(n1*n2,kind=wp)
+           do k=1,n3
+             Dk1(i,j,k) = X(i+(j-1)*n1 + (k-1)*n1*n2)/real(n1*n2*n3,kind=wp)
+           end do
           end do
         end do
-          call check_error(n1,n2,C(:,:,k),Dk,nrm)
+          call check_error_3d(n1,n2,n3,C(:,:,:),Dk1,nrm)
   !      write(*,*) 'nrm',nrm,k
 
-          if (k.eq.n3) then
+ !         if (k.eq.n3) then
             write(*,*) 'k,nrm',k,nrm
             Status = DftiFreeDescriptor(My_Desc_Handle_Inv)
                                            
@@ -534,19 +537,19 @@ PROGRAM commandline
             endif
            endif
 
-           deallocate(Dk,stat=stat)
+           deallocate(Dk1,stat=stat)
            if (stat .ne. 0) then
              flag = -3
              goto 20
            end if
 
 
-          end if
+ !         end if
 
         end if
 
 
-        if (k.eq.n3) then
+  !      if (k.eq.n3) then
           Status = DftiFreeDescriptor(My_Desc_Handle)
                                            
           if (status .ne. 0) then
@@ -567,10 +570,10 @@ PROGRAM commandline
  !         if (stat .ne. 0) then
  !           flag = -3
  !           goto 20
-          end if
+  !        end if
 
  
-      end do
+!      end do
 
 
 
