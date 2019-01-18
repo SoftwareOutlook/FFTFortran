@@ -105,12 +105,6 @@ PROGRAM commandline
   else
     yo = 0.4*real(n2,wp)
   end if
-!  if (n3.eq.1) then
-!    zo = real(n3,wp)
-!  else
-!    zo = real(n3,wp)/3.0
-!  end if
-
 
   a1 = 0.3*real(n1,wp)
   b1 = 0.35*real(n2,wp)
@@ -119,12 +113,11 @@ PROGRAM commandline
   do i=1,n1
     do j=1,n2
          r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2
-         if (r .le. 1) then
+         if (r .le. 1.0_wp) then
             A(i,j) = cmplx(r + 0.5_wp,-2.0_wp*r+0.5_wp,kind=wp)
          else
             A(i,j) = cmplx(0.5_wp,-1.5_wp,kind=wp)
          end if
-       !  write(*,*) i,j,k, A(i,j,k)
     end do
   end do
 !$ tm2=omp_get_wtime()

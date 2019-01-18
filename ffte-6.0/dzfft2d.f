@@ -31,17 +31,12 @@ C
 C     WRITTEN BY DAISUKE TAKAHASHI
 C
       SUBROUTINE DZFFT2D(A,NX,NY,IOPT,B)
-C$    use omp_lib
-
       IMPLICIT REAL*8 (A-H,O-Z)
       INCLUDE 'param.h'
-
-
       COMPLEX*16 A(*),B(*)
       COMPLEX*16 C((NDA2+NP)*NBLK),D(NDA2)
       COMPLEX*16 WX(NDA2),WY(NDA2)
-      INTEGER LNX(3),LNY(3)
-      INTEGER NX, NY, IOPT
+      DIMENSION LNX(3),LNY(3)
       SAVE WX,WY
 C
       CALL FACTOR(NX,LNX)
@@ -53,48 +48,40 @@ C
         RETURN
       END IF
 C
-!!$OMP PARALLEL PRIVATE(C,D) 
+!$OMP PARALLEL PRIVATE(C,D)
       CALL DZFFT2D0(A,A,B,C,C,D,WX,WY,NX,NY,LNX,LNY)
-!!$OMP END PARALLEL
+!$OMP END PARALLEL
       RETURN
       END
-
       SUBROUTINE DZFFT2D0(DA,A,B,CX,CY,D,WX,WY,NX,NY,LNX,LNY)
       IMPLICIT REAL*8 (A-H,O-Z)
       INCLUDE 'param.h'
       COMPLEX*16 A(NX/2+1,*),B(NX/2+1,*)
       COMPLEX*16 CX(*),CY(NY+NP,*),D(*)
       COMPLEX*16 WX(*),WY(*)
-      COMPLEX*16 DA(NX,*)
-      INTEGER  LNX(*),LNY(*), NX, NY, I, II, J
+      DIMENSION DA(NX,*)
+      DIMENSION LNX(*),LNY(*)
 C
       IF (MOD(NY,2) .EQ. 0) THEN
-!!$OMP DO
+!$OMP DO
         DO 30 J=1,NY,2
-!$OMP PARALLEL DO 
-         DO 10 I=1,NX
-            CX(I)=DCMPLX(REAL(DA(I,J)),REAL(DA(I,J+1)))
+          DO 10 I=1,NX
+            CX(I)=DCMPLX(DA(I,J),DA(I,J+1))
    10     CONTINUE
-!$OMP END PARALLEL DO
           CALL FFT235(CX,D,WX,NX,LNX)
           B(1,J)=DBLE(CX(1))
           B(1,J+1)=DIMAG(CX(1))
-
-!$OMP PARALLEL DO
-
 !DIR$ VECTOR ALIGNED
           DO 20 I=2,NX/2+1
             B(I,J)=0.5D0*(CX(I)+DCONJG(CX(NX-I+2)))
             B(I,J+1)=(0.0D0,-0.5D0)*(CX(I)-DCONJG(CX(NX-I+2)))
    20     CONTINUE
-!$OMP END PARALLEL DO
-
    30   CONTINUE
       ELSE
 !$OMP DO
         DO 60 J=1,NY-1,2
           DO 40 I=1,NX
-            CX(I)=DCMPLX(REAL(DA(I,J)),REAL(DA(I,J+1)))
+            CX(I)=DCMPLX(DA(I,J),DA(I,J+1))
    40     CONTINUE
           CALL FFT235(CX,D,WX,NX,LNX)
           B(1,J)=DBLE(CX(1))
@@ -106,7 +93,7 @@ C
    50     CONTINUE
    60   CONTINUE
         DO 70 I=1,NX
-          CX(I)=DCMPLX(REAL(DA(I,NY)),0.0D0)
+          CX(I)=DCMPLX(DA(I,NY),0.0D0)
    70   CONTINUE
         CALL FFT235(CX,D,WX,NX,LNX)
 !DIR$ VECTOR ALIGNED

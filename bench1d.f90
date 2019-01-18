@@ -39,7 +39,7 @@ PROGRAM commandline
     ! and store it in temp variable 'option2'
     CALL GET_COMMAND_ARGUMENT(3,option3) !Grab the 3rd command line argument
     ! and store it in temp variable 'option3'
-         !  1: FFTE
+         !  1: FFTE NOT included due to bugs in real-complex fft
          !  2: FFTW
          !  3: MKL
          !  4: P3DFFT NOT included due to fussy installation scripts
@@ -57,7 +57,7 @@ PROGRAM commandline
     write(*,'(a,i8)') "Variable nq = ", nq
     write(*,'(a,i8)') "Variable fftlib = ", fftlib
 
-    if (n1.lt.1 .or. n2.lt.1 .or. nq.lt.1 .or. fftlib .lt. 1 &
+    if (n1.lt.1 .or. n2.lt.1 .or. nq.lt.1 .or. fftlib .lt. 2 &
         .or. fftlib .gt. 3) then
       goto 10
     endif
@@ -113,7 +113,7 @@ PROGRAM commandline
   do i=1,n1
     do j=1,n2
          r = ((real(i,wp)-xo)/a1)**2 + ((real(j,wp)-yo)/b1)**2
-         if (r .le. 1) then
+         if (r .le. 1.0_wp) then
             A(i,j) = r + 0.5_wp
          else
             A(i,j) = 0.5_wp
@@ -144,45 +144,6 @@ PROGRAM commandline
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up B time (no norm)=', tm2-tm1
 
-
-
- !  write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:) 
-
-  ! Normalise norm(B(i,j,k,:),2) to equal 1 
-
-
-!!$ tm1=omp_get_wtime()
-
-! !$OMP PARALLEL DO PRIVATE(j,s1)
-
-!  do i=1,n1
-!    do j=1,n2
-!        s1=0.0_wp
-!        do qq=1,nq
-!          s1 = s1 + (B(i,j,qq))**2
-!        end do 
-!        s1 = s1**0.5
-!        if (s1 .ge. 0.00000001_wp) then
-!          do qq=1,nq
-!            B(i,j,qq) = B(i,j,qq)/s1
-!          end do 
-!        else
-!            B(i,j,:) = 1.0_wp/(real(nq,kind=wp)**0.5)
-!        end if
-!    end do
-!  end do
-!  !$OMP END PARALLEL DO
-
-
-
-!!$ tm2=omp_get_wtime()
-!   write(*,*) 'Set-up B time=', tm2-tm1
-
-!   write(*,*) B
-
-!   write(*,*) 'B(n1/2,n2/2,n3/2,q)', B(n1/2,n2/2,n3/3,:)
-
-
   ! Set init to true so that fft initilisation performed first
   init = .true.
 
@@ -201,16 +162,8 @@ PROGRAM commandline
     end do
 !$OMP END PARALLEL DO
 
- !  write(*,*) 'qq',qq
- !  write(*,*) C
-
-
-
 !$ tm2=omp_get_wtime()
    write(*,*) 'Set-up Cq time=', tm2-tm1
-
-  ! write(*,*) 'C(n1/2,n2/2,n3/2)', C(n1/2,n2/2,n3/3)
-
     
   ! Perform FFT on each 2D slice
     check=.true.
@@ -226,14 +179,9 @@ PROGRAM commandline
   end do
     tm1 = real(nq*n2,kind=wp)
     tm2 = real(nq,kind=wp)
-!    write(*,*) tm1,tm2, tm_fft_tot, tm_ifft_tot
     write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&
        tm_fft_tot,tm_fft_tot/tm1,tm_ifft_init_tot/tm2,tm_ifft_tot/tm1,&
        tm_ifft_tot
-
-  
-
-  
 
 
   ! Deallocate arrays
@@ -266,11 +214,11 @@ PROGRAM commandline
     integer, intent(in) :: n1,n2 ! Array dimensions
     real (kind=wp), intent(in) :: C(n1,n2) ! Input array 
     integer, intent(in) :: fftlib ! fft library to use
-         !  1: FFTE
+         !  1: FFTE NOTE real->complex ffte has bugs and gives wrong results
          !  2: FFTW
          !  3: MKL
-         !  4: P3DFFT
-         !  5: P3DFFT++
+         !  4: P3DFFT NOT include
+         !  5: P3DFFT++ NOT included
     logical, intent(in) :: check ! Additionally, perform inverse, element-wise
                                  ! division by Bi and compare with A
     integer, intent(out) :: flag ! 0 : all fine

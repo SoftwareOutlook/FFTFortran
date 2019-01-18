@@ -2,8 +2,11 @@
 
 FCC = gfortran  
 FFLAGS77 = -O3  -fopenmp
-FFLAGS77 = -O3
-FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
+#FFLAGS77 = -O3
+
+FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8 -I${MKLROOT}/include
+
+#FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
 
 #FCC = mpif90
@@ -41,45 +44,45 @@ dtdeps90=
 ffteparam= ffte-6.0/param.h
 
 
-all:  bench2dc
+all:  bench1d bench1dc bench2d bench2dc bench3d bench3dc
 
 
 bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench2d.exe  256  256 256 2 2
+	 ./bench2d.exe  6  3 2 2 1
 
 bench2dc:   mkl_dfti.o bench2dc.o zfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench2dc.exe  6  3 2 1 3
+	./bench2dc.exe  6  3 2 2 1
 
 
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench1d.exe  256  256 4 3
+	./bench1d.exe  6 3 4 1
 
 bench1dc:   mkl_dfti.o bench1dc.o zfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench1dc.exe  7  1 1 3
+	./bench1dc.exe  6  3 4 1
 
 bench3d:   mkl_dfti.o bench3d.o
 	 $(f90) bench3d.o mkl_dfti.o $(LIBS) -o bench3d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench3d.exe  6  3 2 1 2
+	 ./bench3d.exe  6  3 2 2 1
 
 bench3dc:   mkl_dfti.o bench3dc.o zfft3d.o fft235.o factor.o kernel.o
 	 $(f90) bench3dc.o mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench3dc.exe  6  3 2 1 3
+	./bench3dc.exe  6  3 2 2 1
 
 
 #> temp >&1 < hsl_minresds.data
@@ -166,7 +169,7 @@ kernel.o : ffte-6.0/kernel.f  param.h
 	$(f77) -c ffte-6.0/kernel.f   -o kernel.o
 
 clean:
-	rm a.out *.o  temp *deps.f *.mod *deps90.f90 
+	rm a.out *.o  temp *deps.f *.mod *deps90.f90 *.exe
 
 ffte=./ffte-6.0/
 
