@@ -4,7 +4,7 @@ FCC = gfortran
 FFLAGS77 = -O3  -fopenmp
 #FFLAGS77 = -O3
 
-FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8 -I${MKLROOT}/include
+FFLAGS = -O3  -fopenmp  -std=f2003   -fdefault-integer-8 -I${MKLROOT}/include
 
 #FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
@@ -26,7 +26,7 @@ MKLROOT=  /apps/intel/2017/compilers_and_libraries_2017.2.174/linux/mkl
 f90 = $(FCC) $(FFLAGS)
 f77 = $(FCC) $(FFLAGS77)
 
-LIBS = 	-lfftw3 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_gf_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
+LIBS = 	-lfftw3_threads -lfftw3 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_gf_ilp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl
 
 
 
@@ -51,38 +51,38 @@ bench2d:   mkl_dfti.o bench2d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench2d.exe  6  3 2 2 1
+	 ./bench2d.exe  6  3 2 2 2
 
 bench2dc:   mkl_dfti.o bench2dc.o zfft2d.o fft235.o factor.o kernel.o
 	 $(f90) bench2dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench2dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench2dc.exe  6  3 2 2 1
+	./bench2dc.exe  6  3 2 2 2
 
 
 bench1d:   mkl_dfti.o bench1d.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1d.o mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench1d.exe  6 3 4 1
+	./bench1d.exe  6 3 4 2
 
 bench1dc:   mkl_dfti.o bench1dc.o zfft2d.o fft235.o factor.o kernel.o
 	$(f90) bench1dc.o mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o $(LIBS) -o bench1dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench1dc.exe  6  3 4 1
+	./bench1dc.exe  6  3 4 2
 
 bench3d:   mkl_dfti.o bench3d.o
 	 $(f90) bench3d.o mkl_dfti.o $(LIBS) -o bench3d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	 ./bench3d.exe  6  3 2 2 1
+	 ./bench3d.exe  6  3 2 2 2
 
 bench3dc:   mkl_dfti.o bench3dc.o zfft3d.o fft235.o factor.o kernel.o
 	 $(f90) bench3dc.o mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o $(LIBS) -o bench3dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
-	./bench3dc.exe  6  3 2 2 1
+	./bench3dc.exe  6  3 2 2 2
 
 
 #> temp >&1 < hsl_minresds.data

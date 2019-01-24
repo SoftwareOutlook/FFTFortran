@@ -23,7 +23,8 @@ PROGRAM commandline
   real (kind=wp) :: s1,s2 ! used to define B
   real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
           
-  real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, tm_ifft_tot
+  real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, &
+                    tm_ifft_tot, tm_fft_init_max, tm_ifft_init_max
   logical :: check
 
   !Read input from the command line
@@ -95,6 +96,9 @@ PROGRAM commandline
   tm_fft_tot=0.0_wp 
   tm_ifft_init_tot=0.0_wp 
   tm_ifft_tot=0.0_wp
+  tm_ifft_init_max=0.0_wp
+  tm_fft_init_max=0.0_wp
+
 
   ! Set A
   if (n1.eq.1) then
@@ -192,15 +196,21 @@ PROGRAM commandline
     tm_fft_tot = tm_fft_tot +tm_fft
     tm_ifft_init_tot = tm_ifft_init_tot +tm_ifft_init
     tm_ifft_tot = tm_ifft_tot +tm_ifft
+    tm_fft_init_max = max(tm_fft_init_max,tm_fft_init)
+    tm_ifft_init_max = max(tm_ifft_init_max,tm_ifft_init)
+
 
   end do
-  
-    tm1 = real(nq*n3,kind=wp) 
+    i = 1
+!$  i = omp_get_max_threads()   
+    tm1 = real(nq,kind=wp) 
     tm2 = real(nq,kind=wp)
-!    write(*,*) tm1,tm2, tm_fft_tot, tm_ifft_tot
-    write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&
-       tm_fft_tot,tm_fft_tot/tm1,tm_ifft_init_tot/tm2,tm_ifft_tot/tm1,&
-       tm_ifft_tot
+
+    write(*,'(a8,6i8,8e10.3e2)') "Average",fftlib,i,n1,n2,n3,nq,&
+       tm_fft_init_tot/tm2,&
+       tm_fft_init_max,tm_ifft_init_tot/tm2,tm_ifft_init_max,&
+       tm_fft_tot,tm_fft_tot/tm1,tm_ifft_tot,tm_ifft_tot/tm1
+
 
   
 
@@ -754,8 +764,8 @@ PROGRAM commandline
       ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:,:)
     real(kind=wp) :: nrm,tm1,tm2, n1n2
-    integer :: stat, k, i, j
-    integer(kind=4) :: n1_4,n2_4,n3_4, flags
+    integer :: stat, k, i, j, nthreads
+    integer(kind=4) :: n1_4,n2_4,n3_4, flags, nthreads_4
 
 
     type(C_PTR) :: plan, iplan
@@ -775,6 +785,16 @@ PROGRAM commandline
            n3_4 = int(n3,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
+    nthreads = 1
+!$  nthreads=omp_get_max_threads()
+
+                                                                                           
+
+ 
+    nthreads_4 = int(nthreads,kind=ip4)
+    stat = fftw_init_threads()
+    call fftw_plan_with_nthreads(nthreads_4)
+
            plan = fftw_plan_r2r_3d(n3_4,n2_4,n1_4, in,out,&
                FFTW_R2HC,FFTW_R2HC,FFTW_R2HC,flags)
 !$          tm2 = omp_get_wtime()
@@ -843,7 +863,7 @@ PROGRAM commandline
      !     end if
 
           n1n2 = real(n1*n2*n3,kind=wp)
-          write(*,*) 'n',n1,n2,n3,n1n2
+!          write(*,*) 'n',n1,n2,n3,n1n2
 !$OMP PARALLEL DO PRIVATE(j)
           do i=1,n1
             do j=1,n2

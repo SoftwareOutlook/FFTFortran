@@ -23,7 +23,8 @@ PROGRAM commandline
   real (kind=wp) :: s1,s2 ! used to define B
   real (kind=wp) :: tm1, tm2, tm_fft_init, tm_fft, tm_ifft_init, tm_ifft
 
-  real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, tm_ifft_tot
+  real (kind=wp) :: tm_fft_init_tot, tm_fft_tot, tm_ifft_init_tot, &
+                   tm_ifft_tot, tm_ifft_init_max, tm_fft_init_max
 
   logical :: init, check
 
@@ -89,6 +90,8 @@ PROGRAM commandline
   tm_fft_tot=0.0_wp
   tm_ifft_init_tot=0.0_wp
   tm_ifft_tot=0.0_wp
+  tm_fft_init_max = 0.0_wp
+  tm_ifft_init_max = 0.0_wp
 
 
   ! Set A
@@ -175,13 +178,20 @@ PROGRAM commandline
     tm_fft_tot = tm_fft_tot +tm_fft
     tm_ifft_init_tot = tm_ifft_init_tot +tm_ifft_init
     tm_ifft_tot = tm_ifft_tot +tm_ifft
+    tm_fft_init_max = max(tm_fft_init_max,tm_fft_init)
+    tm_ifft_init_max = max(tm_ifft_init_max,tm_ifft_init)
+
 
   end do
+    i = 1
+!$  i = omp_get_max_threads()   
+    write(*,*) 'i',i
     tm1 = real(nq*n2,kind=wp)
     tm2 = real(nq,kind=wp)
-    write(*,'(a8,6e10.3e2)') "Average",tm_fft_init_tot/tm2,&
-       tm_fft_tot,tm_fft_tot/tm1,tm_ifft_init_tot/tm2,tm_ifft_tot/tm1,&
-       tm_ifft_tot
+    write(*,'(a8,5i8,8e10.3e2)') "Average",fftlib,i,n1,n2,nq,&
+       tm_fft_init_tot/tm2,&
+       tm_fft_init_max,tm_ifft_init_tot/tm2,tm_ifft_init_max,&
+       tm_fft_tot,tm_fft_tot/tm1,tm_ifft_tot,tm_ifft_tot/tm1
 
 
   ! Deallocate arrays
@@ -600,8 +610,8 @@ call check_error(n1,C(:,k),Dk,nrm)
     ! Local variables and arrays
     complex(kind=wp), allocatable :: Dk(:,:)
     real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i
-    integer(kind=4) :: n1_4, flags
+    integer :: stat, k, i, nthreads
+    integer(kind=4) :: n1_4, flags,nthreads_4
 
 
     type(C_PTR) :: plan, iplan
@@ -615,11 +625,15 @@ call check_error(n1,C(:,k),Dk,nrm)
     tm_fft = 0.0_wp
     tm_ifft_init = 0.0_wp
     tm_ifft = 0.0_wp
-
+    nthreads = 1
+!$  nthreads=omp_get_max_threads()  
+    nthreads_4 = int(nthreads,kind=ip4)
 
            n1_4 = int(n1,kind=ip4)
            flags = int(0,kind=ip4)
 !$          tm1 = omp_get_wtime()
+           stat = fftw_init_threads()
+           call fftw_plan_with_nthreads(nthreads_4)
            plan = fftw_plan_r2r_1d(n1_4, in,out,FFTW_R2HC,flags)
 !$          tm2 = omp_get_wtime()
             tm_fft_init = tm_fft_init + tm2 - tm1
@@ -711,6 +725,7 @@ call check_error(n1,C(:,k),Dk,nrm)
    
         if (k.eq.n2) then
            call fftw_destroy_plan(plan)
+           call fftw_cleanup_threads()
         end if
 
       
