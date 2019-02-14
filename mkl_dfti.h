@@ -1,22 +1,25 @@
-/*****************************************************************************
-!                            INTEL CONFIDENTIAL
-! Copyright(C) 2002-2010 Intel Corporation. All Rights Reserved.
-! The source code contained  or  described herein and all documents related to
-! the source code ("Material") are owned by Intel Corporation or its suppliers
-! or licensors.  Title to the  Material remains with  Intel Corporation or its
-! suppliers and licensors. The Material contains trade secrets and proprietary
-! and  confidential  information of  Intel or its suppliers and licensors. The
-! Material  is  protected  by  worldwide  copyright  and trade secret laws and
-! treaty  provisions. No part of the Material may be used, copied, reproduced,
-! modified, published, uploaded, posted, transmitted, distributed or disclosed
-! in any way without Intel's prior express written permission.
-! No license  under any  patent, copyright, trade secret or other intellectual
-! property right is granted to or conferred upon you by disclosure or delivery
-! of the Materials,  either expressly, by implication, inducement, estoppel or
-! otherwise.  Any  license  under  such  intellectual property  rights must be
-! express and approved by Intel in writing.
-!
-!*****************************************************************************
+/*******************************************************************************
+* Copyright 2002-2016 Intel Corporation All Rights Reserved.
+*
+* The source code,  information  and material  ("Material") contained  herein is
+* owned by Intel Corporation or its  suppliers or licensors,  and  title to such
+* Material remains with Intel  Corporation or its  suppliers or  licensors.  The
+* Material  contains  proprietary  information  of  Intel or  its suppliers  and
+* licensors.  The Material is protected by  worldwide copyright  laws and treaty
+* provisions.  No part  of  the  Material   may  be  used,  copied,  reproduced,
+* modified, published,  uploaded, posted, transmitted,  distributed or disclosed
+* in any way without Intel's prior express written permission.  No license under
+* any patent,  copyright or other  intellectual property rights  in the Material
+* is granted to  or  conferred  upon  you,  either   expressly,  by implication,
+* inducement,  estoppel  or  otherwise.  Any  license   under such  intellectual
+* property rights must be express and approved by Intel in writing.
+*
+* Unless otherwise agreed by Intel in writing,  you may not remove or alter this
+* notice or  any  other  notice   embedded  in  Materials  by  Intel  or Intel's
+* suppliers or licensors in any way.
+*******************************************************************************/
+
+/*
 ! Content:
 !    Intel(R) Math Kernel Library (MKL)
 !    Discrete Fourier Transform Interface (DFTI)
@@ -30,6 +33,23 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "mkl_types.h"
+
+#if defined(__cplusplus_cli)
+struct DFTI_DESCRIPTOR{};
+#endif
+
+#if !defined(_WIN32)
+#define DFTI_EXTERN
+#else
+#if defined(DFTI_BUILD_DLL)
+#define DFTI_EXTERN __declspec(dllexport)
+#elif defined(DFTI_USE_DLL)
+#define DFTI_EXTERN __declspec(dllimport)
+#else
+#define DFTI_EXTERN
+#endif  /* defined(DFTI_BUILD_DLL) */
+#endif  /* _WIN32 */
+
 
 /* Error classes */
 #define DFTI_NO_ERROR                    0
@@ -46,7 +66,6 @@ extern "C" {
 #define DFTI_MAX_MESSAGE_LENGTH 80 /* Maximum length of error string */
 #define DFTI_MAX_NAME_LENGTH 10 /* Maximum length of descriptor name */
 #define DFTI_VERSION_LENGTH 198 /* Maximum length of MKL version string */
-#define DFTI_ERROR_CLASS 60     /* (deprecated) */
 
 /* Descriptor configuration parameters [default values in brackets] */
 enum DFTI_CONFIG_PARAM
@@ -110,7 +129,7 @@ enum DFTI_CONFIG_PARAM
     /* DFTI_INITIALIZATION_EFFORT = 16, ## NOT IMPLEMENTED */
 
     /* Use of workspace during computation [DFTI_ALLOW] */
-    /* DFTI_WORKSPACE = 17, ## NOT IMPLEMENTED */
+    DFTI_WORKSPACE = 17,
 
     /* Ordering of the result [DFTI_ORDERED] */
     DFTI_ORDERING = 18,
@@ -138,7 +157,13 @@ enum DFTI_CONFIG_PARAM
     /* DFTI_BACKWARD_ORDERING = 25, ## NOT IMPLEMENTED */
 
     /* Number of user threads that share the descriptor [1] */
-    DFTI_NUMBER_OF_USER_THREADS = 26
+    DFTI_NUMBER_OF_USER_THREADS = 26,
+
+    /* Limit the number of threads used by this descriptor [0 = don't care] */
+    DFTI_THREAD_LIMIT = 27,
+
+    /* Possible input data destruction [DFTI_AVOID = prevent input data]*/
+    DFTI_DESTROY_INPUT = 28
 };
 
 /* Values of the descriptor configuration parameters */
@@ -185,7 +210,7 @@ enum DFTI_CONFIG_VALUE
 
     /* Allow/avoid certain usages */
     DFTI_ALLOW = 51,            /* Allow transposition or workspace */
-    /* DFTI_AVOID = 52,            ## NOT IMPLEMENTED */
+    DFTI_AVOID = 52,
     DFTI_NONE = 53,
 
     /* DFTI_PACKED_FORMAT (for storing congugate-even finite sequence
@@ -202,35 +227,35 @@ typedef struct DFTI_DESCRIPTOR  DFTI_DESCRIPTOR; /* deprecated */
 #define DFTI_Descriptor_struct  DFTI_DESCRIPTOR  /* deprecated */
 #define DFTI_Descriptor         DFTI_DESCRIPTOR  /* deprecated */
 
-MKL_LONG DftiCreateDescriptor(DFTI_DESCRIPTOR_HANDLE*,
+DFTI_EXTERN MKL_LONG DftiCreateDescriptor(DFTI_DESCRIPTOR_HANDLE*,
                               enum DFTI_CONFIG_VALUE, /* precision */
                               enum DFTI_CONFIG_VALUE, /* domain */
                               MKL_LONG, ...);
-MKL_LONG DftiCopyDescriptor(DFTI_DESCRIPTOR_HANDLE, /* from descriptor */
+DFTI_EXTERN MKL_LONG DftiCopyDescriptor(DFTI_DESCRIPTOR_HANDLE, /* from descriptor */
                             DFTI_DESCRIPTOR_HANDLE*); /* to descriptor */
-MKL_LONG DftiCommitDescriptor(DFTI_DESCRIPTOR_HANDLE);
-MKL_LONG DftiComputeForward(DFTI_DESCRIPTOR_HANDLE, void*, ...);
-MKL_LONG DftiComputeBackward(DFTI_DESCRIPTOR_HANDLE, void*, ...);
-MKL_LONG DftiSetValue(DFTI_DESCRIPTOR_HANDLE, enum DFTI_CONFIG_PARAM, ...);
-MKL_LONG DftiGetValue(DFTI_DESCRIPTOR_HANDLE, enum DFTI_CONFIG_PARAM, ...);
-MKL_LONG DftiFreeDescriptor(DFTI_DESCRIPTOR_HANDLE*);
-char* DftiErrorMessage(MKL_LONG);
-MKL_LONG DftiErrorClass(MKL_LONG, MKL_LONG);
+DFTI_EXTERN MKL_LONG DftiCommitDescriptor(DFTI_DESCRIPTOR_HANDLE);
+DFTI_EXTERN MKL_LONG DftiComputeForward(DFTI_DESCRIPTOR_HANDLE, void*, ...);
+DFTI_EXTERN MKL_LONG DftiComputeBackward(DFTI_DESCRIPTOR_HANDLE, void*, ...);
+DFTI_EXTERN MKL_LONG DftiSetValue(DFTI_DESCRIPTOR_HANDLE, enum DFTI_CONFIG_PARAM, ...);
+DFTI_EXTERN MKL_LONG DftiGetValue(DFTI_DESCRIPTOR_HANDLE, enum DFTI_CONFIG_PARAM, ...);
+DFTI_EXTERN MKL_LONG DftiFreeDescriptor(DFTI_DESCRIPTOR_HANDLE*);
+DFTI_EXTERN char* DftiErrorMessage(MKL_LONG);
+DFTI_EXTERN MKL_LONG DftiErrorClass(MKL_LONG, MKL_LONG);
 /**********************************************************************
  * INTERNAL INTERFACES. These internal interfaces are not intended to
  * be called directly by MKL users and may change in future releases.
  */
-MKL_LONG DftiCreateDescriptor_s_1d(DFTI_DESCRIPTOR_HANDLE *,
+DFTI_EXTERN MKL_LONG DftiCreateDescriptor_s_1d(DFTI_DESCRIPTOR_HANDLE *,
                                    enum DFTI_CONFIG_VALUE domain,
                                    ... /* MKL_LONG onedim */);
-MKL_LONG DftiCreateDescriptor_s_md(DFTI_DESCRIPTOR_HANDLE *,
+DFTI_EXTERN MKL_LONG DftiCreateDescriptor_s_md(DFTI_DESCRIPTOR_HANDLE *,
                                    enum DFTI_CONFIG_VALUE domain,
                                    MKL_LONG many,
                                    ... /* MKL_LONG *dims */);
-MKL_LONG DftiCreateDescriptor_d_1d(DFTI_DESCRIPTOR_HANDLE *,
+DFTI_EXTERN MKL_LONG DftiCreateDescriptor_d_1d(DFTI_DESCRIPTOR_HANDLE *,
                                    enum DFTI_CONFIG_VALUE domain,
                                    ... /* MKL_LONG onedim */);
-MKL_LONG DftiCreateDescriptor_d_md(DFTI_DESCRIPTOR_HANDLE *,
+DFTI_EXTERN MKL_LONG DftiCreateDescriptor_d_md(DFTI_DESCRIPTOR_HANDLE *,
                                    enum DFTI_CONFIG_VALUE domain,
                                    MKL_LONG many,
                                    ... /* MKL_LONG *dims */);

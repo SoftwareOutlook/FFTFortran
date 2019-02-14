@@ -2,7 +2,8 @@ PROGRAM commandline
 !$ use omp_lib
   use, intrinsic :: iso_c_binding
   use mkl_dfti 
-  include '/usr/include/fftw3.f03'
+!  include '/usr/include/fftw3.f03'
+  include 'fftw3.f03'
 
   Integer, Parameter :: wp = Selected_Real_Kind(15,307)  ! double real
 
