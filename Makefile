@@ -7,7 +7,6 @@
 
 #FFLAGS = -O3  -fopenmp -fimplicit-none -Wall -std=f2003   -fdefault-integer-8  -I${MKLROOT}/include -g -fbacktrace  
 
-
 ##ARCHER with module swap PrgEnv-cray PrgEnv-gnu
 FCC = ftn
 
@@ -32,7 +31,7 @@ FFLAGS = -O3 -openmp  -I${MKLROOT}/include
 #f90 = f95
 #FFLAGS = -O3 -fomit-frame-pointer -fopenmp -I..
 
-LDFLAGS = -L/opt/intel/composer_xe_2013_sp1.1.106/mkl
+#LDFLAGS = -L/opt/intel/composer_xe_2013_sp1.1.106/mkl
 
 f90 = $(FCC) $(FFLAGS)
 f77 = $(FCC) $(FFLAGS77)
@@ -41,7 +40,10 @@ f77 = $(FCC) $(FFLAGS77)
 
 #LIBS =  -lfftw3_threads -lfftw3 -Wl,  -L{$MKLROOT}/lib/intel64/ -Wl,--start-group -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -Wl,--end-group -liomp5 -ldl
 
-LIBS =         -lfftw3_threads -lfftw3 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -liomp5 -lpthread -lm -ldl 
+LIBS =   -lfftw3_mpi -lfftw3_threads -lfftw3 -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -ldl -liomp5 -lm -lpthread
+
+#LIBS =   -dynamic      -lfftw3_threads -lfftw3 -Wl, -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
+
 
 ddeps= 	
 

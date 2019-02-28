@@ -2,7 +2,7 @@ PROGRAM commandline
 !$ use omp_lib
   use, intrinsic :: iso_c_binding
   use mkl_dfti 
-  include 'fftw3.f03'
+  include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
   Integer, Parameter :: wp = Selected_Real_Kind(15,307)  ! double real
 
@@ -242,7 +242,7 @@ PROGRAM commandline
     complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
     real(kind=wp), allocatable :: X(:)
     real(kind=wp) :: nrm,tm1,tm2,s,t
-    integer :: stat, k, i, j, ntemp
+    integer :: stat, k, i, j, ntemp, nthreads
 
     type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
     integer :: Status, L(2)
@@ -381,8 +381,10 @@ PROGRAM commandline
 
     case (3) ! MKL
 
-      
-
+    nthreads = 1
+!$    nthreads=omp_get_max_threads()  
+     call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)      
+     write(*,'(a14,i5)') "MKL threads=",nthreads
      do k=1,n2     
         if (k.eq.1) then
           !allocate(X_2D(2*(n1/2+1),n2),stat=stat)
