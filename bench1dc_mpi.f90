@@ -818,7 +818,8 @@ contains
     real(kind=wp) :: nrm,tm1,tm2
     integer :: stat, k, i,nthreads
     integer(c_int) :: flags
-    integer(c_intptr_t) :: n1_4, nthreads_4
+    integer(c_intptr_t) :: n1_4
+    integer(kind=4) :: nthreads_4
     integer :: my_id,ierr,local_n1
 
     type(c_ptr) :: plan, iplan, cin, ciout, cout, ciin
@@ -854,7 +855,10 @@ contains
     ! if (stat .eq. 0) then
     !    write(*,*) 'fftw_init_threads stat', stat        
     ! end if
+
+   stat = fftw_init_threads()
     call fftw_mpi_init()
+    call fftw_plan_with_nthreads(nthreads_4)
 
     !   get local data size and allocate
     alloc_local = fftw_mpi_local_size_1d(n1_4, comm, &
@@ -872,8 +876,8 @@ contains
     !$    tm2 = omp_get_wtime()
     tm_fft_init = tm_fft_init + tm2 - tm1
 
-    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_ni',local_ni,'local_i_start', local_i_start
-    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_no', local_no, 'local_o_start', local_o_start
+!    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_ni',local_ni,'local_i_start', local_i_start
+!    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_no', local_no, 'local_o_start', local_o_start
 
     if (check) then
        call mpi_barrier(comm,ierr)
@@ -896,8 +900,8 @@ contains
        !$   tm2 = omp_get_wtime()
        tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_ni',ilocal_ni,'ilocal_i_start', ilocal_i_start
-       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_no', ilocal_no, 'ilocal_o_start', ilocal_o_start
+!       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_ni',ilocal_ni,'ilocal_i_start', ilocal_i_start
+!       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_no', ilocal_no, 'ilocal_o_start', ilocal_o_start
 
        allocate(dk(n1,1),stat=stat)
        if (stat .ne. 0) then
@@ -984,6 +988,16 @@ contains
 
        if (k.eq.n2) then
           call fftw_destroy_plan(plan)
+
+ call mpi_barrier(comm,ierr)
+
+ !         call fftw_free(cin)
+ !         call fftw_free(cout)
+ !call mpi_barrier(comm,ierr)
+         call fftw_mpi_cleanup()
+
+          call fftw_cleanup_threads()
+
        end if
 
 

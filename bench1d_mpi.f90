@@ -894,11 +894,6 @@ contains
     call mpi_comm_rank(comm, my_id, ierr );
 
     call mpi_comm_size(comm,nproc,ierr)
-    if (nproc .eq. 1) then
-       call fft_bench_fftw_no_mpi(n1,n2,c,check,flag,tm_fft_init,tm_fft,&
-            tm_ifft_init,tm_ifft)
-       return
-    end if
 
 
     flag = 0
@@ -923,8 +918,8 @@ contains
     !   get local data size and allocate
     alloc_local = fftw_mpi_local_size_1d(n1_4, comm, &
          fftw_forward,flags, local_ni, local_i_start, local_no, local_o_start               )
-    write(*,*) my_id, 'local_ni, local_i_start, local_no, local_o_start', &
-         local_ni, local_i_start, local_no, local_o_start
+   ! write(*,*) my_id, 'local_ni, local_i_start, local_no, local_o_start', &
+   !      local_ni, local_i_start, local_no, local_o_start
 
 
 
@@ -945,8 +940,8 @@ contains
        ialloc_local = fftw_mpi_local_size_1d(n1_4, comm, &
             fftw_backward,flags, ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start)
 
-       write(*,*) my_id, 'ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start', &
-            ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start
+    !   write(*,*) my_id, 'ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start', &
+    !        ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start
 
        call mpi_barrier(comm,ierr)
        !$   tm2 = omp_get_wtime() 
@@ -1021,9 +1016,9 @@ contains
 
     call mpi_barrier(comm,ierr)
     !$          tm1 = omp_get_wtime()
-    stat = fftw_init_threads()
-    call fftw_mpi_init()
-    call fftw_plan_with_nthreads(nthreads_4)
+!    stat = fftw_init_threads()
+!    call fftw_mpi_init()
+!    call fftw_plan_with_nthreads(nthreads_4)
     !   get local data size and allocate
 !    alloc_local = fftw_mpi_local_size_1d(n1_4, comm, &
 !         fftw_forward,flags, local_ni, local_i_start, local_no, local_o_start               )
@@ -1209,165 +1204,6 @@ contains
 
   end subroutine fft_bench_fftw_mpi
 
-  subroutine fft_bench_fftw_no_mpi(n1,n2,c,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft) 
-    integer, intent(in) :: n1,n2 ! array dimensions
-    real (kind=wp), intent(in) :: c(n1,n2) ! input array 
-    logical, intent(in) :: check ! additionally, perform inverse, element-wise
-    ! division by bi and compare with a
-    integer, intent(out) :: flag ! 0 : all fine
-    ! -1: error: check is true but a or bi missing
-    real(kind=wp), intent(out) :: tm_fft_init ! total initialisation time fft
-    real(kind=wp), intent(out) :: tm_fft ! total time fft
-    real(kind=wp), intent(out) :: tm_ifft_init ! total initialisation time ifft
-    real(kind=wp), intent(out) :: tm_ifft ! total time ifft
-
-    ! local variables and arrays
-    complex(kind=wp), allocatable :: dk(:,:)
-    real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, nthreads
-    integer(kind=4) :: n1_4, flags,nthreads_4
-
-    type(c_ptr) :: plan, iplan
-
-    real(c_double), dimension(n1) :: in, iout
-    real(c_double), dimension(n1) :: out, iin
-
-    flag = 0
-
-    tm_fft_init = 0.0_wp
-    tm_fft = 0.0_wp
-    tm_ifft_init = 0.0_wp
-    tm_ifft = 0.0_wp
-    nthreads = 1
-    !$  nthreads=omp_get_max_threads()  
-    nthreads_4 = int(nthreads,kind=ip4)
-
-    n1_4 = int(n1,kind=ip4)
-    flags = int(0,kind=ip4)
-    !$          tm1 = omp_get_wtime()
-    stat = fftw_init_threads()
-    call fftw_plan_with_nthreads(nthreads_4)
-
-
-    plan = fftw_plan_r2r_1d(n1_4, in,out,fftw_r2hc,flags)
-    !$          tm2 = omp_get_wtime()
-    tm_fft_init = tm_fft_init + tm2 - tm1
-
-    if (check) then
-
-       !$   tm1 = omp_get_wtime()
-       iplan = fftw_plan_r2r_1d(n1_4, iin,iout,fftw_hc2r,&
-            flags)
-       !$   tm2 = omp_get_wtime()
-
-       tm_ifft_init = tm_ifft_init + tm2 - tm1
-
-       allocate(dk(n1,1),stat=stat)
-       if (stat .ne. 0) then
-          flag = -2
-          goto 20
-       end if
-
-
-    end if
-
-    do k=1,n2
-
-
-       ! copy each slice into in
-       do i=1,n1
-          !     write(*,*) 'c',i,j,k,c(i,j,k)
-          in(i) = c(i,k)
-          !     write(*,*) i,j,k,dk(i,j)
-
-       end do
-
-       !$   tm1 = omp_get_wtime()
-       call fftw_execute_r2r(plan, in, out)
-       !$   tm2 = omp_get_wtime()
-       tm_fft = tm_fft + tm2 - tm1
-
-       !        write(*,*) 'fft time=', tm2-tm1
-
-       if (check) then
-
-          ! copy out into iin
-          do i=1,n1
-             !     write(*,*) 'c',i,j,k,c(i,j,k)
-             iin(i) = out(i)
-             !     write(*,*) i,j,k,dk(i,j)
-
-          end do
-
-          !$      tm1 = omp_get_wtime()
-          call fftw_execute_r2r(iplan, iin, iout)
-          !$      tm2 = omp_get_wtime()
-          !        write(*,*) 'ifft time=', tm2-tm1
-          tm_ifft = tm_ifft + tm2 - tm1
-
-          if (k.eq.1) then
-             nrm = 0.0_wp
-          end if
-
-          !$omp parallel do private(i)
-          do i=1,n1
-             dk(i,1) = real(iout(i),kind=wp)/real(n1,kind=wp)
-          end do
-          !$omp end parallel do
-
-          !          write(*,*) iout(n1/2,n2/2), dk(n1/2,n2/2), c(n1/2,n2/2,k)
-
-          call check_error(n1,c(:,k),dk,nrm)
-
-
-          if (k.eq.n2) then
-
-             write(*,*) 'k, nrm^2:',k,nrm
-
-             call fftw_destroy_plan(iplan)
-             deallocate(dk, stat=stat)
-             if (stat .ne. 0) then
-                flag = -3
-                goto 20
-             end if
-
-          end if
-
-
-       end if
-
-
-
-       if (k.eq.n2) then
-          call fftw_destroy_plan(plan)
-          call fftw_cleanup_threads()
-       end if
-
-
-
-    end do
-
-
-
-    return
-
-20  select case (flag)
-    case (-1)
-       write(*,'(a)') "error check requested  but either a or bi missing"
-       ! should never be possible to reach this error
-    case (-2)
-       write(*,'(a)') "allocation error"
-    case (-3)
-       write(*,'(a)') "deallocation error"
-    case (-4)
-       write(*,'(a)') "n1 and n2 must be factorisable into powers of 2, 3 and 5"
-
-
-    end select
-
-
-  end subroutine fft_bench_fftw_no_mpi
 
 
 

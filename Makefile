@@ -60,7 +60,7 @@ ffteparam= ffte-6.0/param.h
 
 
 #all:  bench1d bench1dc bench2d bench2dc bench3d bench3dc
-all: bench1d_mpi
+all: bench1d_mpi bench1dc_mpi
 
 bench2d:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o
 	 $(f90) mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o $(LIBS) -o bench2d.exe
