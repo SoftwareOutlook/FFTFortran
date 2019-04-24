@@ -60,13 +60,22 @@ ffteparam= ffte-6.0/param.h
 
 
 #all:  bench1d bench1dc bench2d bench2dc bench3d bench3dc
-all: bench1d_mpi bench1dc_mpi
+#all: bench1d_mpi bench1dc_mpi 
+#all: bench2dc_mpi bench2d_mpi
+
+all: bench3dc_mpi bench3d_mpi
 
 bench2d:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o
 	 $(f90) mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o $(LIBS) -o bench2d.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
 	 ./bench2d.exe  6  3 2 2 2
+
+bench2d_mpi:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o
+	$(f90) mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o $(LIBS) -o bench2d_mpi.exe
+	echo $(LIBS)
+	echo $(OMP_NUM_THREADS)
+
 
 bench2dc:   mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o bench2dc.o
 	 $(f90) mkl_dfti.o zfft2d.o fft235.o factor.o kernel.o bench2dc.o $(LIBS) -o bench2dc.exe
@@ -79,6 +88,13 @@ bench2dc_mod:   mkl_dfti.o zfft2d_mod.o fft235.o factor.o kernel.o bench2dc.o
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
 	./bench2dc_mod.exe  6  3 2 2 2
+
+bench2dc_mpi:   mkl_cdft.o zfft2d.o fft235.o factor.o kernel.o bench2dc_mpi.o
+	$(f90) mkl_cdft.o zfft2d.o fft235.o factor.o kernel.o bench2dc_mpi.o $(LIBS) -o bench2dc_mpi.exe
+	echo $(LIBS)
+	echo $(OMP_NUM_THREADS)
+#        ./bench2dc_mpi.exe  6  3 2 2 2
+
 
 
 bench1d:     mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench1d.o
@@ -122,11 +138,25 @@ bench3d:   mkl_dfti.o bench3d.o
 	echo $(OMP_NUM_THREADS)
 	 ./bench3d.exe  6  3 2 2 2
 
+bench3d_mpi:   mkl_dfti.o bench3d_mpi.o
+	$(f90) mkl_dfti.o bench3d_mpi.o $(LIBS) -o bench3d_mpi.exe
+	echo $(LIBS)
+	echo $(OMP_NUM_THREADS)
+
+
+
 bench3dc:   mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o bench3dc.o
 	 $(f90) mkl_dfti.o zfft3d.o fft235.o factor.o kernel.o bench3dc.o $(LIBS) -o bench3dc.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
 	./bench3dc.exe  6  3 2 2 3
+
+bench3dc_mpi:   mkl_cdft.o zfft3d.o fft235.o factor.o kernel.o bench3dc_mpi.o
+	$(f90) mkl_cdft.o zfft3d.o fft235.o factor.o kernel.o bench3dc_mpi.o $(LIBS) -o bench3dc_mpi.exe
+	echo $(LIBS)
+	echo $(OMP_NUM_THREADS)
+
+
 
 bench3dc_mod:   mkl_dfti.o zfft3d_mod.o fft235.o factor.o kernel.o bench3dc.o
 	$(f90) mkl_dfti.o zfft3d_mod.o fft235.o factor.o kernel.o bench3dc.o $(LIBS) -o bench3dc_mod.exe
@@ -162,6 +192,13 @@ ddeps90.o:	ddeps90.f90
 bench2dc.o:      bench2dc.f90
 	$(f90) -c bench2dc.f90
 
+bench2dc_mpi.o:      bench2dc_mpi.f90
+	$(f90) -c bench2dc_mpi.f90
+
+bench2d_mpi.o:      bench2d_mpi.f90
+	$(f90) -c bench2d_mpi.f90
+
+
 bench2d.o:	bench2d.f90
 	$(f90) -c bench2d.f90
 
@@ -180,9 +217,15 @@ bench1dc_mpi.o:      bench1dc_mpi.f90
 bench3d.o:      bench3d.f90
 	$(f90) -c bench3d.f90
 
+bench3d_mpi.o:      bench3d_mpi.f90
+	$(f90) -c bench3d_mpi.f90
+
+
 bench3dc.o:      bench3dc.f90
 	$(f90) -c bench3dc.f90
 
+bench3dc_mpi.o:      bench3dc_mpi.f90
+	$(f90) -c bench3dc_mpi.f90
 
 mkl_dfti.o : mkl_dfti.f90 
 	$(f90) -c mkl_dfti.f90

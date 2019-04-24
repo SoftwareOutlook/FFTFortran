@@ -410,14 +410,14 @@ contains
 
        do k=1,n2
           ! copy each slice into dk
-          
+
 
 
           !$omp parallel do 
           do i=1,n1_local
              !     write(*,*) 'c',i,j,k,c(i,j,k)
              dkffte(1,1,i) = c(i+my_id*nn,k)
-                  write(*,*) my_id,i,dkffte(1,1,i)!, c(i+my_id*nn,k)
+             write(*,*) my_id,i,dkffte(1,1,i)!, c(i+my_id*nn,k)
 
 
           end do
@@ -430,7 +430,7 @@ contains
              call pzfft3d(dkffte,work,1,1,n1,comm,npu,0)
              !$          tm2 = omp_get_wtime()
              tm_fft_init = tm_fft_init + tm2 - tm1
-             
+
           end if
           !$   tm1 = omp_get_wtime()
           call pzfft3d(dkffte,work,1,1,n1,comm,npu,-1)
@@ -439,15 +439,15 @@ contains
           !        write(*,*) 'fft time=', tm2-tm1
 
 
-              do i=1,n1_local
-          !      do j=1,n2
-                  write(*,*) 'out',my_id,i,work(1,1,i)
-          !      end do
-              end do
+          do i=1,n1_local
+             !      do j=1,n2
+             write(*,*) 'out',my_id,i,work(1,1,i)
+             !      end do
+          end do
           if (check) then
              if (k.eq.1) then
                 !$          tm1 = omp_get_wtime()
-              !  call zfft1d(dk,work,work1,n1,comm,my_id,npu,0)
+                !  call zfft1d(dk,work,work1,n1,comm,my_id,npu,0)
                 !$          tm2 = omp_get_wtime()
                 tm_ifft_init = tm_ifft_init + tm2 - tm1
              end if
@@ -456,27 +456,27 @@ contains
              !$        tm2 = omp_get_wtime()
              tm_ifft = tm_ifft + tm2 - tm1
 
-              do i=1,n1_local
-          !      do j=1,n2                                                                                                                                                           
-                  !write(*,*) 'iout',my_id,i,dk(1,i), c(i+my_id*nn,k)
+             do i=1,n1_local
+                !      do j=1,n2                                                                                                                                                           
+                !write(*,*) 'iout',my_id,i,dk(1,i), c(i+my_id*nn,k)
                 ! if (npu .eq. 1) then
-                   work1(i,1) = dkffte(1,1,i)
+                work1(i,1) = dkffte(1,1,i)
                 ! else
                 !   work1(i,1) = dk(1,i)*n1
                 ! end if
 
-                  write(*,*) 'iout',my_id,i,dkffte(1,1,i), c(i+my_id*nn,k)
+                write(*,*) 'iout',my_id,i,dkffte(1,1,i), c(i+my_id*nn,k)
 
 
-          !      end do                                                                                                                                                              
-              end do
+                !      end do                                                                                                                                                              
+             end do
 
 
              if (k.eq.1) then
                 nrm = 0.0_wp
              end if
              call check_error(n1_local,c(1+my_id*nn:my_id*nn+n1_local,k),work1,nrm,my_id)
- write(*,*) 'nrm', nrm, my_id
+             write(*,*) 'nrm', nrm, my_id
              if (k.eq.n2) then
                 !nrm = sqrt(nrm)
                 write(*,*) 'rank, k, nrm^2:',my_id,k,nrm
@@ -791,7 +791,7 @@ contains
        write(*,'(a)') "deallocation error"
     case (-4)
        write(*,'(a)') "n1 and n1_local must be factorisable into powers of 2, 3 and 5"
-  !     call mpi_abort(comm,flag)
+       !     call mpi_abort(comm,flag)
 
     end select
     call mpi_abort(comm,flag,ierr)
@@ -856,7 +856,7 @@ contains
     !    write(*,*) 'fftw_init_threads stat', stat        
     ! end if
 
-   stat = fftw_init_threads()
+    stat = fftw_init_threads()
     call fftw_mpi_init()
     call fftw_plan_with_nthreads(nthreads_4)
 
@@ -876,8 +876,8 @@ contains
     !$    tm2 = omp_get_wtime()
     tm_fft_init = tm_fft_init + tm2 - tm1
 
-!    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_ni',local_ni,'local_i_start', local_i_start
-!    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_no', local_no, 'local_o_start', local_o_start
+    !    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_ni',local_ni,'local_i_start', local_i_start
+    !    write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'local_no', local_no, 'local_o_start', local_o_start
 
     if (check) then
        call mpi_barrier(comm,ierr)
@@ -900,8 +900,8 @@ contains
        !$   tm2 = omp_get_wtime()
        tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-!       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_ni',ilocal_ni,'ilocal_i_start', ilocal_i_start
-!       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_no', ilocal_no, 'ilocal_o_start', ilocal_o_start
+       !       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_ni',ilocal_ni,'ilocal_i_start', ilocal_i_start
+       !       write(*,'(a5,i5,a10,i8,a10,i8)') 'rank', my_id,'ilocal_no', ilocal_no, 'ilocal_o_start', ilocal_o_start
 
        allocate(dk(n1,1),stat=stat)
        if (stat .ne. 0) then
@@ -965,7 +965,7 @@ contains
           !          write(*,*) iout(n1/2,n2/2), dk(n1/2,n2/2), c(n1/2,n2/2,k)
           local_n1 = int(ilocal_no)
           call check_error(local_n1,c(ilocal_o_start+1:ilocal_o_start+ilocal_no,k),&
-                dk(1:local_n1,1),nrm, my_id)
+               dk(1:local_n1,1),nrm, my_id)
 
 
           if (k.eq.n2) then
@@ -989,12 +989,12 @@ contains
        if (k.eq.n2) then
           call fftw_destroy_plan(plan)
 
- call mpi_barrier(comm,ierr)
+          call mpi_barrier(comm,ierr)
 
- !         call fftw_free(cin)
- !         call fftw_free(cout)
- !call mpi_barrier(comm,ierr)
-         call fftw_mpi_cleanup()
+          !         call fftw_free(cin)
+          !         call fftw_free(cout)
+          !call mpi_barrier(comm,ierr)
+          call fftw_mpi_cleanup()
 
           call fftw_cleanup_threads()
 
@@ -1042,7 +1042,7 @@ contains
     do i = 1,n1
        s= a(i,1)-c(i,1)
        t = s*conjg(s)
-!                 write(*,*) 's,t',a(i,1), c(i,1),s,t, real(t,kind=wp),my_id 
+       !                 write(*,*) 's,t',a(i,1), c(i,1),s,t, real(t,kind=wp),my_id 
        nrm = nrm + real(t,kind=wp)
     end do
     !$omp end parallel do

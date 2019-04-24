@@ -228,6 +228,8 @@ program commandline
 
 
 100 continue
+ 
+  call mpi_finalize(ierr)
 
 contains
 
