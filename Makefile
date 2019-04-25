@@ -61,9 +61,9 @@ ffteparam= ffte-6.0/param.h
 
 #all:  bench1d bench1dc bench2d bench2dc bench3d bench3dc
 #all: bench1d_mpi bench1dc_mpi 
-#all: bench2dc_mpi bench2d_mpi
+all: bench2dc_mpi bench2d_mpi
 
-all: bench3dc_mpi bench3d_mpi
+#all: bench3dc_mpi bench3d_mpi
 
 bench2d:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o
 	 $(f90) mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o $(LIBS) -o bench2d.exe
@@ -71,8 +71,8 @@ bench2d:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d.o
 	echo $(OMP_NUM_THREADS)
 	 ./bench2d.exe  6  3 2 2 2
 
-bench2d_mpi:   mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o
-	$(f90) mkl_dfti.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o $(LIBS) -o bench2d_mpi.exe
+bench2d_mpi:   mkl_cdft.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o
+	$(f90) mkl_cdft.o dzfft2d.o zdfft2d.o fft235.o factor.o kernel.o bench2d_mpi.o $(LIBS) -o bench2d_mpi.exe
 	echo $(LIBS)
 	echo $(OMP_NUM_THREADS)
 

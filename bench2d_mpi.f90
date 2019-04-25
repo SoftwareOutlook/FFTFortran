@@ -273,15 +273,26 @@ contains
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:), work(:,:)
-    real(kind=wp), allocatable :: X(:)
-    real(kind=wp) :: nrm,tm1,tm2, t, s1
-    integer :: stat, k, i, j, ntemp, nthreads
+    complex(kind=wp), allocatable :: Dk(:,:), work(:,:), workmkl(:),local(:)
+    complex(kind=wp), allocatable :: X(:,:)
+      REAL(kind=wp), POINTER :: X_IN(:,:)
+      COMPLEX(kind=wp), POINTER :: X_OUT(:,:)
+ 
 
-    type(DFTI_DESCRIPTOR), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
+   real(kind=wp) :: nrm,tm1,tm2, t, s1
+    integer :: stat, k, i, j, ntemp, nthreads,m_padded
+
+    type(DFTI_DESCRIPTOR_DM), POINTER :: My_Desc_Handle!, My_Desc_Handle_Inv
+
+
     integer :: Status, L(2)
     integer :: strides_in(3)
     integer :: strides_out(3)
+
+    integer ::  nx,nx_out,start_x,start_x_out,size
+
+    integer   elementsize, rootrank
+    parameter (elementsize = 16)
 
 
     flag = 0
@@ -412,29 +423,22 @@ contains
        call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)
        write(*,'(a14,i5)') "MKL threads=",nthreads
 
-
-
-       allocate(X(2*(n1/2+1)*n2),stat=stat)
+       allocate(X(n1,n2),stat=stat)
        if (stat .ne. 0) then
           flag = -2
           goto 20
        end if
 
-       !        end if
-       X(:) = 0.0_wp
+       X(:,:) = 0.0_wp
 
        L(1) = n1
        L(2) = n2
+       m_padded = n1/2+1
 
-       strides_in(1) = 0
-       strides_in(2) = 1
-       strides_in(3) = 2*(n1/2+1)
-       strides_out(1) = 0
-       strides_out(2) = 1
-       strides_out(3) = n1/2+1
 
+       call mpi_barrier(comm,ierr)
        !$          tm1 = omp_get_wtime()
-       Status = DftiCreateDescriptor( My_Desc_Handle, DFTI_DOUBLE,&
+       Status = DftiCreateDescriptorDM( comm,My_Desc_Handle, DFTI_DOUBLE,&
             DFTI_REAL, 2, L )
        !  write(*,*) 'Status1', Status
        if (status .ne. 0) then
@@ -444,36 +448,78 @@ contains
        endif
 
 
-       Status = DftiSetValue(My_Desc_Handle, DFTI_CONJUGATE_EVEN_STORAGE,&
-            DFTI_COMPLEX_COMPLEX)
+       !     3. obtain some values of configuration parameters by calls to
+       !        dftigetvaluedm
+       !
+       status = dftigetvaluedm(my_desc_handle,cdft_local_size,size)
        if (status .ne. 0) then
-          if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-             write(*,*) 'Error: ', DftiErrorMessage(status)
+          if (.not. dftierrorclass(status,dfti_no_error)) then
+             write(*,*) 'error: ', dftierrormessage(status)
           endif
        endif
 
-       Status = DftiSetValue(My_Desc_Handle, DFTI_INPUT_STRIDES, strides_in)
 
+       status = dftigetvaluedm(my_desc_handle,cdft_local_nx,nx)
        if (status .ne. 0) then
-          if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-             write(*,*) 'Error: ', DftiErrorMessage(status)
+          if (.not. dftierrorclass(status,dfti_no_error)) then
+             write(*,*) 'error: ', dftierrormessage(status)
           endif
        endif
 
-       !  write(*,*) 'Status3', Status
 
-       Status = DftiSetValue(My_Desc_Handle, DFTI_OUTPUT_STRIDES, &
-            strides_out)
-
+       status = dftigetvaluedm(my_desc_handle,cdft_local_x_start,start_x)
        if (status .ne. 0) then
-          if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-             write(*,*) 'Error: ', DftiErrorMessage(status)
+          if (.not. dftierrorclass(status,dfti_no_error)) then
+             write(*,*) 'error: ', dftierrormessage(status)
           endif
        endif
 
-       !  write(*,*) 'Status4', Status
 
-       Status = DftiCommitDescriptor( My_Desc_Handle)
+       status = dftigetvaluedm(my_desc_handle,cdft_local_out_nx,nx_out)
+       if (status .ne. 0) then
+          if (.not. dftierrorclass(status,dfti_no_error)) then
+             write(*,*) 'error: ', dftierrormessage(status)
+          endif
+       endif
+
+
+       status = dftigetvaluedm(my_desc_handle,cdft_local_out_x_start,start_x_out)
+       if (status .ne. 0) then
+          if (.not. dftierrorclass(status,dfti_no_error)) then
+             write(*,*) 'error: ', dftierrormessage(status)
+          endif
+       endif
+
+
+
+       allocate(local(size), workmkl(size), stat=status)
+       if (stat .ne. 0) then
+          flag = -2
+          goto 20
+       end if
+
+
+
+      CALL C_F_POINTER (C_LOC(LOCAL), X_IN, [2*M_PADDED,NX])
+      CALL C_F_POINTER (C_LOC(LOCAL), X_OUT, [M_PADDED,NX_OUT])
+
+
+
+
+       !
+       !     4. specify a value(s) of configuration parameters by a call(s) to
+       !        dftisetvaluedm
+       !
+!       status = dftisetvaluedm(my_desc_handle,cdft_workspace,workmkl)
+!       if (status .ne. 0) then
+!          if (.not. dftierrorclass(status,dfti_no_error)) then
+!             write(*,*) 'error: ', dftierrormessage(status)
+!          endif
+!       endif
+
+
+
+       Status = DftiCommitDescriptorDM( My_Desc_Handle)
        !  write(*,*) 'Status5', Status
 
        if (status .ne. 0) then
@@ -482,57 +528,15 @@ contains
           endif
 
        endif
-
+       call mpi_barrier(comm,ierr)
        !$          tm2 = omp_get_wtime()
 
        tm_fft_init = tm_fft_init + tm2 - tm1
+
        if (check) then
+          call mpi_barrier(comm,ierr)
           !$      tm1 = omp_get_wtime()
-          Status = DftiCreateDescriptor( My_Desc_Handle_Inv, DFTI_DOUBLE,&
-               DFTI_REAL, 2, L )
-
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
-
-          Status = DftiSetValue(My_Desc_Handle_Inv,&
-               DFTI_CONJUGATE_EVEN_STORAGE,&
-               DFTI_COMPLEX_COMPLEX)
-
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
-
-          Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_INPUT_STRIDES,&
-               strides_out)
-
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
-
-          Status = DftiSetValue(My_Desc_Handle_Inv, DFTI_OUTPUT_STRIDES, &
-               strides_in)
-
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
-
-          Status = DftiCommitDescriptor( My_Desc_Handle_Inv)
-
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
-
+          call mpi_barrier(comm,ierr)
           !$      tm2 = omp_get_wtime()
           tm_ifft_init = tm_ifft_init + tm2 - tm1
           allocate(Dk(n1,n2),stat=stat)
@@ -552,22 +556,28 @@ contains
 
           ! Copy slice from C(:,:,k)
           do i=1,n1
-             do j=1,n2
+             do j=1,nx
                 t = 0.1**12
-                if (C(i,j,k) .lt. t) then
+                if (C(i,j+start_x-1,k) .lt. t) then
                    s1=0.0_wp
                 else
-                   s1=C(i,j,k)
+                   s1=C(i,j+start_x-1,k)
                 end if
-                X(i+(j-1)*2*(n1/2+1)) = s1
+                X_in(i,j) = cmplx(s1,kind=wp)
              end do
           end do
 
+          
+
           !         write(*,*) X
+          call mpi_barrier(comm,ierr)
           !$      tm1 = omp_get_wtime()
 
 
-          Status = DftiComputeForward( My_Desc_Handle, X )
+          call mpi_barrier(comm,ierr)
+
+
+          Status = DftiComputeForwardDM( My_Desc_Handle,local,workmkl)
 
           if (status .ne. 0) then
              if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -577,11 +587,9 @@ contains
 
           !      write(*,*) 'Status4', Status
 
-          if (status .ne. 0) then
-             if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                write(*,*) 'Error: ', DftiErrorMessage(status)
-             endif
-          endif
+          call mpi_barrier(comm,ierr)
+
+
 
           !$      tm2 = omp_get_wtime()
           !     write(*,*) 'fft time=', tm2-tm1
@@ -593,9 +601,11 @@ contains
 
 
 
-             !$          tm1 = omp_get_wtime()
 
-             Status = DftiComputeBackward( My_Desc_Handle_Inv, X )
+          call mpi_barrier(comm,ierr)
+
+
+             Status = DftiComputeBackwardDM( My_Desc_Handle, local, workmkl)
 
              if (status .ne. 0) then
                 if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -603,7 +613,7 @@ contains
                 endif
              endif
 
-             !  write(*,*) 'Status4', Status
+          call mpi_barrier(comm,ierr)
 
              !$          tm2 = omp_get_wtime()
 
@@ -612,23 +622,18 @@ contains
              !           write(*,*) X
              ! Copy slice from X to Dk
              do i=1,n1
-                do j=1,n2
+                do j=1,nx
 
-                   Dk(i,j) = X(i+(j-1)*2*(n1/2+1))/real(n1*n2,kind=wp)
+                   Dk(i,j+start_x-1) = cmplx(X_in(i,j)/real(n1*n2,kind=wp),kind=wp)
                 end do
              end do
-             call check_error(n1,n2,C(:,:,k),Dk,nrm)
+ 
+
+   call check_error(n1,nx,C(1:n1,start_x:start_x+nx-1,k),Dk(1:n1,start_x:start_x+nx-1),nrm)
              !      write(*,*) 'nrm',nrm,k
 
              if (k.eq.n3) then
-                write(*,*) 'k,nrm',k,nrm
-                Status = DftiFreeDescriptor(My_Desc_Handle_Inv)
-
-                if (status .ne. 0) then
-                   if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
-                      write(*,*) 'Error: ', DftiErrorMessage(status)
-                   endif
-                endif
+                write(*,*) 'k,nrm,my_id',k,nrm,my_id
 
                 deallocate(Dk,stat=stat)
                 if (stat .ne. 0) then
@@ -643,7 +648,7 @@ contains
 
 
           if (k.eq.n3) then
-             Status = DftiFreeDescriptor(My_Desc_Handle)
+             Status = DftiFreeDescriptorDM(My_Desc_Handle)
 
              if (status .ne. 0) then
                 if (.not. DftiErrorClass(status,DFTI_NO_ERROR)) then
@@ -653,7 +658,7 @@ contains
 
 
              !         if (k.eq.n3) then
-             deallocate(X,stat=stat)
+             deallocate(X,local,workmkl,stat=stat)
              if (stat .ne. 0) then
                 flag = -3
                 goto 20
@@ -672,7 +677,7 @@ contains
 
     end select
 
-
+    call mpi_barrier(comm,ierr)
     return
 
 20  select case (flag)
@@ -947,19 +952,143 @@ contains
     ! local variables
     integer :: i,j,k
     complex(kind=wp) :: s, t
+
+    write(*,*) 'nrm in',nrm
+
     !$OMP PARALLEL DO REDUCTION(+:nrm) PRIVATE(i,j,k,s,t) COLLAPSE(2)
     do i = 1,n1
        do j= 1,n2
           s= cmplx(A(i,j),kind=wp)-C(i,j)
           t = s*conjg(s)
           nrm = nrm + real(t,kind=wp)
-          !          write(*,*) A(i,j), C(i,j),s,t,nrm
+!                    write(*,*) A(i,j), C(i,j),s,t,nrm
        end do
     end do
     !$OMP END PARALLEL DO
 
+    write(*,*) 'nrm out',nrm
+
 
 
   end subroutine check_error
+
+  integer function mkl_cdft_data_d(comm,rootrank,elementsize,dim,   &
+       &                                 lengths,global,nx,start_x,local, &
+       &                                 flag)
+
+    ! include 'mpif.h'
+
+    !     mpi related integer should have the kind mpi expect
+    integer, allocatable :: counts(:),displs(:),buf(:)
+    integer:: i,tmp(2),req,stat(mpi_status_size)
+    integer:: comm,rootrank,nproc,nrank,mpi_err
+
+
+    integer elementsize,dim,lengths(*),nx,start_x,flag,status
+    complex(8) global(*),local(*)
+    intent(in) comm,rootrank,elementsize,dim,lengths,nx,start_x,flag
+
+    integer fd
+
+    call mpi_comm_rank(comm,nrank,mpi_err)
+    if (mpi_err/=mpi_success) goto 100
+
+    if (nrank==rootrank) then
+       call mpi_comm_size(comm,nproc,mpi_err)
+       if (mpi_err/=mpi_success) goto 100
+       allocate(counts(nproc),displs(nproc),buf(2*nproc), stat=status)
+       if(status/=0) goto 100
+    end if
+
+    fd=1
+    do i=1,dim-1
+       fd=fd*lengths(i)
+    end do
+
+    tmp(1)=nx*fd*elementsize
+    tmp(2)=(start_x-1)*fd
+
+    call mpi_gather(tmp,2_mpi_kind,mpi_integer,buf,2_mpi_kind,        &
+         &                mpi_integer,rootrank,comm,mpi_err)
+    if (mpi_err/=mpi_success) goto 100
+
+    if (nrank==rootrank) then
+       counts=buf(1:2*nproc-1:2)
+       displs=buf(2:2*nproc:2)
+    end if
+
+    if (flag==0) then
+
+       call mpi_irecv(local,tmp(1),mpi_byte,rootrank,123_mpi_kind,    &
+            &                  comm,req,mpi_err)
+       if (mpi_err/=mpi_success) goto 100
+
+       if (nrank==rootrank) then
+          do i=0,nproc-1
+             call mpi_send(global(displs(i+1)+1),counts(i+1),mpi_byte,&
+                  &                       i,123_mpi_kind,comm,mpi_err)
+             if (mpi_err/=mpi_success) goto 100
+          end do
+       end if
+
+       call mpi_wait(req,stat,mpi_err)
+       if (mpi_err/=mpi_success) goto 100
+    endif
+
+    if (flag==1) then
+
+       call mpi_isend(local,tmp(1),mpi_byte,rootrank,222_mpi_kind,    &
+            &                  comm,req,mpi_err)
+       if (mpi_err/=mpi_success) goto 100
+
+       if (nrank==rootrank) then
+          do i=0,nproc-1
+             call mpi_recv(global(displs(i+1)+1),counts(i+1),mpi_byte,&
+                  &                       i,222_mpi_kind,comm,stat,mpi_err)
+             if (mpi_err/=mpi_success) goto 100
+          end do
+       end if
+       call mpi_wait(req,stat,mpi_err)
+       if (mpi_err/=mpi_success) goto 100
+
+    end if
+
+    if (nrank==rootrank) deallocate(counts,displs,buf)
+
+100 mkl_cdft_data_d=mpi_err
+
+  end function mkl_cdft_data_d
+
+
+  integer function mkl_cdft_scatterdata_d(comm,rootrank,elementsize,&
+       &                                        dim,lengths,global_in,nx, &
+       &                                        start_x,local_in)
+
+    integer::  rootrank, comm
+    integer :: elementsize,dim,lengths(*),nx,start_x
+    complex(8) global_in(*),local_in(*)
+
+    mkl_cdft_scatterdata_d=mkl_cdft_data_d(comm,rootrank,elementsize, &
+         &                                       dim,lengths,global_in,nx,  &
+         &                                       start_x,local_in,0)
+
+  end function mkl_cdft_scatterdata_d
+
+
+  integer function mkl_cdft_gatherdata_d(comm,rootrank,elementsize, &
+       &                                       dim,lengths,global_out,nx, &
+       &                                       start_x,local_out)
+
+    integer:: rootrank, comm
+    integer:: elementsize,dim,lengths(*),nx,start_x
+    complex(8):: global_out(*),local_out(*)
+
+    mkl_cdft_gatherdata_d=mkl_cdft_data_d(comm,rootrank,elementsize,  &
+         &                                      dim,lengths,global_out,nx,  &
+         &                                      start_x,local_out,1)
+
+  end function mkl_cdft_gatherdata_d
+
+
 
 END PROGRAM commandline
