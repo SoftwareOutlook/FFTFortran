@@ -3,7 +3,7 @@ PROGRAM commandline
   use, intrinsic :: iso_c_binding
   use mkl_cdft 
   use mpi
-
+  implicit none
   !  include '/usr/include/fftw3.f03'                                            
   include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
@@ -136,7 +136,7 @@ PROGRAM commandline
   a1 = 0.3*real(n1,wp)
   b1 = 0.35*real(n2,wp)
   c1 = real(n3,wp)/3.0_wp
-     call mpi_barrier(comm,ierr)
+  call mpi_barrier(comm,ierr)
 
   !$ tm1=omp_get_wtime()
   do i=1,n1
@@ -156,7 +156,7 @@ PROGRAM commandline
         end do
      end do
   end do
-     call mpi_barrier(comm,ierr)
+  call mpi_barrier(comm,ierr)
 
   !$ tm2=omp_get_wtime()
   write(*,*) 'Set-up A time=', tm2-tm1
@@ -166,7 +166,7 @@ PROGRAM commandline
 
   m = 0
 
-     call mpi_barrier(comm,ierr)
+  call mpi_barrier(comm,ierr)
 
   !$ tm1=omp_get_wtime()
 
@@ -190,7 +190,7 @@ PROGRAM commandline
   end do
   !$OMP END DO
   !$OMP END PARALLEL    
-     call mpi_barrier(comm,ierr)
+  call mpi_barrier(comm,ierr)
 
   !$ tm2=omp_get_wtime()
   write(*,*) 'Set-up B time (no norm)=', tm2-tm1
@@ -312,7 +312,7 @@ contains
 
     parameter (elementsize = 16)
 
-    type(DFTI_DESCRIPTOR_DM), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
+    type(DFTI_DESCRIPTOR_DM), POINTER :: My_Desc_Handle
     integer :: Status, L(2)
 
 
@@ -447,7 +447,7 @@ contains
     case (3) ! MKL
        nthreads = 1
        !$    nthreads=omp_get_max_threads()
-       call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)
+       call mkl_set_num_threads(nthreads)
        write(*,'(a14,i5)') "MKL threads=",nthreads
 
 
@@ -820,22 +820,22 @@ contains
 
 
     ! Local variables and arrays
-  !  complex(kind=wp), allocatable :: Dk(:,:)
-    real(kind=wp) :: nrm,tm1,tm2, n1n2
-    integer :: stat, k, i, j, nthreads
+    !  complex(kind=wp), allocatable :: Dk(:,:)
+    real(kind=wp) :: tm1,tm2
+    integer :: stat, nthreads
     integer(kind=c_intptr_t) :: n1_4,n2_4
 
     integer(kind=4) :: nthreads_4
     integer(kind=c_int) :: flags
-    integer :: my_id,ierr,local_n1,nproc
+    integer :: my_id,ierr,nproc
 
     integer(c_intptr_t)   :: alloc_local, local_n2, local_j_offset
 
 
-   ! type(C_PTR) :: plan, iplan
+    ! type(C_PTR) :: plan, iplan
 
-   ! complex(C_DOUBLE), dimension(n1,n2) :: in, iout
-   ! complex(C_DOUBLE), dimension(n1,n2) :: out, iin
+    ! complex(C_DOUBLE), dimension(n1,n2) :: in, iout
+    ! complex(C_DOUBLE), dimension(n1,n2) :: out, iin
 
     call mpi_comm_rank(comm, my_id, ierr );
 
@@ -865,7 +865,7 @@ contains
     call fftw_mpi_init()
     call fftw_plan_with_nthreads(nthreads_4)
     alloc_local = fftw_mpi_local_size_2d(n2_4,n1_4, comm, &
-            local_n2, local_j_offset)
+         local_n2, local_j_offset)
 
 
 
@@ -877,26 +877,26 @@ contains
     tm_fft_init = tm_fft_init + tm2 - tm1
     if (check) then
 
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
 
        !$   tm1 = omp_get_wtime()
-     !  iplan = fftw_plan_dft_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD,flags)
+       !  iplan = fftw_plan_dft_2d(n2_4,n1_4, iin,iout,FFTW_BACKWARD,flags)
 
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
 
        !$   tm2 = omp_get_wtime()
        tm_ifft_init = tm_ifft_init + tm2 - tm1
 
-      ! allocate(Dk(n1,n2),stat=stat)
-      ! if (stat .ne. 0) then
-      !    flag = -2
-      !    goto 20
-      ! end if
+       ! allocate(Dk(n1,n2),stat=stat)
+       ! if (stat .ne. 0) then
+       !    flag = -2
+       !    goto 20
+       ! end if
 
     end if
 
     call fft_bench_fftw_mpi(n1,n2,n3,C,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft,local_n2,local_j_offset)
+         tm_ifft_init,tm_ifft,local_n2,local_j_offset)
 
   end subroutine fft_bench_fftw
 
@@ -924,7 +924,7 @@ contains
     integer(kind=c_intptr_t) :: n1_4, n2_4
     integer(kind=4) :: nthreads_4
     integer(kind=c_int) :: flags
-    integer :: ierr,nproc
+    integer :: ierr
 
 
     type(C_PTR) :: plan, iplan
@@ -933,10 +933,10 @@ contains
     complex(C_DOUBLE_complex), dimension(n1,local_n2) :: out, iin
 
     flag = 0
- !   tm_fft_init = 0.0_wp
- !   tm_fft = 0.0_wp
- !   tm_ifft_init = 0.0_wp
- !   tm_ifft = 0.0_wp
+    !   tm_fft_init = 0.0_wp
+    !   tm_fft = 0.0_wp
+    !   tm_ifft_init = 0.0_wp
+    !   tm_ifft = 0.0_wp
 
 
     n1_4 = int(n1,kind=c_intptr_t)
@@ -957,10 +957,10 @@ contains
     !$          tm2 = omp_get_wtime()
     tm_fft_init = tm_fft_init + tm2 - tm1
     if (check) then
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
        !$   tm1 = omp_get_wtime()
        iplan = fftw_mpi_plan_dft_2d(n2_4,n1_4, iin,iout,comm,FFTW_BACKWARD,flags)
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
        !$   tm2 = omp_get_wtime()
        tm_ifft_init = tm_ifft_init + tm2 - tm1
 
@@ -983,10 +983,10 @@ contains
              !     write(*,*) i,j,k,Dk(i,j)
           end do
        end do
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
        !$   tm1 = omp_get_wtime()
        call fftw_mpi_execute_dft(plan, in, out)
-    call mpi_barrier(comm,ierr)
+       call mpi_barrier(comm,ierr)
        !$   tm2 = omp_get_wtime()
        !       write(*,*) 'fft time=', tm2-tm1
        tm_fft = tm_fft + tm2 - tm1
@@ -1002,10 +1002,10 @@ contains
              end do
 
           end do
-    call mpi_barrier(comm,ierr)
+          call mpi_barrier(comm,ierr)
           !$      tm1 = omp_get_wtime()
           call fftw_mpi_execute_dft(iplan, iin, iout)
-    call mpi_barrier(comm,ierr)
+          call mpi_barrier(comm,ierr)
           !$      tm2 = omp_get_wtime()
           !      write(*,*) 'ifft time=', tm2-tm1
           tm_ifft = tm_ifft + tm2 - tm1
@@ -1030,10 +1030,10 @@ contains
 
              write(*,*) 'k, nrm^2:',k,nrm
 
-    call mpi_barrier(comm,ierr)
+             call mpi_barrier(comm,ierr)
 
              call fftw_destroy_plan(iplan)
-    call mpi_barrier(comm,ierr)
+             call mpi_barrier(comm,ierr)
 
              deallocate(Dk, stat=stat)
              if (stat .ne. 0) then
@@ -1044,12 +1044,12 @@ contains
        end if
 
        if (k.eq.n3) then
-    call mpi_barrier(comm,ierr)
+          call mpi_barrier(comm,ierr)
 
           call fftw_destroy_plan(plan)
-    call mpi_barrier(comm,ierr)
+          call mpi_barrier(comm,ierr)
 
-         call fftw_mpi_cleanup()
+          call fftw_mpi_cleanup()
 
           call fftw_cleanup_threads()
        end if

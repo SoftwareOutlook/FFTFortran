@@ -4,6 +4,7 @@ program commandline
   use mpi
   use p3dfft
   use mkl_cdft 
+  implicit none
   include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
   integer, parameter :: wp = selected_real_kind(15,307)  ! double real
@@ -261,7 +262,7 @@ contains
 
     complex(kind=wp), allocatable :: local(:)
     real(kind=wp) :: nrm,tm1,tm2,s,t
-    integer :: stat, k, i, j, ntemp, nthreads, nn, n1_local
+    integer :: stat, k, i, j, ntemp, nthreads
     integer :: my_id, npu,ierr ! mpi variables
     integer   elementsize, rootrank
     parameter (elementsize = 16)
@@ -269,9 +270,9 @@ contains
     integer   nx,nx_out,start_x,start_x_out,size
 
     type(dfti_descriptor_dm), pointer :: my_desc_handle!, my_desc_handle_inv
-    integer :: status, l(2), dims(2)
-    integer :: strides_in(3)
-    integer :: strides_out(3), istart(3),iend(3),isize(3), fstart(3),fend(3),fsize(3)
+    integer :: status, dims(2)
+
+    integer :: istart(3),iend(3),isize(3), fstart(3),fend(3),fsize(3)
 
 
     call mpi_comm_rank(comm, my_id, ierr)
@@ -554,7 +555,7 @@ contains
 
        nthreads = 1
        !$    nthreads=omp_get_max_threads()  
-       call mkl_domain_set_num_threads(nthreads, mkl_domain_fft)      
+       call mkl_set_num_threads(nthreads)      
        write(*,'(a14,i5)') "mkl threads=",nthreads
        do k=1,n2     
           if (k.eq.1) then
@@ -878,18 +879,17 @@ contains
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! local variables and arrays
-    complex(kind=wp), allocatable :: dk(:,:)
-    real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, nthreads
-    integer(kind=c_intptr_t) :: n1_4, n2_4
+    real(kind=wp) :: tm1,tm2
+    integer :: stat, nthreads
+    integer(kind=c_intptr_t) :: n1_4
     integer(kind=4) :: nthreads_4
     integer(kind=c_int) :: flags
-    integer :: my_id,ierr,local_n1,nproc
+    integer :: my_id,ierr,nproc
 
 
-    integer(c_intptr_t)   :: alloc_local, local_l, local_ni, local_i_start, &
+    integer(c_intptr_t)   :: alloc_local, local_ni, local_i_start, &
          local_no, local_o_start
-    integer(c_intptr_t)   :: ialloc_local, ilocal_l, ilocal_ni, ilocal_i_start, &
+    integer(c_intptr_t)   :: ialloc_local, ilocal_ni, ilocal_i_start, &
          ilocal_no, ilocal_o_start
 
 
@@ -954,12 +954,12 @@ contains
 
     if (check) then 
     call fft_bench_fftw_mpi(comm,n1,n2,c,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, local_o_start ,&
-       ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start,my_id )
+       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, &
+       ilocal_ni, ilocal_no, my_id )
     else
     call fft_bench_fftw_mpi(comm,n1,n2,c,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, local_o_start,&
-       local_ni, local_i_start, local_no, local_o_start,my_id  )
+       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, &
+       local_ni, local_no, my_id  )
     end if
 
 
@@ -970,8 +970,8 @@ contains
 
 
   subroutine fft_bench_fftw_mpi(comm,n1,n2,c,check,flag,tm_fft_init,tm_fft,&
-       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, local_o_start ,&
-       ilocal_ni, ilocal_i_start, ilocal_no, ilocal_o_start,my_id   )
+       tm_ifft_init,tm_ifft, local_ni, local_i_start, local_no, &
+       ilocal_ni, ilocal_no,my_id   )
     integer, intent(inout) :: comm ! mpi communicator 
     integer, intent(in) :: n1,n2 ! array dimensions
     real (kind=wp), intent(in) :: c(n1,n2) ! input array 
@@ -986,24 +986,23 @@ contains
 
 !    integer(c_intptr_t)   :: alloc_local, local_l 
     integer(c_intptr_t), intent(in)   :: local_ni, local_i_start, &
-         local_no, local_o_start
+         local_no
 !    integer(c_intptr_t)   :: ialloc_local, ilocal_l
-    integer(c_intptr_t), intent(in)   ::  ilocal_ni, ilocal_i_start, &
-         ilocal_no, ilocal_o_start
+    integer(c_intptr_t), intent(in)   ::  ilocal_ni,  &
+         ilocal_no
     integer, intent(in) :: my_id
 
 
     ! local variables and arrays
     complex(kind=wp), allocatable :: dk(:,:)
     real(kind=wp) :: nrm,tm1,tm2
-    integer :: stat, k, i, nthreads
-    integer(kind=c_intptr_t) :: n1_4, n2_4
-    integer(kind=4) :: nthreads_4
+    integer :: stat, k, i
+    integer(kind=c_intptr_t) :: n1_4
     integer(kind=c_int) :: flags
-    integer :: ierr,local_n1,nproc
+    integer :: ierr
 
 
-    type(c_ptr) :: plan, iplan, cin, ciout, cout, ciin
+    type(c_ptr) :: plan, iplan
  
     complex(c_double_complex), dimension(local_ni) :: in
     complex(c_double_complex), dimension(ilocal_no) ::  iout

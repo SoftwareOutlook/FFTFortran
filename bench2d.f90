@@ -389,7 +389,7 @@ PROGRAM commandline
 
     nthreads = 1
 !$    nthreads=omp_get_max_threads()
-     call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)
+     call mkl_set_num_threads(nthreads)
      write(*,'(a14,i5)') "MKL threads=",nthreads
 
 

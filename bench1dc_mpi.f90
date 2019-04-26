@@ -3,7 +3,7 @@ program commandline
   use, intrinsic :: iso_c_binding
   use mkl_cdft 
   use mpi
-
+  implicit none
   !  include '/usr/include/fftw3.f03'
   include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
@@ -321,7 +321,7 @@ contains
     integer   nx,nx_out,start_x,start_x_out,size
 
     type(dfti_descriptor_dm), pointer :: my_desc_handle!, my_desc_handle_inv
-    integer :: status, l(2)
+    integer :: status
 
     call mpi_comm_rank(comm, my_id, ierr)
     call mpi_comm_size(comm, npu, ierr)
@@ -475,7 +475,7 @@ contains
              if (k.eq.1) then
                 nrm = 0.0_wp
              end if
-             call check_error(n1_local,c(1+my_id*nn:my_id*nn+n1_local,k),work1,nrm,my_id)
+             call check_error(n1_local,c(1+my_id*nn:my_id*nn+n1_local,k),work1,nrm)
              write(*,*) 'nrm', nrm, my_id
              if (k.eq.n2) then
                 !nrm = sqrt(nrm)
@@ -506,7 +506,7 @@ contains
     case (3) ! mkl
        nthreads = 1
        !$    nthreads=omp_get_max_threads()
-       call mkl_domain_set_num_threads(nthreads, mkl_domain_fft)
+       call mkl_set_num_threads(nthreads)
        write(*,'(a14,i5)') "mkl threads=",nthreads
 
 
@@ -745,7 +745,7 @@ contains
              ! write(*,*) dk
              ! write(*,*) c(:,k)
              if (my_id .eq. rootrank) then 
-                call check_error(n1,c(:,k),dk,nrm, my_id)
+                call check_error(n1,c(:,k),dk,nrm)
              end if
              !       write(*,*) 'nrm',nrm,k
 
@@ -824,9 +824,9 @@ contains
 
     type(c_ptr) :: plan, iplan, cin, ciout, cout, ciin
 
-    integer(c_intptr_t)   :: alloc_local, local_l, local_ni, local_i_start, &
+    integer(c_intptr_t)   :: alloc_local, local_ni, local_i_start, &
          local_no, local_o_start
-    integer(c_intptr_t)   :: ialloc_local, ilocal_l, ilocal_ni, ilocal_i_start, &
+    integer(c_intptr_t)   :: ialloc_local, ilocal_ni, ilocal_i_start, &
          ilocal_no, ilocal_o_start
 
 
@@ -965,7 +965,7 @@ contains
           !          write(*,*) iout(n1/2,n2/2), dk(n1/2,n2/2), c(n1/2,n2/2,k)
           local_n1 = int(ilocal_no)
           call check_error(local_n1,c(ilocal_o_start+1:ilocal_o_start+ilocal_no,k),&
-               dk(1:local_n1,1),nrm, my_id)
+               dk(1:local_n1,1),nrm)
 
 
           if (k.eq.n2) then
@@ -1026,12 +1026,11 @@ contains
   end subroutine fft_bench_fftw
 
 
-  subroutine check_error(n1,a,c,nrm,my_id)
+  subroutine check_error(n1,a,c,nrm)
     integer, intent(in) :: n1 ! array dimensions
     complex(kind=wp), intent(in) :: a(n1,1) ! input array a
     complex(kind=wp), intent(in) :: c(n1,1) ! input array c
     real(kind=wp), intent(inout) :: nrm ! 2-norm of a-c
-    integer, intent(in) :: my_id ! process rank
 
     ! local variables
     integer :: i

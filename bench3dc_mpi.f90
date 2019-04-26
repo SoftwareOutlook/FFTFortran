@@ -3,6 +3,7 @@ PROGRAM commandline
   use, intrinsic :: iso_c_binding
   use mkl_cdft 
   use mpi
+  implicit none
   !  include '/usr/include/fftw3.f03'                                            
   include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
@@ -287,7 +288,7 @@ contains
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:), Dk1(:,:,:)
+    complex(kind=wp), allocatable :: Dk1(:,:,:)
     complex(kind=wp), allocatable :: X(:,:,:),workmkl(:)
     complex(kind=wp), allocatable :: local(:)
     real(kind=wp) :: nrm,tm1,tm2, t
@@ -297,7 +298,7 @@ contains
 
     integer   nx,nx_out,start_x,start_x_out,size
 
-    type(DFTI_DESCRIPTOR_DM), POINTER :: My_Desc_Handle, My_Desc_Handle_Inv
+    type(DFTI_DESCRIPTOR_DM), POINTER :: My_Desc_Handle
     integer :: Status, L(3)
 
     integer   elementsize, rootrank
@@ -424,7 +425,7 @@ contains
     case (3) ! MKL
        nthreads = 1
        !$    nthreads=omp_get_max_threads()
-       call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)
+       call mkl_set_num_threads(nthreads)
        write(*,'(a14,i5)') "MKL threads=",nthreads
 
 
@@ -752,13 +753,13 @@ contains
 
     ! Local variables and arrays
     !   complex(kind=wp), allocatable :: Dk(:,:,:)
-    real(kind=wp) :: nrm,tm1,tm2, n1n2
-    integer :: stat, k, i, j, nthreads
+    real(kind=wp) :: tm1,tm2
+    integer :: stat,  nthreads
     integer(kind=c_intptr_t) :: n1_4, n2_4, n3_4
     integer(kind=c_int) :: flags 
     integer(kind=4) :: nthreads_4
 
-    integer :: my_id,ierr,nproc
+    integer :: ierr
     integer(c_intptr_t)   :: alloc_local, local_n3, local_k_offset
 
     !    type(C_PTR) :: plan, iplan
