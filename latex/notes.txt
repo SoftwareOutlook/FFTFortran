@@ -1,0 +1,11 @@
+P3DFFT installation:
+
+ module swap PrgEnv-cray PrgEnv-intel
+module load intel
+module load fftw
+
+configure --prefix=/home/c01/c01/suet/local -enable-openmp --enable-intel --enable-fftw --with-fftw=/opt/cray/fftw/default/ivybridge
+
+
+
+MKL Cluster - only complex <-> complex

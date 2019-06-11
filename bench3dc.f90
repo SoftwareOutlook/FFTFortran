@@ -271,7 +271,7 @@ PROGRAM commandline
     real(kind=wp), intent(out) :: tm_ifft ! total time ifft
 
     ! Local variables and arrays
-    complex(kind=wp), allocatable :: Dk(:,:), Dk1(:,:,:)
+    complex(kind=wp), allocatable :: Dk1(:,:,:)
     complex(kind=wp), allocatable :: X(:)
     real(kind=wp) :: nrm,tm1,tm2, t
     complex(kind=wp) :: s
@@ -397,7 +397,7 @@ PROGRAM commandline
     case (3) ! MKL
     nthreads = 1
 !$    nthreads=omp_get_max_threads()
-     call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)
+     call mkl_set_num_threads(nthreads)
      write(*,'(a14,i5)') "MKL threads=",nthreads
 
 

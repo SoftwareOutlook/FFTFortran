@@ -2,6 +2,7 @@ PROGRAM commandline
 !$ use omp_lib
   use, intrinsic :: iso_c_binding
   use mkl_dfti 
+  implicit none
   include '/opt/cray/fftw/default/ivybridge/include/fftw3-mpi.f03'
 
   Integer, Parameter :: wp = Selected_Real_Kind(15,307)  ! double real
@@ -43,7 +44,7 @@ PROGRAM commandline
          !  1: FFTE NOT included due to bugs in real-complex fft
          !  2: FFTW
          !  3: MKL
-         !  4: P3DFFT NOT included due to fussy installation scripts
+         !  4: P3DFFT
          !  5: P3DFFT++ NOT included due to poor installation instructions
     CALL GET_COMMAND_ARGUMENT(4,option4) !Grab the 4th command line argument
     ! and store it in temp variable 'option4'
@@ -59,7 +60,7 @@ PROGRAM commandline
     write(*,'(a,i8)') "Variable fftlib = ", fftlib
 
     if (n1.lt.1 .or. n2.lt.1 .or. nq.lt.1 .or. fftlib .lt. 2 &
-        .or. fftlib .gt. 3) then
+        .or. fftlib .gt. 4) then
       goto 10
     endif
 
@@ -183,12 +184,13 @@ PROGRAM commandline
 
 
   end do
+    j = 1
     i = 1
 !$  i = omp_get_max_threads()   
     write(*,*) 'i',i
     tm1 = real(nq*n2,kind=wp)
     tm2 = real(nq,kind=wp)
-    write(*,'(a8,5i8,8e10.3e2)') "Average",fftlib,i,n1,n2,nq,&
+    write(*,'(a8,6i8,8e10.3e2)') "Average",fftlib,j,i,n1,n2,nq,&
        tm_fft_init_tot/tm2,&
        tm_fft_init_max,tm_ifft_init_tot/tm2,tm_ifft_init_max,&
        tm_fft_tot,tm_fft_tot/tm1,tm_ifft_tot,tm_ifft_tot/tm1
@@ -383,7 +385,7 @@ PROGRAM commandline
 
     nthreads = 1
 !$    nthreads=omp_get_max_threads()  
-     call mkl_domain_set_num_threads(nthreads, MKL_DOMAIN_FFT)      
+     call mkl_set_num_threads(nthreads)      
      write(*,'(a14,i5)') "MKL threads=",nthreads
      do k=1,n2     
         if (k.eq.1) then
