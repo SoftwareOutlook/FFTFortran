@@ -40,6 +40,7 @@ Section~\ref{Sec:libs}. Assuming indexing starts at 1, the discrete 1D Fourier t
 \begin{equation}\label{Eqn:fft}
   z(k) = \sum_{m=1}^{n} x(m) \exp(-2\pi i (k-1) (m-1) / n), \quad l=1,\ldots,n.
 \end{equation}
+In this work, we consider FFT libraries that have both multi-threading (OpenMP) and MPI capabilities.
 
 \subsection{Half-complex format}
 For input data that is purely real, the discrete Fourier transform satisfies 
@@ -61,8 +62,8 @@ Half-complex format can
 be extended to more dimensions. Note that if the input vector $x$ is 
 half-complex format, then $z$ will be a real vector.
 
-
-\section{1D Benchmark}
+\section{Benchmarks}
+\subsection{1D Benchmark}
 Let $A$ be a 2D array with dimensions $n_1\times n_2$ and there be $q$ 
 2D arrays $B_i$ that are the same size as $A.$  The general benchmark will take the form of 
 Algorithm~\ref{Alg:1D}, where $comp\_mult(A,B_i)$ is defined to be 
@@ -115,7 +116,7 @@ discrete inverse Fast Fourier Transform.
 
 \end{algorithm}
 
-\section{2D Benchmark}
+\subsection{2D Benchmark}
 Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
 3D arrays $B_i$ that are the same size as $A.$  The benchmark will take the form of 
 Algorithm~\ref{Alg:2D}, where $comp\_mult(A,B_i)$ is defined to be 
@@ -169,7 +170,7 @@ some of the workload done in CCP\_PETMR's SIRF code.
 
 \end{algorithm}
 
-\section{3D Benchmark}
+\subsection{3D Benchmark}
 Let $A$ be a 3D array with dimensions $n_1\times n_2\times n_3$ and there be $q$ 
 3D arrays $B_i$ that are the same size as $A.$  The benchmark will take the form of 
 Algorithm~\ref{Alg:3D}, where $comp\_mult(A,B_i)$ is defined to be 
@@ -210,9 +211,9 @@ discrete inverse Fast Fourier Transform.
 
 \end{algorithm}
 
-\section{FFT Libraries}\label{Sec:libs}
+\section{FFT Libraries and testing environment}\label{Sec:libs}
 
-We will compare the libraries listed in Table~\ref{Tbl:libs}. 
+In this work, we planned to compare the libraries listed in Table~\ref{Tbl:libs}. 
 The datatypes listed are real (R), complex (C) and half-complex (H). The column 
 "Dimensions" indicates the dimensions for which interfaces are provided. Lower 
 dimensions can be input by calling the interface for higher dimensions and 
@@ -235,15 +236,115 @@ MKL  & R $\rightarrow$ H & Any   & Any & Multithreading, & Intel Simplified & \c
      & H $\rightarrow$ R & Any   & & & & \\ \hline
 P3DFFT & R $\rightarrow$ H & 3   & Any & OpenMP, MPI & GPL v3 & \cite{P3DFFT} \\
      & H $\rightarrow$ R & 3   & & & & \\ \hline
-P3DFFT++ & R $\rightarrow$ H & 1,3   & Any & MPI & GPL v3 & \cite{P3DFFT} \\
-     & C $\rightarrow$ C &  1,3     & & &  & \\
-     & H $\rightarrow$ R & 1,3   & & & & \\ \hline
+%P3DFFT++ & R $\rightarrow$ H & 1,3   & Any & MPI & GPL v3 & \cite{P3DFFT} \\
+%     & C $\rightarrow$ C &  1,3     & & &  & \\
+%     & H $\rightarrow$ R & 1,3   & & & & \\ \hline
 
 \end{tabular}
-\caption{Libraries being benchmarked.  For ``valid $n$'', the values $a,$ $b,$ $c,$ $d,$ $e$ and $f$ are all assumed to the non-negative integers.}\label{Tbl:libs}
+\caption{Libraries being benchmarked.  For ``valid $n$'', the values $a,$ $b,$ $c,$ $d,$ $e$ and $f$ are all assumed to be non-negative integers.}\label{Tbl:libs}
 \end{small}
 \end{center}
 \end{table}
+
+All benchmark runs were run on ARCHER **ADD REF**, where each compute node 
+contains two 
+2.7 GHz, 12-core E5-2697 v2 (Ivy Bridge) series processors. Each of the cores 
+in these processors can support 2 hardware threads (Hyperthreads) but we do 
+not activate hyperthreading within our benchmark tests. Within the node, the 
+two processors are connected by two QuickPath Interconnect (QPI) links. All of 
+our benchmarks were run on standard compute nodes, which have 64 GB of memory 
+shared between the two processors. During our benchmark runs, we set the following environment variables:
+\begin{itemize}
+\item \texttt{KMP\_AFFINITY} to \texttt{disabled};
+\item \texttt{OMP\_NUM\_THREADS} to the number of OpenMP threads;
+\item \texttt{MKL\_NUM\_THREADS} to the number of OpenMP threads to ensure that the MKL runs use the full number of threads.
+\end{itemize}
+The benchmarks were launched via \texttt{aprun} with the flags set as 
+\texttt{-cc none -n \$nprocs -d \$nthreads}, where \texttt{\$nprocs} is the 
+number of MPI processes and \texttt{nthreads} is the number of OpenMP threads.
+
+The default modules for  FFTW and Intel on ARCHER were used in our benchmarks, 
+namely, versions 3.3.4.11 and 17.0.0.098, respectively. The Intel module 
+contains MKL. FFTE was compiled using ARCHER's Intel Fortran compiler with flags \texttt{-O3 -fopenmp}. P3FFT version 2.7.9 was installed by following its installation instructions: the Intel compiler was used with the default Intel and FFTW modules; \texttt{configure} was called with the following flags:
+
+\noindent \texttt{--prefix=[LOCAL] -enable-openmp}
+
+\noindent \texttt{--enable-intel --enable-fftw --with-fftw=/opt/cray/fftw/default/ivybridge}
+
+\noindent where \texttt{[LOCAL]} was set as a local directory.
+
+[ADD INFO ABOUT wallclock, median value, accuracy checked, etc]
+
+
+\section{1D Real results}
+
+In this section we discuss the benchmark results for libraries that apply the 
+fast Fourier transform to real 1D arrays. The numerical results from the FFTE 
+library were found to be inaccurate and, whilst it was straightforward to 
+debug the code, we are testing the codes as provided so we exclude this 
+library from these benchmarks. The P3DFFT library cannot be used on 1D 
+problems and, hence, is excluded.
+
+In these benchmarks, we set $n_2=4$ and $n_q=4.$ For one set of tests, we let
+ $n_1=2^k$ for $k=8,\ldots,30.$ For the other set of tests, $n_1$ is defined 
+to be the closest prime number to $2^k,$ $k=8,\ldots,20:$ if two primes are 
+equidistant, we choose the larger one.
+
+We start by considering the MPI-OpenMP versions of the FFTW and MKL libraries.
+ In Figure X, we compare single node experiments for FFTW with 1, 8 and 16 
+MPI processes but fix the number of OpenMP threads to 1. We provide both the 
+initialisation time ``INIT'' for the FFT library call and the FFT computation 
+time ``FFT''. For values of $n_1$ that are powers of 2, we could only perform 
+computations up to $2^14$ due to the Fortran to C interface relying on 
+C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. As a result, the problem size, 
+$n_1,$ is not large enough to allow the MPI capabilities to affect. For the 
+larger values of $n_1,$ we note that when $n_1$ is prime, the 
+initialisation time between one and two orders of magnitude larger than when $n_1$ was a power of 2; the FFT computation time is roughly an order of magnitude 
+larger than when $n_1$ switches from beinga power of 2 to being prime. Additionally, for prime values of $n_1,$ the initialisation time is between 4 and 5 orders of magnitude larger than the FFT computation time. For values of $n_1$ that are powers of 2 but smaller than 10000, the FFT computation time is smallest when just one  MPI process is used but this is sometimes countered by an increase in the intialisation time.
+
+\begin{figure}[!htbp]
+\begin{center}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{FFTW1D_times_fig.eps}
+\caption{1D FFTW applied to real valued one-dimensional arrays of length $n_1$ using $p$ MPI processes. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds.}
+\label{Fig:fftw1d_times}
+\end{center}
+\end{figure}
+
+
+In Table~\ref{Tbl:FFT1d}, the wallclock times and ratios with respect to 1 MPI process are provided for $n_1=2048,$ $n_1=16384$ and the prime values $n_1=2053$ and $n_1=16381.$ For the prime values of $n_1,$ increasing the number of MPI processes results in a mild increase in wall clock time for both the wallclock initialisation and FFT computation times. For $n_1=2^{14},$ we observe that for $p=4,8,16,$ the initialisation time steadly decreases and, for 16 MPI processes, the initialisation time is 40\% of that when one MPI process is used. However, the gains from using multiple MPI processes for FFT calculations is only felt, in our tests, for $proc=8$ and 16: for 16 MPI processes there is a 31\% reduction in wallclock time compared to using one MPI process.  
+
+
+
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r||r|r|r|r|r|r|}
+\hline $n_1$ & p & INIT & IRatio & FFT & FRatio & $n_1$ & p & INIT & IRatio & FFT & FRatio  \\ \hline
+2048 & 1 & 0.100 & -     & 9.2e-6 & - & 2053 & 1  & 0.955 & -   & 6.84e-5 & -   \\
+2048 & 2 & 0.155 & 1.55  & 3.1e-5 & 3.32 & 2053 & 2  & 0.967 & 1.01 & 6.89e-5 & 1.01  \\
+2048 & 4 & 0.129 & 1.29  & 2.3e-5 & 2.51 & 2053 & 4  & 0.973 & 1.02 & 7.17e-5 & 1.05   \\
+2048 & 8 & 0.104 & 1.04  & 2.8e-5 & 3.02 & 2053 & 8  & 1.00 & 1.05 &  7.62e-5 & 1.11  \\
+2048 & 16 & 0.089 & 0.89 & 3.1e-5 & 3.35 & 2053 & 16 & 1.02 & 1.07 &  8.00e-5 & 1.17   \\ \hline
+16384 & 1 &  0.486 & - &    1.11e-4 & -  & 16381 & 1 & 1.57 & -    & 8.38e-4 & -   \\
+16384 & 2 &  0.510 & 1.05 & 1.93e-4 & 1.74 & 16381 & 2 & 1.59 & 1.01 & 7.96e-4 & 0.95    \\
+16384 & 4 &  0.336 & 0.69 & 1.13e-4 & 1.02  & 16381 & 4 & 1.63 & 1.04 & 8.62e-4 & 1.03    \\
+16384 & 8 &  0.234 & 0.48 & 8.44e-5 & 0.76  & 16381 & 8 & 1.71 & 1.09 & 8.40e-4 & 1.00    \\
+16384 & 16 & 0.196 & 0.40 & 7.66e-5 & 0.69  & 16381 & 16 & 1.79 & 1.14 & 1.01e-3 & 1.21   \\ \hline
+\end{tabular}
+\caption{1D FFTW applied to real valued one-dimensional arrays of length $n_1$ using $p$ MPI processes and 1 thread. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds. IRatio is the ratio of INIT with INIT(p=1). FRatio is the ratio of FFT with FFT(p=1).  [ADD].}\label{Tbl:FFT1d}
+%\end{small}
+\end{center}
+\end{table}
+
+
+\begin{figure}[!htbp]
+\begin{center}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{FFTW1D_threads_times_fig.eps}
+\caption{1D FFTW applied to real valued one-dimensional arrays of length $n_1$ using $t$ threads and 1 MPI process. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds.}
+\label{Fig:fftw1d_threads_times}
+\end{center}
+\end{figure}
 
 
 \bibliographystyle{siam}
