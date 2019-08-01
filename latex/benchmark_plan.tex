@@ -217,7 +217,13 @@ In this work, we planned to compare the libraries listed in Table~\ref{Tbl:libs}
 The datatypes listed are real (R), complex (C) and half-complex (H). The column 
 "Dimensions" indicates the dimensions for which interfaces are provided. Lower 
 dimensions can be input by calling the interface for higher dimensions and 
-setting the dimension size to 1 for the additional dimensions.
+setting the dimension size to 1 for the additional dimensions. We had also planned 
+to compare the FFTE (version 6.0) library but the library is not documented and, when tested, we 
+found that there was no way of checking whether the subroutine had successfully 
+completed the FFT calculation and it just returns to the user as if it had been 
+successful, which can be very dangerous: through our tests, we found that the MPI version was 
+restrictive on the number of processes that it could handle, which is not documented, 
+and the OpenMP version was not reliable. For these reasons, we do not recommend using FFTE.
 
 \begin{table}[h]
 \begin{center}
@@ -225,9 +231,6 @@ setting the dimension size to 1 for the additional dimensions.
 \begin{tabular}{|l|c|c|c|l|l|c|}
 \hline
 \textbf{Library} & \textbf{Data types} & \textbf{Dimensions} & \textbf{Valid $n$} & \textbf{Parallelism} & \textbf{License} & \textbf{Citation} \\ \hline
-FFTE & R $\rightarrow$ H & 2,3   & $2^a\times 3^b \times 5^c$ & OpenMP, MPI,  & Open source & \cite{FFTE} \\
-     & C $\rightarrow$ C & 1,2,3 & & CUDA & & \\
-     & H $\rightarrow$ R & 2,3   & & & & \\ \hline
 FFTW & R $\rightarrow$ H & Any   & Any but optimised for  & Multithreading, & GPL v3 & \cite{FFTW} \\
      & C $\rightarrow$ C & Any      & $2^a\times 3^b\times 5^c\times 7^d\times 11^e\times 13^f$ &  MPI & & \\
      & H $\rightarrow$ R & Any      & with $e+f = 0$ or $1$ & & & \\ \hline
@@ -276,14 +279,11 @@ contains MKL. FFTE was compiled using ARCHER's Intel Fortran compiler with flags
 [ADD INFO ABOUT wallclock, median value, accuracy checked, etc]
 
 
-\section{1D Real results}
+\section{1D Results}
 
 
 In this section we discuss the benchmark results for libraries that apply the 
-fast Fourier transform to real 1D arrays. The numerical results from the FFTE 
-library were found to be inaccurate and, whilst it was straightforward to 
-debug the code, we are testing the codes as provided so we exclude this 
-library from these benchmarks. The P3DFFT library cannot be used on 1D 
+fast Fourier transform to 1D arrays.  The P3DFFT library cannot be used on 1D 
 problems and, hence, is excluded.
 
 In these benchmarks, we set $n_2=4$ and $n_q=4.$ For one set of tests, we let
@@ -291,9 +291,13 @@ In these benchmarks, we set $n_2=4$ and $n_q=4.$ For one set of tests, we let
 to be the closest prime number to $2^k,$ $k=8,\ldots,20:$ if two primes are 
 equidistant, we choose the larger one.
 
-We start by considering the MPI-OpenMP versions of the FFTW and MKL libraries.
+
+
+
 
 \subsection{FFTW}
+
+\subsubsection{Real input array}\label{Sec:FFTWReal}
 
  In Figure~\ref{Fig:fftw1d_times}, we compare single node experiments for FFTW with 1, 8 and 16 
 MPI processes but fix the number of OpenMP threads to 1. We provide both the 
@@ -329,6 +333,13 @@ In Figure~\ref{Fig:fftw1d_threads_times} we fix the number of MPI processes to o
 
 
 
+\begin{figure}[!htbp]
+\begin{center}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{FFTW1D_OMP_threads_times_fig.eps}
+\caption{1D FFTW applied to real valued one-dimensional arrays of length $n_1$ using $t$ threads with the pure OpenMP version. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds.}
+\label{Fig:fftw1d_omp_threads_times}
+\end{center}
+\end{figure}
 
 In Tables~\ref{Tbl:FFT1d2048}, \ref{Tbl:FFT1d2053}, \ref{Tbl:FFT1d16381} and 
 \ref{Tbl:FFT1d16384},  the FFT compution and initialisation wallclock times and 
@@ -532,18 +543,23 @@ the parallel capability of FFTW are reached.
 \end{center}
 \end{table}
 
+\subsubsection{Complex value arrays}
 
+The results shown in Section~\ref{Sec:FFTWReal} are for real-valued inputs. For 
+the mixed Open-MPI version of the FFTW library, the initialisation and  FFT 
+calculation times are very similar for both complex and real inputs. For the pure OpenMP version, the FFT calculation times are also very similar 
+when comparing complex and real inputs. However, the initilisation times  for $n_1=16384$ and   the complex value interface are between 1.7 and 1.99 times larger than those of the real value interface when multiple threads are used; if a single thread is used, the initiliasation time is 2.88 times larger than the real interface. 
 
 
 
 \subsection{MKL}
-Whilst the FFTW library was limited in problem size for 1D real problems, the MKL library with MPI provision only has an interface for complex input. Thus, in these tests, we have to convert the real-valued input into complex-values before inputing them to the FFT routine.
+Whilst the FFTW library was limited in problem size for 1D real problems, the MKL library with MPI provision only has an interface for complex input.
 
 
 
 \begin{figure}[!htbp]
 \begin{center}
- \includegraphics[width=.9\textwidth, height=0.42\textheight]{FFTW1D_times_fig.eps}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{MKL1D_times_fig.eps}
 \caption{1D MKL applied to real valued one-dimensional arrays of length $n_1$ using $p$ MPI processes. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds.}
 \label{Fig:mkl1d_times}
 \end{center}
@@ -554,9 +570,18 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 
 \begin{figure}[!htbp]
 \begin{center}
- \includegraphics[width=.9\textwidth, height=0.42\textheight]{FFTW1D_threads_times_fig.eps}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{MKL1D_threads_times_fig.eps}
 \caption{1D MKL applied to real valued one-dimensional arrays of length $n_1$ using $t$ threads and 1 MPI process. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds.}
 \label{Fig:mkl1d_threads_times}
+\end{center}
+\end{figure}
+
+
+\begin{figure}[!htbp]
+\begin{center}
+ \includegraphics[width=.9\textwidth, height=0.42\textheight]{MKL1D_OMP_threads_times_fig.eps}
+\caption{1D MKL (OpenMP version) applied to real valued one-dimensional arrays of length $n_1$ using $t$ threads. Wallclock initialisation time, INIT, and wallclock FFT time, FFT, are given in seconds. The initialisation times for the real and complex interfaces very similar so the times for the real interface are omitted. Additionally, the FFT times are very similar for the real and complex interfaces when $n_1$ is prime and, hence, the times for the real interface are also omitted.}
+\label{Fig:mkl1d_omp_threads_times}
 \end{center}
 \end{figure}
 
@@ -569,32 +594,36 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
     $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &  6.21e-6 &   8.79e-6 &   6.05e-6 &   6.38e-6 &   7.32e-6 &   6.69e-6 &   7.08e-6    \\ 
-      & fratio &  1.00 &    1.42 &    0.97 &   1.03 &    1.18 &    1.08 &    1.14     \\ 
-     & itime &    2.82e-3 &   1.27e-2 &   1.83e-2 &   1.72e-2 &   1.75e-2 &   1.67e-2 &   1.66e-2    \\ 
-     & iratio &  1.00 &    4.50 &    6.49 &    6.10 &    6.21 &    5.92 &    5.89      \\ \hline \hline
-    1  & ftime &  2.89e-5 &   3.25e-5 &   3.45e-5 &   3.71e-5 &   4.12e-5 &   4.42e-5 &   1.00e-4    \\ 
-      & fratio &  1.00 &    1.12 &    1.19 &    1.28 &    1.43 &    1.53 &    3.46     \\ 
-     & itime &  2.89e-3 &   2.85e-3 &   1.68e-2 &   2.16e-2 &   1.80e-2 &   1.37e-2 &   2.13e-2      \\ 
-     & iratio &  1.00 &    0.99 &   5.81 &    7.47 &    6.23 &    4.74 &    7.37      \\ \hline
-    2  & ftime &   4.87e-5 &   5.22e-5 &   5.35e-5 &   5.65e-5 &   6.66e-5 &    - & - \\ 
-      & fratio &  1.69 &    1.81 &    1.85 &    1.96 &    2.30 &       &  \\
-      & itime &   1.85e-2 &   2.84e-2 &   3.38e-2 &   3.65e-2 &   3.56e-2 &      &  \\
-      & iratio &  6.40 &    9.83 &    11.7 &   12.6 &   12.3 &     &  \\ \hline
-    4  & ftime &  4.31e-4 &   7.85e-5 &   7.03e-5 &    - & - & - & - \\ 
-      & fratio &  14.9 &   2.72 &    2.43 &       &  &  &  \\
-      & itime &     4.22e-2 &   5.34e-2 &   5.46e-2 &     & & & \\
-      & iratio &    14.6 &   18.5 &   18.9 &    & & &  \\ \hline
-    8  & ftime &  8.61e-5 &   9.77e-5 &       - & - & - & - & - \\ 
-      & fratio &   2.98 &    3.38 &        &  &  &  &  \\
-      & itime &    8.09e-2 &   7.81e-2 &        & & & & \\
-      & iratio &    28.0 &   27.0 &       & & & & \\ \hline
-    16 & ftime  & 1.46e-4 &        - & - & - & - & - & - \\ 
-     & fratio &  1.46e-4 &        &  &  &  &  &  \\
-      & itime &    7.66e-2 &      & & & & & \\
-      & iratio &     26.5 &     & & & & & \\ \hline
+    -R  & ftime &  6.21e-6 &   8.79e-6 &   6.05e-6 &   6.38e-6 &   7.32e-6 &   6.69e-6 &   7.08e-6    \\ 
+      & fratio &   1.00 &   1.42 &   0.97 &   1.03 &   1.18 &   1.08 &   1.14    \\ 
+     & itime &      2.82e-3 &   1.27e-2 &   1.83e-2 &   1.72e-2 &   1.75e-2 &   1.67e-2 &   1.66e-2  \\ 
+     & iratio &    1.00 &   4.50 &   6.49 &   6.10 &   6.21 &   5.92 &   5.89    \\ \hline
+    -C  & ftime &  1.14e-5 &   2.07e-5 &   2.72e-5 &   3.58e-5 &   3.76e-5 &   3.71e-5 &   3.81e-5   \\ 
+      & fratio &   1.00 &   1.82 &   2.39 &   3.14 &   3.30 &   3.25 &   3.34  \\ 
+     & itime &   2.55e-3 &   1.15e-2 &   1.83e-2 &   2.52e-2 &   1.71e-2 &   1.75e-2 &   1.63e-2    \\ 
+     & iratio &    1.00 &   4.51 &   7.18 &   9.88 &   6.71 &   6.86 &   6.39     \\ \hline \hline
+    1  & ftime &  4.01e-5 &   4.45e-5 &   4.59e-5 &   5.15e-5 &   6.49e-5 &   5.72e-5 &   7.32e-5    \\ 
+      & fratio &  1.00 &   1.11 &   1.14 &   1.28 &   1.62 &   1.43 &   1.83    \\ 
+     & itime &     3.01e-3 &   2.87e-3 &   2.08e-2 &   2.11e-2 &   1.77e-2 &   1.67e-2 &   1.64e-2   \\ 
+     & iratio & 1.00 &   0.95 &   6.91 &   7.01 &   5.88 &   5.55 &   5.45   \\ \hline
+    2  & ftime &   6.52e-5 &   7.34e-5 &   7.70e-5 &   8.15e-5 &   8.16e-5 &    - & - \\ 
+      & fratio &      1.63 &   1.83 &   1.92 &   2.03 &   2.03 &    &  \\
+      & itime &    1.74e-2 &   2.83e-2 &   3.74e-2 &   2.88e-2 &   3.85e-2    & &  \\
+      & iratio &   5.78 &   9.40 &   12.4 &   9.57 &   1.28 &   &  \\ \hline
+    4  & ftime &   8.18e-5 &   7.62e-5 &   7.96e-5 &   - & - & - & - \\ 
+      & fratio &  2.04 &   1.90 &   1.99 &      &  &  &  \\
+      & itime &   4.74e-2 &   6.00e-2 &   6.14e-2    &   & & & \\
+      & iratio &   15.7 &   19.9 &   20.4 &    & & &  \\ \hline
+    8  & ftime &   8.61e-5 &   9.71e-5 &     - & - & - & - & - \\ 
+      & fratio &     2.15 &   2.42 &    &  &  &  &  \\
+      & itime &       7.88e-2 &   6.02e-2  &    & & & & \\
+      & iratio &     26.2 &   20.0 &    & & & & \\ \hline
+    16 & ftime  &    1.38e-4 &    - & - & - & - & - & - \\ 
+     & fratio &     3.44 &   &  &  &  &  &  \\
+      & itime &     1.31e-1 &  & & & & & \\
+      & iratio &      43.5 &    & & & & & \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=2048$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($p=-,t=1$) and itime($p=-,t=1$.) }\label{Tbl:MKL1d2048}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=2048$ using $p$ MPI processes and $t$ threads, where $p=-R$ represents the threaded version of MKL (non-MPI) applied to real input values and $p=-C$ represents the threaded version applied to complex values. Note that the MPI-OpenMPI version of MKL only has an interface for complex inputs. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($t=1$) and itime($t=1$). }\label{Tbl:MKL1d2048}
 %\end{small}
 \end{center}
 \end{table}
@@ -605,13 +634,17 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \begin{tabular}{|r|r|r|r|r|r|r|r|r|}
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
-    $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &  7.74e-5 &   7.99e-5 &   7.77e-5 &   1.06e-4 &  8.25e-5 &   8.11e-5 &   8.33e-5    \\ 
+    type  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    R  & ftime &  7.74e-5 &   7.99e-5 &   7.77e-5 &   1.06e-4 &  8.25e-5 &   8.11e-5 &   8.33e-5    \\ 
       & fratio & 1.00 &   1.03 &   1.00 &   1.37 &   1.07 &   1.05 &   1.08     \\ 
      & itime &    2.85e-3 &   1.26e-2 &   2.19e-2 &   2.59e-2 &   1.40e-2 &   1.75e-2 &   1.69e-2     \\ 
      & iratio &   1.00 &   4.42 &   7.68 &   9.09 &   4.91 &   6.14 &   5.93    \\ \hline
+    C & ftime &  7.81e-5 &   7.73e-5 &   7.77e-5 &   7.87e-5 &   7.92e-5 &   7.76e-5 &   8.06e-5   \\
+      & fratio & 1.0000 &   0.99 &   0.99 &   1.01 &   1.01 &   0.99 &   1.03  \\
+      & itime &  3.33e-3 &   1.32e-2 &   1.87e-2 &   2.25e-2 &   2.21e-2 &   1.78e-2 &   1.74e-2  \\
+      & iratio & 1.00 &   3.96 &   5.62 &   6.76 &   6.64 &   5.35 &   5.23   \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=2053$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=-,t=1$) and the ratio, iratio, of itime  with itime($p=-,t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$  }\label{Tbl:MKL1d2053}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=2053$ using the pure OpenMP version with $t$ threads, where type R represents real input and type C represents complex input values. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($t=1$) and the ratio, iratio, of itime  with itime($t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$  }\label{Tbl:MKL1d2053}
 %\end{small}
 \end{center}
 \end{table}
@@ -623,13 +656,17 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \begin{tabular}{|r|r|r|r|r|r|r|r|r|}
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
-    $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &  6.68e-4 &   6.47e-4 &   6.73e-4 &   6.81e-4 &   6.68e-4 &   6.84e-4 &   7.32e-4    \\ 
+    type  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    R  & ftime &  6.68e-4 &   6.47e-4 &   6.73e-4 &   6.81e-4 &   6.68e-4 &   6.84e-4 &   7.32e-4    \\ 
       & fratio &  1.00 &   0.97 &   1.01 &   1.02 &   1.00 &   1.02 &   1.10    \\ 
      & itime &   4.14e-3 &   1.31e-2 &   1.91e-2 &   2.75e-2 &   1.92e-2 &   1.90e-2 &   2.29e-2      \\ 
      & iratio &   1.00 &   3.16 &   4.61 &   6.64 &   4.64 &   4.59 &   5.53    \\ \hline
+   C & ftime &    6.42e-4 &   6.65e-4 &   6.66e-4 &   6.77e-4 &   6.67e-4 &   6.74e-4 &   7.02e-4    \\
+     & fratio &  1.00 &   1.04 &   1.04 &   1.05 &   1.04 &   1.05 &   1.09   \\
+     & itime &   5.33e-3 &   1.29e-2 &   1.74e-2 &   2.69e-2 &   2.32e-2 &   1.91e-2 &   1.91e-2   \\
+     & iratio &  1.00 &   2.42 &   3.26 &   5.05 &   4.35 &   3.58 &   3.58    \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=16381$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=-,t=1$) and the ratio, iratio, of itime  with itime($p=-,t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$  }\label{Tbl:MKL1d16381}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=16381$ using the pure OpenMP version with $t$ threads, where type R represents real input and type C represents complex input values. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($t=1$) and the ratio, iratio, of itime  with itime($t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$  }\label{Tbl:MKL1d16381}
 %\end{small}
 \end{center}
 \end{table}
@@ -642,10 +679,14 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
     $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &   6.30e-5 &   6.74e-5 &   6.98e-5 &   5.49e-5 &   6.03e-5 &   5.41e-5 &   6.23e-5   \\ 
+    -R  & ftime &   6.30e-5 &   6.74e-5 &   6.98e-5 &   5.49e-5 &   6.03e-5 &   5.41e-5 &   6.23e-5   \\ 
       & fratio &    1.00 &    1.07 &    1.11 &    0.87 &   0.96 &   0.86 &   0.99  \\ 
      & itime &    2.80e-3 &   2.68e-3 &   1.53e-2 &   2.59e-2 &   1.70e-2 &   1.71e-2 &   1.60e-2    \\ 
-     & iratio &   1.00 &    0.96 &   5.46 &    9.25 &    6.07 &    6.11 &    5.71      \\ \hline \hline
+     & iratio &   1.00 &    0.96 &   5.46 &    9.25 &    6.07 &    6.11 &    5.71      \\ \hline 
+    -C  & ftime &  1.18e-4 &   1.82e-4 &   1.39e-4 &   1.32e-4 &   1.39e-4 &   1.38e-4 &   1.44e-4     \\ 
+      & fratio &  1.00 &   1.54 &   1.18 &   1.12 &   1.18 &   1.17 &   1.22    \\ 
+     & itime &    3.07e-3 &   1.06e-2 &   1.39e-2 &   2.49e-2 &   1.71e-2 &   1.68e-2 &   1.65e-2    \\ 
+     & iratio &  1.00 &   3.45 &   4.53 &   8.11 &   5.57 &   5.47 &   5.37       \\ \hline \hline
     1  & ftime & 1.84e-4 &   2.03e-4 &   2.12e-4 &   2.37e-4 &   2.44e-4 &   2.45e-4 &   3.12e-4     \\ 
       & fratio &    1.00 &   1.10 &   1.15 &   1.29 &   1.33 &   1.33 &   1.70   \\ 
      & itime &    3.35e-3 &   1.32e-2 &   1.98e-2 &   1.71e-2 &   1.72e-2 &   1.79e-2 &   1.60e-2    \\ 
@@ -667,7 +708,7 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
       & itime &      1.10e-1 &   & & & & & \\
       & iratio &    32.8 &     & & & & & \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=16384$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($p=-,t=1$) and itime($p=-,t=1$.) }\label{Tbl:MKL1d16384}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=16384$ using $p$ MPI processes and $t$ threads, where $p=-R$ represents the threaded version of MKL (non-MPI) applied to real input values and $p=-C$ represents the threaded version applied to complex values. Note that the MPI-OpenMPI version of MKL only has an interface for complex inputs. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($t=1$) and itime($t=1$).  }\label{Tbl:MKL1d16384}
 %\end{small}
 \end{center}
 \end{table}
@@ -680,13 +721,17 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \begin{tabular}{|r|r|r|r|r|r|r|r|r|}
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
-    $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &  7.78e-2 &   7.74e-2 &   7.84e-2 &   7.97e-2 &   8.04e-2 &   8.03e-2 &   8.02e-2    \\ 
+    type  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    R  & ftime &  7.78e-2 &   7.74e-2 &   7.84e-2 &   7.97e-2 &   8.04e-2 &   8.03e-2 &   8.02e-2    \\ 
       & fratio &  1.00 &   0.99 &   1.01 &   1.02 &   1.03 &   1.03 &   1.03    \\ 
      & itime &    1.46e-1 &   1.48e-1 &   1.54e-1 &   1.57e-1 &   1.49e-1 &   1.51e-1 &   1.58e-1     \\ 
      & iratio &   1.00 &   1.01 &   1.05 &   1.08 &   1.02 &   1.03 &   1.08    \\ \hline
+    C  & ftime &   7.80e-2 &   7.78e-2 &   7.88e-2 &   8.01e-2 &   8.06e-2 &   8.13e-2 &   8.25e-2   \\ 
+      & fratio &  1.00 &   1.00 &   1.01 &   1.03 &   1.03 &   1.04 &   1.06   \\ 
+     & itime &    1.46e-1 &   1.49e-1 &   1.52e-1 &   1.60e-1 &   1.50e-1 &   1.47e-1 &   1.59e-1      \\ 
+     & iratio &   1.00 &   1.02 &   1.04 &   1.10 &   1.03 &   1.01 &   1.09   \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=1048573$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=-,t=1$) and the ratio, iratio, of itime  with itime($p=-,t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$  }\label{Tbl:MKL1d1048573}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=1048573$ using the pure OpenMP version with $t$ threads, where type R represents real input and type C represents complex input values. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($t=1$) and the ratio, iratio, of itime  with itime($t=1$) are provided. The MPI-OpenMP version of MKL does not have provision prime values of $n_1.$   }\label{Tbl:MKL1d1048573}
 %\end{small}
 \end{center}
 \end{table}
@@ -698,35 +743,49 @@ Whilst the FFTW library was limited in problem size for 1D real problems, the MK
 \hline 
      &  & \multicolumn{7}{c|}{$t$} \\ \hline
     $p$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-    -  & ftime &  6.71e-3 &   6.21e-3 &   3.59e-3 &   2.17e-3 &   2.31e-3 &   1.55e-3 &   1.78e-3    \\ 
+    -R  & ftime &  6.71e-3 &   6.21e-3 &   3.59e-3 &   2.17e-3 &   2.31e-3 &   1.55e-3 &   1.78e-3    \\ 
       & fratio &  1.0000 &    0.93 &   0.54 &   0.32 &   0.34 &   0.23 &   0.27   \\ 
      & itime &    1.01e-2 &   1.79e-2 &   1.11e-2 &   1.20e-2 &   6.88e-3 &   1.53e-2 &   1.81e-2    \\ 
-     & iratio &   1.0000 &    1.77 &    1.10 &    1.19 &    0.68 &   1.51 &    1.79    \\ \hline \hline
-    1  & ftime &  1.63e-2 &   1.51e-2 &   1.56e-2 &   1.56e-2 &   1.59e-2 &   1.56e-2 &   1.70e-2    \\ 
-      & fratio &  1.00 &   0.93 &   0.96 &   0.96 &   0.98 &   0.96 &   1.04    \\ 
-     & itime &    2.08e-2 &   2.14e-2 &   2.43e-2 &   2.11e-2 &   2.31e-2 &   2.53e-2 &   2.58e-2    \\ 
-     & iratio &   1.00 &   1.03 &   1.17 &   1.01 &   1.11 &   1.22 &   1.24    \\ \hline
-    2  & ftime &  1.35e-2 &   1.34e-2 &   1.34e-2 &   1.37e-2 &   1.43e-2 &    - & - \\ 
-      & fratio &  0.83 &   0.82 &   0.82 &   0.84 &   0.88 &      &  \\
-      & itime &   2.75e-2 &   3.62e-2 &   2.98e-2 &   2.61e-2 &   2.81e-2 &      &  \\
-      & iratio &  1.32 &   1.74 &   1.43 &   1.25 &   1.35 &      &  \\ \hline
-    4  & ftime &  1.18e-2 &   1.16e-2 &   1.20e-2 &    - & - & - & - \\ 
-      & fratio &  0.72 &   0.71 &   0.74 &      &  &  &  \\
-      & itime &   6.47e-2 &   5.68e-2 &   4.64e-2 &      & & & \\
-      & iratio &  3.11 &   2.73 &   2.23 &      & & &  \\ \hline
-    8  & ftime &  1.09e-2 &   1.10e-2 &       - & - & - & - & - \\ 
-      & fratio &  0.69 &   0.67 &        &  &  &  &  \\
-      & itime &   4.17e-2 &   9.07e-2 &         & & & & \\
-      & iratio &  2.00 &   4.36 &         & & & & \\ \hline
-    16 & ftime  &  1.02e-2 &       - & - & - & - & - & - \\ 
-     & fratio &  0.63 &        &  &  &  &  &  \\
-      & itime &   8.70e-2 &       & & & & & \\
-      & iratio &   4.18 &      & & & & & \\ \hline
+     & iratio &   1.0000 &    1.77 &    1.10 &    1.19 &    0.68 &   1.51 &    1.79    \\  \hline
+    -C  & ftime &  1.34e-2 &   1.39e-2 &   7.67e-3 &   5.58e-3 &   5.41e-3 &   6.61e-3 &   7.84e-3   \\ 
+      & fratio & 1.00 &   1.04 &   0.57 &   0.42 &   0.40 &   0.49 &   0.59    \\ 
+     & itime &   1.26e-2 &   3.58e-3 &   7.13e-3 &   1.46e-2 &   5.19e-3 &   4.88e-3 &   1.43e-2     \\ 
+     & iratio &  1.00 &   0.28 &   0.57 &   1.16 &   0.41 &   0.39 &   1.13   \\ \hline \hline
+    1  & ftime & 3.64e-2 &   3.04e-2 &   2.91e-2 &   2.80e-2 &   2.87e-2 &   2.84e-2 &   2.93e-2     \\ 
+      & fratio &  1.0000 &   0.84 &   0.80 &   0.77 &   0.79 &   0.78 &   0.80   \\ 
+     & itime &  3.83e-2 &   3.88e-2 &   4.24e-2 &   5.09e-2 &   4.47e-2 &   4.40e-2 &   5.22e-2     \\ 
+     & iratio & 1.00 &   1.01 &   1.11 &   1.33 &   1.17 &   1.15 &   1.36      \\ \hline
+    2  & ftime & 2.09e-2 &   1.86e-2 &   2.06e-2 &   2.04e-2 &   2.12e-2 &    - & - \\ 
+      & fratio &  0.57 &   0.51 &   0.57 &   0.56 &   0.58 &      &  \\
+      & itime &  3.61e-2 &   3.53e-2 &   3.77e-2 &   3.76e-2 &   3.70e-2 &      &  \\
+      & iratio &    0.94 &   0.92 &   0.98 &   0.98 &   0.97 &   &  \\ \hline
+    4  & ftime &   1.49e-2 &   1.56e-2 &   1.62e-2 &  - & - & - & - \\ 
+      & fratio &   0.41 &   0.43 &   0.45 &    &  &  &  \\
+      & itime &    5.87e-2 &   5.15e-2 &   4.71e-2 &   & & & \\
+      & iratio &  1.53 &   1.34 &   1.23 &     & & &  \\ \hline
+    8  & ftime &   1.29e-2 &   1.36e-2 &    - & - & - & - & - \\ 
+      & fratio &    0.35 &   0.37 &    &  &  &  &  \\
+      & itime &    9.15e-2 &   8.33e-2 &       & & & & \\
+      & iratio &    2.39 &   2.17 &      & & & & \\ \hline
+    16 & ftime  &  1.18e-2 &      - & - & - & - & - & - \\ 
+     & fratio &    0.32 &    &  &  &  &  &  \\
+      & itime &    1.28e-1 &     & & & & & \\
+      & iratio &   3.34 &    & & & & & \\ \hline
 \end{tabular}
-\caption{1D MKL applied to real valued one-dimensional arrays of length $n_1=1048576$ using $p$ MPI processes and $t$ threads, where $p=-$ represents the threaded version of MKL (non-MPI). The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($p=-,t=1$) and itime($p=-,t=1$.) }\label{Tbl:MKL1d1048576}
+\caption{1D MKL applied to one-dimensional arrays of length $n_1=1048576$ using $p$ MPI processes and $t$ threads, where $p=-R$ represents the threaded version of MKL (non-MPI) applied to real input values and $p=-C$ represents the threaded version applied to complex values. Note that the MPI-OpenMPI version of MKL only has an interface for complex inputs. The wallclock FFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, for the MPI-OpenMP version of FFTW, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided; for the purely threaded version, these ratios are with respect to ftime($t=1$) and itime($t=1$). }\label{Tbl:MKL1d1048576}
 %\end{small}
 \end{center}
 \end{table}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{2D Results}
+
+
+
 
 \bibliographystyle{siam}
 \bibliography{bib2017}
