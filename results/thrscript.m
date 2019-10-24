@@ -1,5 +1,5 @@
 for i=[1,4,16]
-    I = find(R(:,1)==lib & R(:,2)==1 & R(:,3)==i );
+    I = find(R(:,1)==lib & R(:,2)==i );
     switch i
         case 1
            ll='o'; cc=[0 0.4470 0.7410];
