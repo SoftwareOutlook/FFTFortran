@@ -1,0 +1,463 @@
+\documentclass[a4]{article}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{lscape}
+\usepackage{hyperref}
+\usepackage{amssymb,longtable}
+\usepackage[centertags]{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{newlfont}
+\usepackage{caption}
+\usepackage{epsfig}
+ \usepackage{graphics}
+ \usepackage{graphicx}
+ \usepackage{float}
+ \usepackage[british]{babel}
+\usepackage{subcaption}
+
+\newcommand{\norm}[1]{\left\Vert#1\right\Vert}
+
+\textwidth  17.17cm
+\textheight 23.4cm
+\oddsidemargin -0.7mm
+\evensidemargin -0.7mm
+\def\baselinestretch{1.1}
+
+\topmargin -8.4mm
+
+\begin{document}
+
+\title{FFT Library Comparisons for Fortran Codes}
+\author{H. Sue Thorne and Philippe Gambron}
+
+\maketitle
+
+%\begin{abstract}
+%The abstract text goes here.
+%\end{abstract}
+
+\section{Introduction}
+
+
+\section{Fast Fourier Transforms}\label{Sec:FFT}
+
+
+Assuming indexing starts at 1, the discrete 1D Fourier transform of a
+vector $x$ of length $n$ is defined as
+\begin{equation}\label{Eqn:fft}
+  z(k) = \sum_{m=1}^{n} x(m) \exp(-2\pi i (k-1) (m-1) / n), \quad l=1,\ldots,n.
+\end{equation}
+In this work, we consider FFT libraries that have both multi-threading
+(OpenMP) and MPI capabilities.
+
+\subsection{Half-complex format}
+For input data that is purely real, the discrete Fourier transform satisfies 
+the ``Hermitian'' redundancy: in 1D, if $x$ is a real array, then $z$ computed 
+via (\ref{Eqn:fft}) will be a complex array satisfying
+$$z(k) = \left[z(n-k+2)\right]^*, \quad k=2,\ldots,n.$$ Also note that the 
+imaginary part of $z(1)$ is always 0; for $n$ even, the imaginary part of 
+$z(n/2 + 1) $ is also always 0. This special symmetry in $z$ is known as 
+\textit{half-complex} format and means that it can 
+be stored more efficiently using a real array $y$ of length $n.$ The method of 
+storing $z$ in $y$ will vary according to the library being used but one 
+possibility is to define the values of $y$ as
+\begin{eqnarray*}
+y(1) & = & real(z(1)),\\
+y(i) & = & real(z(i)), \quad i=2,\ldots,\lfloor n/2 \rfloor +1,\\
+y(n-i+2) & = & imag(z(i)), \quad i=2,\ldots, \lfloor (n+1)/2  \rfloor.
+\end{eqnarray*} 
+Half-complex format can 
+be extended to more dimensions. Note that if the input vector $x$ is 
+half-complex format, then $z$ will be a real vector.
+
+\section{Benchmark}\label{Sec:Benchmark}
+
+
+[ADD]
+
+
+\section{FFT Libraries and testing environment}\label{Sec:libs}
+
+In this work, we planned to compare the libraries listed in
+Table~\ref{Tbl:libs}. We chose libraries that have multithreading
+capabilities as well as MPI provision.  The datatypes listed are real
+(R), complex (C) and half-complex (H). The column "Dimensions"
+indicates the dimensions for which interfaces are provided.  We had
+also planned to compare the FFTE (version 6.0) library but the library
+is not documented and, when tested, we found that there was no way of
+checking whether the subroutine had successfully completed the FFT
+calculation and it just returns to the user as if it had been
+successful, which can be very dangerous: through our tests, we found
+that the MPI version was restrictive on the number of processes that
+it could handle, which is not documented, and the OpenMP version was
+not reliable. For these reasons, we do not recommend using FFTE.
+
+\begin{table}[h]
+\begin{center}
+\begin{small}
+\begin{tabular}{|l|c|c|c|l|l|c|}
+\hline
+\textbf{Library} & \textbf{Data types} & \textbf{Dimensions} & \textbf{Valid $n$} & \textbf{Parallelism} & \textbf{License} & \textbf{Citation} \\ \hline
+FFTW & R $\rightarrow$ H & Any   & Any but optimised for  & OpenMP, & GPL v3 & \cite{FFTW} \\
+     & C $\rightarrow$ C & Any      & $2^a\times 3^b\times 5^c\times 7^d\times 11^e\times 13^f$ &  OpenMP+MPI & & \\
+     & H $\rightarrow$ R & Any      & with $e+f = 0$ or $1$ & & & \\ \hline
+MKL  & R $\rightarrow$ H & Any   & Any & OpenMP, & Intel Simplified & \cite{MKL} \\
+     & C $\rightarrow$ C & Any      & & OpenMP+MPI & Software License & \\
+     & H $\rightarrow$ R & Any   & & & & \\ \hline
+P3DFFT & R $\rightarrow$ H & 3   & Any & OpenMP+MPI & GPL v3 & \cite{P3DFFT} \\
+     & H $\rightarrow$ R & 3   & & & & \\ \hline
+%P3DFFT++ & R $\rightarrow$ H & 1,3   & Any & MPI & GPL v3 & \cite{P3DFFT} \\
+%     & C $\rightarrow$ C &  1,3     & & &  & \\
+%     & H $\rightarrow$ R & 1,3   & & & & \\ \hline
+
+\end{tabular}
+\caption{Libraries being benchmarked.  For ``valid $n$'', the values $a,$ $b,$ $c,$ $d,$ $e$ and $f$ are all assumed to be non-negative integers.}\label{Tbl:libs}
+\end{small}
+\end{center}
+\end{table}
+
+All benchmark runs were run on ARCHER **ADD REF**, where each compute
+node contains two 2.7 GHz, 12-core E5-2697 v2 (Ivy Bridge) series
+processors. Each of the cores in these processors can support 2
+hardware threads (Hyperthreads) but we do not activate hyperthreading
+within our benchmark tests. Within the node, the two processors are
+connected by two QuickPath Interconnect (QPI) links. All of our
+benchmarks were run on standard compute nodes, which have 64 GB of
+memory shared between the two processors. During our benchmark runs,
+we set the following environment variables:
+\begin{itemize}
+\item \texttt{KMP\_AFFINITY} to \texttt{disabled};
+\item \texttt{OMP\_NUM\_THREADS} to the number of OpenMP threads;
+\item \texttt{MKL\_NUM\_THREADS} to the number of OpenMP threads to
+  ensure that the MKL runs use the full number of threads.
+\end{itemize}
+The benchmarks were launched via \texttt{aprun} with the flags set as
+\texttt{-cc none -n \$nprocs -d \$nthreads}, where \texttt{\$nprocs}
+is the number of MPI processes and \texttt{nthreads} is the number of
+OpenMP threads.
+
+The default modules for FFTW and Intel on ARCHER were used in our
+benchmarks, namely, versions 3.3.4.11 and 17.0.0.098,
+respectively. The Intel module contains MKL.  P3DFFT version 2.7.9 was
+installed by following its installation instructions: the Intel
+compiler was used with the default Intel and FFTW modules;
+\texttt{configure} was called with the following flags:
+
+\noindent \texttt{--prefix=[LOCAL] -enable-openmp}
+
+\noindent \texttt{--enable-intel --enable-fftw
+  --with-fftw=/opt/cray/fftw/default/ivybridge}
+
+\noindent where \texttt{[LOCAL]} was set as a local directory.
+
+[ADD INFO ABOUT wallclock, median value, accuracy checked, etc]
+
+\section{Effect of domain size and multithreading for 1D benchmarks}\label{Sec:1DMulti}
+
+In this section, we discuss the benchmark results for libraries that
+apply the fast Fourier transform to 1D arrays.  The P3DFFT library
+cannot be used on 1D problems and, hence, is excluded. These
+benchmarks were performed with the OpenMP versions of FFTW and MKL.
+
+In these benchmarks, we set $n_2=4,$ $n_q=4$ and $n_1=N,$ were $N$ is
+defined as follows.  For one set of tests, we let $N=2^k$ for
+$k=8,\ldots,30.$ For the other set of tests, $N$ is defined to be the
+closest prime number to $2^k,$ $k=8,\ldots,20:$ if two primes are
+equidistant, we choose the larger one.
+
+
+\subsection{1D FFTW Library}\label{Sec:1DFFTW}
+For values of $N$ that are powers of 2, we could only perform
+computations up to $2^{14}$ due to the Fortran to C interface relying on
+C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. This similarly
+restricted how large we could take $N$ when it was prime.
+
+In Figure~\ref{1DFFTW}, we compare single node experiments for FFTW
+with 1, 4 and 16 OpenMP threads ($thr$). We provide both the initialisation
+time ``INIT'' for the FFT library call and the DFT computation time
+``DFT''.  The initialisation times for prime values of $N$ are
+significantly larger than when $N$ is a power of 2. Increasing the
+number of threads also increases the initialisation times but we note
+that the difference in initialisation time gets smaller as $N$
+increases for the complex-valued case. For real signals, only the
+largest value of $N=2^{14}$ sees an advantage of using four threads
+instead of a single threads when computing the DFT but there is no
+advantage of using 16 threads. When the signal is complex-valued, for
+values of $N$ smaller than $2^{12}$ the single thread is optimal but
+there is a small improvement using 16 threads when $N=2^{14}$.
+
+To further understand the results, we provide Table~\ref{Tbl:FFTW1d},
+which provides the (wall clock) execution times of the initialisation
+stage and the DFT calculations along with their ratio with respect to
+one thread for $thr=1,$ 2, 4, 8, 12, 16 and 24. Results for both real
+and complex input signals are given for $N=2048,$ 2053, 16381 and
+16384.
+
+For $N=2048$ and $N=2053$ with real input signals, we start by
+noting that both the initialisation and DFT times tend to increase as
+the number of threads increases. This is not unsurprising because they
+are very small problems. The
+initialisation times are between 13.2 and 19.8 times larger when $N$
+is prime compared to $N$ being a power of 2 ($thr=1$ had the smallest
+ratio); the DFT computation times are 5.5 and 11.5 times larger for
+the prime value of $N$ compare with $N$ being a power of 2 (the
+smallest ratio was for $thr=8$). For $N=2048,$ the initialisation time
+is between 3400 and 7500 times larger than the average time to perform
+one DFT: in general, the ratio decreased as the number of threads
+increased. When $N=2053,$ the initialisation time was between 5300 and
+14250 times larger than the average DFT time with the lower ratios
+occuring for the larger values of $thr.$
+
+For complex-valued signals and $N=2048$ or 2053, increasing the number
+of threads also increases the wallclock times. When $N$ is a power of
+2 ($N=2048$), the initialisation times are between a factor of 8.0 and
+9.6 times smaller than for the nearest prime value of $N;$ the DFT
+times are between a factor of 7.7 and 4.4 times smaller. When
+$N=2048,$ the initialisation times are between 4290 and 10600 times
+larger than the average DFT time; for $N=2053,$ the ratio between
+initialisation and DFT times is between 4933 and 13300. In both cases,
+the ratio drops as the number of threads increases and, for each value
+of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_1d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{1DFFTW}
+\end{figure}
+
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    2048  & ftime & R  &  1.09e-5 &   1.71e-5 &   3.00e-5 &   3.49e-5 &   4.05e-5 &   4.54e-5 &   6.26e-5   \\ 
+      & fratio & & 1.00 &    1.57 &    2.75 &    3.20 &    3.72 &    4.17 &    5.74   \\ 
+     & itime & &  8.13e-2 &    1.09e-1 &   1.18e-1 &   1.42e-1 &   1.72e-1 &   1.62e-1 &   2.14e-1    \\ 
+     & iratio & &   1.00 &    1.34 &    1.45 &    1.75 &    2.12 &    1.99 &    2.63    \\ \hline 
+    2053  & ftime & R &  1.03e-4 &   1.20e-4 &   1.73e-4 &   1.93e-4 &   2.50e-4 &   3.81e-4 &   7.14e-4    \\ 
+      & fratio & & 1.00 &   1.17 &   1.68 &   1.87 &   2.43 &   3.70 &   6.93    \\ 
+     & itime &  &   1.08e0 &   1.71e0 &   2.07e0 &   2.51e0 &   2.93e0 &   3.21e0 &   3.79e0   \\ 
+    & iratio &  &     1.00 &   1.58 &   1.92 &   2.32 &   2.71 &   2.97 &   3.51     \\ \hline 
+  16381  & ftime & R &  7.97e-4 &   7.98e-4 &   8.19e-4 &   8.25e-4 &   8.30e-4 &   8.47e-4 &   9.57e-4     \\ 
+      & fratio & &  1.00 &   1.00 &   1.03 &   1.04 &   1.04 &   1.06 &   1.20    \\ 
+     & itime & &  1.51e0 &   2.05e0 &   2.29e0 &   2.56e0 &   2.84e0 &   3.07e0 &   3.67e0     \\ 
+     & iratio & &  1.00 &   1.36 &   1.52 &   1.70 &   1.88 &   2.03 &   2.43     \\ \hline 
+ 16384  & ftime & R & 1.11e-4 &   8.58e-5 &   9.49e-5 &   8.59e-5 &   9.79e-5 &   2.06e-4 &   5.42e-4   \\ 
+      & fratio & & 1.00 &   0.77 &   0.85 &   0.77 &   0.88 &   1.86 &   4.88  \\
+     & itime & & 1.90e-1 &   2.62e-1 &   2.55e-1 &   2.60e-1 &   3.07e-1 &   2.90e-1 &   3.98e-1   \\ 
+ & iratio & & 1.00 &   1.38 &   1.34 &   1.37 &   1.62 &   1.53 &   2.09   \\  \hline \hline
+    2048  & ftime & C  &  1.01e-5 &   1.84e-5 &   2.98e-5 &   3.39e-5 &   3.72e-5 &   4.94e-5 &   5.92e-5   \\ 
+      & fratio & &  1.00 &   1.82 &   2.95 &   3.36 &   3.68 &   4.89 &   5.86  \\ 
+     & itime & &   1.07e-1 &   1.16e-1 &   1.55e-1 &   1.80e-1 &   2.10e-1 &   2.12e-1 &   2.68e-1   \\ 
+     & iratio & &  1.00 &   1.08 &   1.45 &   1.68 &   1.96 &   1.98 &   2.50     \\ \hline 
+    2053  & ftime & C &  7.76e-5 &   1.03e-4 &   1.32e-4 &   1.81e-4 &   1.83e-4 &   2.30e-4 &   4.48e-4     \\ 
+      & fratio & &  1.00 &   1.33 &   1.70 &   2.33 &   2.36 &   2.96 &   5.77   \\ 
+     & itime &  &  1.03e0 &   1.06e0 &   1.24e0 &   1.47e0 &   1.74e0 &   1.89e0 &   2.21e0    \\ 
+    & iratio &  &  1.00 &   1.03 &   1.20 &   1.43 &   1.69 &   1.84 &   2.15       \\ \hline
+  16381  & ftime & C &   1.03e-3 &   6.76e-4 &   6.62e-4 &   6.40e-4 &   6.74e-4 &   6.07e-4 &   7.91e-4     \\ 
+      & fratio & &  1.00 &   0.66 &  0.64 &   0.62 &  0.65 &   0.59 &  0.77   \\ 
+     & itime & &   1.72e0 &   1.64e0 &   1.52e0 &   1.58e0 &   1.51e0 &   1.38e0 &   1.78e0    \\ 
+     & iratio & &   1.00 &   0.95 &  0.88 &  0.92 &  0.88 &  0.80 &  1.03    \\ \hline
+ 16384  & ftime & C &  1.21e-4 &   8.86e-5 &   1.09e-4 &   8.21e-5 &   8.88e-5 &   7.61e-5 &   2.39e-4  \\ 
+      & fratio & & 1.00 &   0.73 &  0.90 &  0.68 &  0.73 &  0.63 &  1.98  \\
+     & itime & &  5.30e-1 &   5.01e-1 &   5.07e-1 &   5.22e-1 &   5.37e-1 &   5.53e-1 &   6.53e-1   \\ 
+ & iratio & &  1.00 &   0.95 &  0.96 &  0.98 &  1.01 &   1.04 &   1.23  \\  \hline 
+\end{tabular}
+\caption{1D FFTW applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381 and 16384 using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW1d}
+%\end{small}
+\end{center}
+\end{table}
+
+\subsection{1D MKL Library}\label{Sec:1DMKL}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_1d_thr.eps}
+  \caption{Initialisation and DFT execution times of MKL library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{1DMKL}
+\end{figure}
+
+
+\subsection{Comparison of libraries for 1D benchmarks}\label{Sec:1DComp}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_1d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2.}
+  \label{1DFFTWMKL2}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_prime_1d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
+  \label{1DFFTWMKLPrime}
+\end{figure}
+
+
+\section{2D Multithreaded Benchmark Results}\label{Sec:2DMulti}
+
+
+\subsection{2D FFTW Library}\label{Sec:2DFFTW}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_2d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{2DFFTW}
+\end{figure}
+
+\subsection{2D MKL Library}\label{Sec:2DMKL}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_2d_thr.eps}
+  \caption{Initialisation and DFT execution times of MKL library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{2DMKL}
+\end{figure}
+
+
+\subsection{Comparison of libraries for 2D benchmarks}\label{Sec:2DComp}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_2d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2.}
+  \label{2DFFTWMKL2}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_prime_2d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
+  \label{2DFFTWMKLPrime}
+\end{figure}
+
+
+
+
+
+\section{3D Multithreaded Benchmark Results}\label{Sec:3DMulti}
+
+
+\subsection{3D FFTW Library}\label{Sec:3DFFTW}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{3DFFTW}
+\end{figure}
+
+\subsection{3D MKL Library}\label{Sec:3DMKL}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of MKL library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{3DMKL}
+\end{figure}
+
+
+\subsection{Comparison of libraries for 3D benchmarks}\label{Sec:3DComp}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2.}
+  \label{3DFFTWMKL2}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_prime_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
+  \label{3DFFTWMKLPrime}
+\end{figure}
+
+
+
+
+\section{1D Distributed Benchmark Results}\label{Sec:1DDistr}
+
+
+
+\section{2D Distributed Benchmark Results}\label{Sec:2DDistr}
+
+
+
+
+\section{3D Distributed Benchmark Results}\label{Sec:3DDistr}
+
+
+
+
+\section{Conclusions}\label{Sec:Conclusions}
+
+
+\section*{Acknowledgements}
+This work made use of computational support by CoSeC, the
+Computational Science Centre for Research Communities, through its
+Software Outlook activity.
+
+
+
+
+
+
+\bibliographystyle{siam}
+\bibliography{bib2017}
+
+
+
+
+
+
+\end{document}
