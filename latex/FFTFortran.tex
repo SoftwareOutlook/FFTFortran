@@ -1,4 +1,4 @@
-\documentclass[a4]{article}
+\documentclass[a4paper]{article}
 \usepackage{graphicx}
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -291,6 +291,72 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 \end{figure}
 
 
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    2048  & ftime & R  &  6.2100e-06   8.7900e-06   6.0500e-06   6.3800e-06   7.3200e-06   6.6900e-06   7.0800e-06 \\ 
+      & fratio & & 1.0000e+00   1.4155e+00   9.7424e-01   1.0274e+00   1.1787e+00   1.0773e+00   1.1401e+00
+  \\ 
+     & itime & &    2.8200e-03   1.2700e-02   1.8300e-02   1.7200e-02   1.7500e-02   1.6700e-02   1.6600e-02  \\ 
+     & iratio & &   1.0000e+00   4.5035e+00   6.4894e+00   6.0993e+00   6.2057e+00   5.9220e+00   5.8865e+00   \\ \hline 
+    2053  & ftime & R &  7.7400e-05   7.9900e-05   7.7700e-05   1.0600e-04   8.2500e-05   8.1100e-05   8.3300e-05   \\ 
+      & fratio & &  1.0000e+00   1.0323e+00   1.0039e+00   1.3695e+00   1.0659e+00   1.0478e+00   1.0762e+00
+  \\ 
+     & itime &  &   2.8500e-03   1.2600e-02   2.1900e-02   2.5900e-02   1.4000e-02   1.7500e-02   1.6900e-02   \\ 
+    & iratio &  &     1.0000e+00   4.4211e+00   7.6842e+00   9.0877e+00   4.9123e+00   6.1404e+00   5.9298e+00    \\ \hline 
+  16381  & ftime & R &  6.6800e-04   6.4700e-04   6.7300e-04   6.8100e-04   6.6800e-04   6.8400e-04   7.3200e-04     \\ 
+      & fratio & &  1.0000e+00   9.6856e-01   1.0075e+00   1.0195e+00   1.0000e+00   1.0240e+00   1.0958e+00   \\ 
+     & itime & &   4.1400e-03   1.3100e-02   1.9100e-02   2.7500e-02   1.9200e-02   1.9000e-02   2.2900e-02   \\ 
+     & iratio & &  1.0000e+00   3.1643e+00   4.6135e+00   6.6425e+00   4.6377e+00   4.5894e+00   5.5314e+00    \\ \hline 
+ 16384  & ftime & R &  6.3000e-05   6.7400e-05   6.9800e-05   5.4900e-05   6.0300e-05   5.4100e-05   6.2300e-05  \\ 
+      & fratio & &   1.0000e+00   1.0698e+00   1.1079e+00   8.7143e-01   9.5714e-01   8.5873e-01   9.8889e-01
+ \\
+     & itime & &  2.8000e-03   2.6800e-03   1.5300e-02   2.5900e-02   1.7000e-02   1.7100e-02   1.6000e-02  \\ 
+ & iratio & &  1.0000e+00   9.5714e-01   5.4643e+00   9.2500e+00   6.0714e+00   6.1071e+00   5.7143e+00  \\  \hline 
+  1048573  & ftime & R &    7.7800e-02   7.7400e-02   7.8400e-02   7.9700e-02   8.0400e-02   8.0300e-02   8.0200e-02   \\ 
+      & fratio & &  1.0000e+00   9.9486e-01   1.0077e+00   1.0244e+00   1.0334e+00   1.0321e+00   1.0308e+00   \\ 
+     & itime & &   1.4600e-01   1.4800e-01   1.5400e-01   1.5700e-01   1.4900e-01   1.5100e-01   1.5800e-01   \\ 
+     & iratio & &   1.0000e+00   1.0137e+00   1.0548e+00   1.0753e+00   1.0205e+00   1.0342e+00   1.0822e+00   \\ \hline 
+ 1048576  & ftime & R &    \\ 
+      & fratio & &   \\
+     & itime & &    \\ 
+ & iratio & &    \\  \hline \hline
+    2048  & ftime & C  &    \\ 
+      & fratio & &   \\ 
+     & itime & &    \\ 
+     & iratio & &     \\ \hline 
+    2053  & ftime & C &      \\ 
+      & fratio & &    \\ 
+     & itime &  &    \\ 
+    & iratio &  &        \\ \hline
+  16381  & ftime & C &       \\ 
+      & fratio & &    \\ 
+     & itime & &      \\ 
+     & iratio & &     \\ \hline
+ 16384  & ftime & C &    \\ 
+      & fratio & &   \\
+     & itime & &    \\ 
+ & iratio & &   \\  \hline 
+  1048573  & ftime & C &       \\ 
+      & fratio & &     \\ 
+     & itime & &      \\ 
+     & iratio & &      \\ \hline 
+ 1048576  & ftime & C &    \\ 
+      & fratio & &   \\
+     & itime & &    \\ 
+ & iratio & &    \\  \hline 
+\end{tabular}
+\caption{1D FFTW applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381 and 16384 using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW1d}
+%\end{small}
+\end{center}
+\end{table}
+
+
+
 \subsection{Comparison of libraries for 1D benchmarks}\label{Sec:1DComp}
 
 
@@ -400,6 +466,21 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 \end{figure}
 
 
+
+\subsection{3D P3DFFT Library}\label{Sec:3DP3DFFT}
+
+
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/p3dfft_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of MKL library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of threads, $thr.$ }
+  \label{3DP3DFFT}
+\end{figure}
+
+
 \subsection{Comparison of libraries for 3D benchmarks}\label{Sec:3DComp}
 
 
@@ -407,8 +488,8 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_3d_thr.eps}
-  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 3D signal as a function of the
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_p3dfft_2_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
     number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2.}
   \label{3DFFTWMKL2}
 \end{figure}
@@ -416,8 +497,8 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=\linewidth]{../results/fftw_mkl_prime_3d_thr.eps}
-  \caption{Initialisation and DFT execution times of FFTW and MKL libraries applied to 3D signal as a function of the
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_p3dfft_prime_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
     number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
   \label{3DFFTWMKLPrime}
 \end{figure}
@@ -428,14 +509,201 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 \section{1D Distributed Benchmark Results}\label{Sec:1DDistr}
 
 
+\subsection{1D Distributed FFTW Library}\label{Sec:1DDistFFTW}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_1d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{1DDistFFTW}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_1d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{1DDistFFTW16}
+\end{figure}
+
+
+
+\subsection{1D Distributed MKL Library}\label{Sec:1DDistMKL}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_1d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{1DDistMKL}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_1d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{1DDistMKL16}
+\end{figure}
+
+\subsection{Comparison of distributed libraries for 1D benchmark}\label{Sec:1DDistComp}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_1d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW and MKL libraries applied to 1D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process. $N$ is a power of 2.}
+  \label{1DDistFFTWMKL2}
+\end{figure}
+
+
+No prime comparison because MKL doesn't do prime N. Real values for FFTW were reals converted to complex values.
+
 
 \section{2D Distributed Benchmark Results}\label{Sec:2DDistr}
 
+\subsection{2D Distributed FFTW Library}\label{Sec:2DDistFFTW}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_2d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{2DDistFFTW}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_2d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{2DDistFFTW16}
+\end{figure}
+
+
+
+\subsection{2D Distributed MKL Library}\label{Sec:2DDistMKL}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_2d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{2DDistMKL}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_2d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{2DDistMKL16}
+\end{figure}
+
+\subsection{Comparison of distributed libraries for 2D benchmark}\label{Sec:2DDistComp}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_2_2d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW and MKL libraries applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process. $N$ is a power of 2.}
+  \label{2DDistFFTWMKL2}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_prime_2d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW and MKL libraries applied to 2D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process. $N$ is a prime number.}
+  \label{2DDistFFTWMKLprime}
+\end{figure}
 
 
 
 \section{3D Distributed Benchmark Results}\label{Sec:3DDistr}
 
+\subsection{3D Distributed FFTW Library}\label{Sec:3DDistFFTW}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_3d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{3DDistFFTW}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_3d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{3DDistFFTW16}
+\end{figure}
+
+
+
+\subsection{3D Distributed MKL Library}\label{Sec:3DDistMKL}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_3d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{3DDistMKL}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/mkl_3d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed MKL library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{3DDistMKL16}
+\end{figure}
+
+
+
+
+\subsection{3D Distributed P3DFFT Library}\label{Sec:3DDistP3DFFT}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/p3dfft_3d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed P3DFFT library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process.}
+  \label{3DDistP3DFFT}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/p3dfft_3d_mpi_thr.eps}
+  \caption{Initialisation and DFT execution times of distributed P3DFFT library applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
+  \label{3DDistP3DFFT16}
+\end{figure}
+
+\subsection{Comparison of distributed libraries for 3D benchmark}\label{Sec:3DDistComp}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_p3dfft_2_3d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process. $N$ is a power of 2.}
+  \label{3DDistFFTWMKLP3DFFT2}
+\end{figure}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\linewidth]{../results/fftw_mkl_p3dfft_prime_3d_mpi.eps}
+  \caption{Initialisation and DFT execution times of distributed FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
+    number of points, $N,$ and varying the number of MPI processes, $P,$ with one thread per process. $N$ is a prime number.}
+  \label{3DDistFFTWMKLP3DFFTprime}
+\end{figure}
 
 
 
