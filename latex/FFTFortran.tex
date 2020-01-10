@@ -467,7 +467,7 @@ one.
 \subsection{2D FFTW Library}\label{Sec:2DFFTW}
 
 In Figure~\ref{2DFFTW}, we compare our single node benchmark
-experiments for the multithreaded FFTW library with 1, 4 and 16 OpenMP
+experiments for the multithreaded FFTW library for 1, 4 and 16 OpenMP
 threads. There is a difference in behaviour between the real and
 complex benchmarks. For $N$ smaller than 200, the initialisation times
 for the real case are smaller when $N$ is prime compared to when $N$
@@ -590,10 +590,15 @@ smaller initialisation times than when a signal thread is used; in the
 real case, the multithreads have improved initialisation times for
 $N>2000.$ In general, there is little difference between $N$ being
 prime and a power of 2 for one or 16 threads with real input signals
-although, for the lareger values of $N$, the initialisation time is
+although, for the larger values of $N$, the initialisation time is
 better when $N$ is a power of 2. For complex input signals, switching
 between $N$ being a power of two and $N$ being prime has little effect
-on the initialisation time when one or four threads is used. 
+on the initialisation time when one or four threads is used. For the
+larger problem sizes, increasing the number of threads has a positive
+affect on the initialisation time.  This is confirmed in
+Table~\ref{Tbl:MKL2d}, where we see that the initialisation time is
+roughly halved when 24 threads are used compared to a single thread.
+
 
 
 \begin{figure}[htb]
@@ -604,10 +609,130 @@ on the initialisation time when one or four threads is used.
   \label{2DMKL}
 \end{figure}
 
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    31  & ftime & R  &  1.78e-5 &   1.91e-5 &   1.85e-5 &   2.17e-5 &   2.35e-5 &   2.73e-5 &   3.44e-5    \\ 
+    & fratio & &      1.00 &   1.07 &   1.04 &   1.22 &   1.32 &   1.53 &   1.93      \\ 
+     & itime & &        3.31e-3 &   1.40e-2 &   1.84e-2 &   1.77e-2 &   1.75e-2 &   1.71e-2 &   1.67e-2      \\ 
+     & iratio & &       1.00 &   4.23 &   5.56 &   5.35 &   5.29 &   5.17 &   5.05       \\ \hline 
+    32  & ftime & R  &  3.11e-6 &   7.51e-6 &   1.08e-5 &   1.44e-5 &   1.82e-5 &   2.17e-5 &   2.89e-5    \\ 
+      & fratio & &      1.00 &   2.41 &   3.47 &   4.63 &   5.85 &   6.98 &   9.29      \\ 
+     & itime & &        3.00e-3 &   2.83e-3 &   1.50e-2 &   2.17e-2 &   1.72e-2 &   1.72e-2 &   1.72e-2      \\ 
+     & iratio & &       1.00 &   0.94 &   5.00 &   7.23 &   5.73 &   5.73 &   5.73      \\ \hline 
+   256  & ftime & R  &  2.21e-4 &   1.79e-4 &   1.37e-4 &   9.04e-5 &   8.02e-5 &   8.07e-5 &   7.55e-5    \\ 
+      & fratio & &      1.00 &   0.81 &   0.62 &   0.41 &   0.36 &   0.37 &   0.34      \\ 
+     & itime & &        3.26e-3 &   5.30e-3 &   1.46e-2 &   1.23e-2 &   1.53e-2 &   1.40e-2 &   1.52e-2     \\ 
+     & iratio & &       1.00 &   1.63 &   4.48 &   3.77 &   4.69 &   4.29 &   4.66      \\ \hline 
+   257  & ftime & R  &  2.03e-3 &   1.06e-3 &   7.14e-4 &   4.48e-4 &   3.81e-4 &   4.01e-4 &   4.78e-4    \\ 
+      & fratio & &      1.00 &   0.52 &   0.35 &   0.22 &   0.19 &   2.00 &   0.24      \\ 
+     & itime & &        3.00e-3 &   3.67e-3 &   1.63e-2 &   2.19e-2 &   2.00e-2 &   1.34e-2 &   1.70e-2      \\ 
+     & iratio & &       1.00 &   1.22 &   5.43 &   7.30 &   6.67 &   4.47 &   5.67      \\ \hline 
+  2048  & ftime & R  &  4.00e-2 &   2.23e-2 &   1.21e-2 &   6.80e-3 &   4.91e-3 &   4.05e-3 &   3.20e-3   \\ 
+      & fratio & &      1.00 &   0.56 &   0.30 &   0.17 &   0.12 &   0.10 &   0.08      \\ 
+     & itime & &        3.97e-3 &   3.20e-3 &   2.98e-3 &   2.70e-3 &   2.41e-3 &   2.12e-3 &   1.93e-3     \\ 
+     & iratio & &       1.00 &   0.81 &   0.75 &   0.68 &   0.61 &   0.53 &   0.49       \\ \hline 
+  2053  & ftime & R  &  2.03e-1 &   1.03e-1 &   5.49e-2 &   2.91e-2 &   2.07e-2 &   1.60e-2 &   2.13e-2    \\ 
+      & fratio & &      1.00 &   0.51 &   0.27 &   0.14 &   0.10 &   0.08 &   0.10    \\ 
+     & itime & &        4.39e-3 &   3.61e-3 &   3.32e-3 &   3.07e-3 &   2.70e-3 &   2.52e-3 &   2.28e-3      \\ 
+     & iratio & &       1.00 &   0.82 &   0.76 &   0.70 &   0.62 &   0.57 &   0.52      \\ \hline \hline
+    31  & ftime & C  &  1.10e-5 &   1.30e-5 &   1.89e-5 &   2.13e-5 &   2.50e-5 &   3.17e-5 &   3.44e-5    \\ 
+      & fratio & &      1.00 &   1.18 &   1.72 &   1.94 &   2.27 &   2.88 &   3.13      \\ 
+     & itime & &        3.58e-3 &   1.46e-2 &   1.83e-2 &   1.77e-2 &   1.73e-2 &   1.63e-2 &   1.74e-2      \\ 
+     & iratio & &       1.00 &   4.08 &   5.11 &   4.94 &   4.83 &   4.55 &   4.86       \\ \hline 
+    32  & ftime & C  &  4.65e-6 &   9.27e-6 &   1.51e-5 &   1.64e-5 &   2.03e-5 &   2.44e-5 &   2.91e-5    \\ 
+      & fratio & &      1.00 &   1.99 &   3.25 &   3.53 &   4.37 &   5.25 &   6.26      \\ 
+     & itime & &        2.80e-3 &   1.45e-2 &   2.24e-2 &   1.81e-2 &   1.70e-2 &   1.69e-2 &   1.71e-2      \\ 
+     & iratio & &       1.00 &   5.18 &   8.00 &   6.46 &   6.07 &   6.04 &   6.11       \\ \hline 
+   256  & ftime & C  &  4.82e-4 &   3.00e-4 &   2.51e-4 &   1.80e-4 &   1.32e-4 &   1.31e-4 &   1.18e-4    \\ 
+      & fratio & &      1.00 &   0.62 &   0.52 &   0.37 &   0.27 &   0.27 &   0.24      \\ 
+     & itime & &        3.43e-3 &   3.39e-3 &   1.76e-2 &   1.61e-2 &   1.34e-2 &   6.16e-3 &   1.44e-2     \\ 
+     & iratio & &       1.00 &   0.99 &   5.13 &   4.69 &   3.91 &   1.80 &   4.1983       \\ \hline 
+   257  & ftime & C  &  2.62e-3 &   1.41e-3 &   7.83e-4 &   5.30e-4 &   3.99e-4 &   3.91e-4 &   3.82e-4    \\ 
+      & fratio & &      1.00 &   0.54 &   0.30 &   0.21 &   0.15 &   0.15 &   0.15     \\ 
+     & itime & &        3.29e-3 &   5.03e-3 &   1.66e-2 &   1.81e-2 &   7.75e-3 &   1.11e-2 &   1.61e-2      \\ 
+     & iratio & &       1.00 &   1.53 &   5.05 &   5.50 &   2.36 &   3.37 &   4.89       \\ \hline 
+  2048  & ftime & C  &  1.31e-1 &   7.41e-2 &   4.13e-2 &   2.73e-2 &   1.69e-2 &   2.00e-2 &   1.29e-2    \\ 
+      & fratio & &      1.00 &   0.57 &   0.32 &   0.21 &   0.13 &   0.15 &   0.10    \\ 
+     & itime & &        3.92e-3 &   3.01e-3 &   2.75e-3 &   2.41e-3 &   2.14e-3 &   1.88e-3 &   1.58e-3      \\ 
+     & iratio & &       1.00 &   0.77 &   0.70 &   0.61 &   0.55 &   0.48 &   0.40       \\ \hline 
+  2053  & ftime & C  &  2.81e-1 &   1.48e-1 &   7.67e-2 &   4.07e-2 &   2.92e-2 &   2.27e-2 &   1.89e-2    \\ 
+      & fratio & &      1.00 &   0.53 &   0.27 &   0.14 &   0.10 &   0.08 &   0.07      \\ 
+     & itime & &        3.75e-3 &   3.36e-3 &   3.14e-3 &   2.86e-3 &   2.51e-3 &   2.34e-3 &   2.02e-3     \\ 
+     & iratio & &       1.00 &   0.90 &   0.84 &   0.76 &   0.67 &   0.62 &   0.54       \\ \hline \hline
+\end{tabular}
+\caption{2D MKL applied to real (R) and complex (C) valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:MKL2d}
+%\end{small}
+\end{center}
+\end{table}
+
+
+
+As expected, in Figure~\ref{2Dmkl} we observe that increasing the
+problem size increases the DFT calculation time. Except for the very
+smallest value of $N,$ where $N$ is prime, increasing the number of
+threads from 1 to 4 to 16 produces monotonic reductions in the DFT
+time in both the real and complex cases. For $N$ a power of 2 and
+smaller than 256 (real case) or 128 (complex case), using multiple
+threads increases the DFT time. For larger values of $N,$ multiple
+threads decreases the DFT times. This is confirmed in
+Table~\ref{Tbl:MKL2d} but we see that there is little gain with
+respect to DFT time in going above 12 threads. However, the additional
+reduction in initialisation time for using more than 12 threads for
+large values of $N$ leads us to conclude that, on a single node of
+ARCHER, it is advantageous to use all the threads available when $N$
+is greater than 2000 (real case or complex case with $N$ prime) or
+1000 (complex case with $N$ a power of 3). For $N=256,$ we can work
+out the number of DFT calculations, $k,$ that would be required for
+$thr$ threads to have a lower time than a single thread when
+performing a single initialisation and $k$ DFT calculations. We
+provide this information in Table~\ref{Tbl:MKL2dk} and observe that
+multithreading can be positively utilised for lower values of $k$ when
+$N$ was prime because of the greater time to perform a DFT calculation
+(a factor of 4-5 difference) but the initialisation times are, in
+general, similar. Additionally, the complex case also requires smaller
+values of $k$ compared to the real case.
+
+
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r||r|r||r|r|}
+  \hline
+ & \multicolumn{2}{|c|}{$k(N=256)$} & \multicolumn{2}{|c|}{$k(N=257)$} \\
+$thr$ &  Real & Complex &  Real & Complex  \\ \hline
+  2 & 49 & 0   &  1 & 2 \\
+  4 & 135 & 62 & 11 & 8 \\
+  8 & 70 & 42 & 12 & 8 \\
+  12 & 86 & 29 & 11 & 3 \\
+  16 & 77 & 8  & 7 & 4 \\
+  24 & 83 & 31 &10 & 6  \\ \hline
+\end{tabular}
+\caption{ For $N=256$ and $N=257,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations.  }\label{Tbl:MKL2dk}
+%\end{small}
+\end{center}
+\end{table}
 
 \subsection{Comparison of libraries for 2D benchmarks}\label{Sec:2DComp}
 
-
+In Figure~\ref{2DFFTWMKL2}, we compare the initialisation and DFT
+wallclock times for the FFTW and MKL libraries with our 2D benchmark
+runs for $N$ a power of 2. For the real case, there is a stark
+difference in initialisation times as $N$ grows with MKL being faster:
+when $N=4096$ the FFTW time is a factor of 475 larger than that of MKL
+when a single thread is used; for $thr=4,$ the factor is 800; and for
+$thr=24,$ factor is 1500. Looking at Figure~\ref{2DFFTWMKL2}, the
+complex case appears to have similar differences in initialisation
+times but for $N=4096,$ the factors are 2170, 4380 and 3350 for
+$thr=1,$ 4 and 24, respectively. Additionally, the MKL DFT wallclock
+times are lower than those of FFTW (real case) or, in general, very
+similar for the complex case. Thus, when $N$ is a power of 2, we
+recommend using the MKL library.
 
 
 \begin{figure}[htb]
@@ -618,6 +743,17 @@ on the initialisation time when one or four threads is used.
   \label{2DFFTWMKL2}
 \end{figure}
 
+
+We compare the FFTW and MKL library initialisation and DFT times for
+prime values of $N$ in Figure~\ref{2DFFTWMKLPrime}. As with the case
+when $N$ is a power of 2, there is a marked difference in
+initialisation time for large values of $N$ with the MKL library have
+significantly lower times. For $N=4099$ with $thr=1,$ 4 and 24, the
+difference in initialisation time is a factor of 820, 3120 and 1920,
+respectively, for the real case, and 2010, 4750 and 5360,
+respectively. In general, the DFT times are slightly better for the
+MKL library in both the real and complex cases and, hence, we
+recommend using the MKL library. In Table~\ref
 
 \begin{figure}[htb]
     \centering
@@ -632,10 +768,28 @@ on the initialisation time when one or four threads is used.
 
 
 \section{3D Multithreaded Benchmark Results}\label{Sec:3DMulti}
+The results for libraries that perfrom the fast Fourier
+transform over a 3D domain are discussed in this section. The P3DFFT library only provides a version with both MPI and OpenMP provision and, hence, we use this version of the library but set the number of MPI processes to one.
 
+Similarly to the benchmarks in Section~\ref{Sec:1DMulti} and \ref{Sec:2DMulti}, we set
+$n_q=4$ and $n_1=n_2=n_3=N,$ were $N$ is defined as follows.  For one
+set of tests, we let $N=2^k$ for $k=3,\ldots,9.$ For the other set of
+tests, $N$ is defined to be the closest prime number to $2^k,$
+$k=3,\ldots,9:$ if two primes are equidistant, we choose the larger
+one.
 
 \subsection{3D FFTW Library}\label{Sec:3DFFTW}
-
+The initialisation and DFT times for the FFTW library applied to the
+3D benchmark are compared in Figure~\ref{3DFFTW} for 1, 4 and 16
+threads. Initialisation times for a single thread are generally lower
+than when 4 or 16 threads are used and, in general, the initialisation
+times are slightly higher for prime values of $N$ compared to when
+they are a power 2. In both the real and complex cases, when $N$ is a
+power of 2, it is better to use a single thread with respect to DFT
+calculation time for $N$ smaller than 32 and, when $N$ is larger than
+32, we start to see the gains in using multiple threads. When $N$ is
+prime, multithreading becomes advantageous for values of $N$ greater
+than 31 with respect to DFT times. 
 
 
 
@@ -646,6 +800,72 @@ on the initialisation time when one or four threads is used.
     number of points, $N,$ and varying the number of threads, $thr.$ }
   \label{3DFFTW}
 \end{figure}
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    7  & ftime & R  &      \\ 
+    & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &              \\ \hline 
+    8  & ftime & R  &      \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & R  &     \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+   32  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &              \\ 
+     & iratio & &           \\ \hline 
+  509  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &             \\ 
+     & iratio & &              \\ \hline 
+  512  & ftime & R  &      \\ 
+      & fratio & &         \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline \hline
+    7  & ftime & C  &     \\ 
+      & fratio & &         \\ 
+     & itime & &            \\ 
+     & iratio & &             \\ \hline 
+    8  & ftime & C  &       \\ 
+      & fratio & &          \\ 
+     & itime & &             \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & C  &      \\ 
+      & fratio & &          \\ 
+     & itime & &           \\ 
+     & iratio & &              \\ \hline 
+   32  & ftime & C  &     \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &            \\ \hline 
+  509  & ftime & C  &     \\ 
+      & fratio & &        \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+  512  & ftime & C  &      \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline \hline
+\end{tabular}
+\caption{3D FFTW applied to real (R) and complex (C) valued three-dimensional square arrays with length
+  $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
+  ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW3d}
+%\end{small}
+\end{center}
+\end{table}
+
+
 
 \subsection{3D MKL Library}\label{Sec:3DMKL}
 
@@ -659,6 +879,72 @@ on the initialisation time when one or four threads is used.
     number of points, $N,$ and varying the number of threads, $thr.$ }
   \label{3DMKL}
 \end{figure}
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    7  & ftime & R  &      \\ 
+    & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &              \\ \hline 
+    8  & ftime & R  &      \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & R  &     \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+   32  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &              \\ 
+     & iratio & &           \\ \hline 
+  509  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &             \\ 
+     & iratio & &              \\ \hline 
+  512  & ftime & R  &      \\ 
+      & fratio & &         \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline \hline
+    7  & ftime & C  &     \\ 
+      & fratio & &         \\ 
+     & itime & &            \\ 
+     & iratio & &             \\ \hline 
+    8  & ftime & C  &       \\ 
+      & fratio & &          \\ 
+     & itime & &             \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & C  &      \\ 
+      & fratio & &          \\ 
+     & itime & &           \\ 
+     & iratio & &              \\ \hline 
+   32  & ftime & C  &     \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &            \\ \hline 
+  509  & ftime & C  &     \\ 
+      & fratio & &        \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+  512  & ftime & C  &      \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline \hline
+\end{tabular}
+\caption{3D MKL applied to real (R) and complex (C) valued three-dimensional square arrays with length
+  $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
+  ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:MKL3d}
+%\end{small}
+\end{center}
+\end{table}
+
+
 
 
 
@@ -674,6 +960,74 @@ on the initialisation time when one or four threads is used.
     number of points, $N,$ and varying the number of threads, $thr.$ }
   \label{3DP3DFFT}
 \end{figure}
+
+
+\begin{table}
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+     \multicolumn{3}{|c|}{ } & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $N$  & & R/C  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+    7  & ftime & R  &      \\ 
+    & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &              \\ \hline 
+    8  & ftime & R  &      \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & R  &     \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+   32  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &              \\ 
+     & iratio & &           \\ \hline 
+  509  & ftime & R  &     \\ 
+      & fratio & &            \\ 
+     & itime & &             \\ 
+     & iratio & &              \\ \hline 
+  512  & ftime & R  &      \\ 
+      & fratio & &         \\ 
+     & itime & &              \\ 
+     & iratio & &             \\ \hline \hline
+    7  & ftime & C  &     \\ 
+      & fratio & &         \\ 
+     & itime & &            \\ 
+     & iratio & &             \\ \hline 
+    8  & ftime & C  &       \\ 
+      & fratio & &          \\ 
+     & itime & &             \\ 
+     & iratio & &             \\ \hline 
+   31  & ftime & C  &      \\ 
+      & fratio & &          \\ 
+     & itime & &           \\ 
+     & iratio & &              \\ \hline 
+   32  & ftime & C  &     \\ 
+      & fratio & &          \\ 
+     & itime & &              \\ 
+     & iratio & &            \\ \hline 
+  509  & ftime & C  &     \\ 
+      & fratio & &        \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline 
+  512  & ftime & C  &      \\ 
+      & fratio & &           \\ 
+     & itime & &             \\ 
+     & iratio & &            \\ \hline \hline
+\end{tabular}
+\caption{3D P3DFFT applied to real (R) and complex (C) valued three-dimensional square arrays with length
+  $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
+  ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:P3DFFT3d}
+%\end{small}
+\end{center}
+\end{table}
+
+
+
 
 
 \subsection{Comparison of libraries for 3D benchmarks}\label{Sec:3DComp}
