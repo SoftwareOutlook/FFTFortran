@@ -1315,14 +1315,14 @@ and $thr=4$ also has the highest times for those combinations
 considered in the figures; for $N$ prime, $P=1$ and $thr=16$ has the
 worse initialisation times and increasing $P$ reduces the time.
 
-Looking at all the data in Table~\ref{Tbl:FFTW2d256}, we see that when
+Looking at all the data in Table~\ref{Tbl:FFTW3d256}, we see that when
 $N=256$ and the input signal is real, the best DFT time occurs when
 $P=1$ and $thr=24$ whilst the best initialisation time is when $P=24$
 and $thr=1.$ Comparing the average time to perform a single
 initialisation and $k$ DFT calculations for these two combinations, if
 $k$ is smaller than 94, then $P=24$ and $thr=1$ is best but for larger
 values of $k$ the user should switch to $P=1$ and $thr=24.$ For
-$N=256$ with complex input signals, from Table~\ref{Tbl:FFTW2d256c} we
+$N=256$ with complex input signals, from Table~\ref{Tbl:FFTW3d256c} we
 observe that the best DFT execution time occurs when $P=1$ and
 $thr=16$ but the best initialisation time is when $P=16$ and $thr=1.$
 Comparing these two combinations when performing a single
@@ -1330,7 +1330,7 @@ initialisation and $k$ DFT calculations, we find that the average time
 is better for $P=16$ and $thr=1$ when $k<183$ but $P=1$ and $thr=16$
 is optimal for larger values of $k.$
 
-For $N=257,$ we see from Table~\ref{Tbl:FFTW2d257} that for both the
+For $N=257,$ we see from Table~\ref{Tbl:FFTW3d257} that for both the
 real and complex cases, the smallest initialisation time occurs when
 $P=8$ and $thr=1$ and the smallest DFT execution time has $P=1$ and
 $thr=24.$ As above, we compare the two combinations with respect to
@@ -1344,6 +1344,28 @@ $k\ge 45.$
 
 
 \subsection{3D Distributed MKL Library}\label{Sec:3DDistMKL}
+In Figure~\ref{3DDistMKL}, we compare the distributed MKL FFT library
+for different values of $N$ with $P=1,$ 4 and 16 with each MPI process
+using a single thread. The initialisation times for $N$ a power of 2
+and $N$ prime. Interestingly, the behaviour for $P=1$ and real input
+signals is vastly different to that when the input signal is
+complex. It is also different to the multithreaded version of the MKL
+library with a single thread being used. Here, for $P=1$ and real
+input signal, increasing $N$ beyond 64 leads to significant increases
+in initialisation time as $N$ grows. We also start to see the
+initialisation times for $P=4$ and real input signals starting to
+increase for $N$ larger than 200. For the smaller values of $N$ and
+real signals, increasing the number of MPI processes appears to, in
+general, increase the initialisation times for both real and complex
+input signals (this is also true for the larger values of $N$ in the
+complex case). The benchmark data for $N=256$ is provided in
+Tables~\ref{Tbl:MKL3d256} (real) and \ref{Tbl:MKL3d256c} (complex). We
+observe that for $P=1$ and $thr=1$, the initialisation time in the
+real case is 18 times larger than the complex case and increasing $P$
+whilst keeping $thr=1$ results in the difference becoming smaller:
+when $P=24$ the initialisation times are similar. The benchmark data
+for $N=257$ is available in Table~\ref{Tbl:MKL3d257} and we observe
+similar behaviour.
 
 \begin{figure}[htb]
     \centering
@@ -1353,6 +1375,28 @@ $k\ge 45.$
   \label{3DDistMKL}
 \end{figure}
 
+For the DFT execution times, we see differing behaviour between the
+real and complex cases, Figure~\ref{3DDistMKL}. For the real case, 16
+MPI processes is suboptimal for small values of $N$ but for $N\ge 64$
+it exhibits the lowest execution times for the three values of $P$
+considered in the figure. Additionally, the DFT execution times are
+lower when $N$ is a power of 2 compared to when it is prime: from
+Tables~\ref{Tbl:MKL3d256} and \ref{Tbl:MKL3d257}, we find that there
+is between a factor of 2 and 3 difference for $thr=1.$ Considering the
+complex case, as $N$ increases, when $P=4$ or 16, the DFT execution
+times appear to be similar for both $N$ a power of 2 and $N$
+prime. However, when analysing the data in Tables~\ref{Tbl:MKL3d256c}
+and \ref{Tbl:MKL3d257} for $N=256$ and 257, respectively, (with
+$thr=1$) we see that the latter is 50\% larger for $P=4$ and 20\%
+larger for $P=16.$ The results for $N=257$ have better strong
+scalability with respect to $P$ when $thr=1$ than when $N=256.$ When
+comparing the real and complex strong scalability results ($fratio$),
+we see that for both $N=256$ and $N=257$ that the real case is
+exhibiting better scalabiling than the complex case.
+
+
+
+
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../results/mkl_3d_mpi_thr.eps}
@@ -1360,6 +1404,33 @@ $k\ge 45.$
     number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
   \label{3DDistMKL16}
 \end{figure}
+
+In Figure~\ref{3DDistMKL16}, we compare the results for
+$P\times\thr=16$ for $P=1,$ 4 and 16. As before, the behaviour of the
+initialisation times for $P=1$ and $thr=16$ differs between the real
+and complex input cases: in the real case, increasing $N$ beyond 100
+increases the initialisation time but for the complex case the
+initialisation time decreases. This is highlighted when we see that
+real to complex ratio of the initialisation time for $N=256,$ $P=1$
+and $thr=16$ is 32.0 (Tables~\ref{Tbl:MKL3d256} and
+\ref{Tbl:MKL3d256c}) but for the same value of $N$ with $P=4$ and
+$thr=4$ we have a ratio of 3.19. For the $P=4$ and 16, increasing the
+size of $N$ is, in general, having little effect on the initialisation
+time. The log-log axis for the DFT execution times mean that the
+differences in times are hard to see. For real input signals, the
+ratios for $N=257$ versus $N=256$ are 1.21, 1.62 and 1.99 for $P=1,$ 4
+and 16, respectively; for complex signals the ratios are 1.12, 1.15
+and 1.17, respectively. Let $N=256$ then, for $P=1$ with $thr=16,$ the
+complex to real ratio of the average DFT execution time is 0.72, for
+$P=4$ with $thr=4$ the ratio is 3.19, and for $P=16$ with $thr=1$ the
+ratio is 5.44 (Tables~\ref{Tbl:MKL3d256} and
+\ref{Tbl:MKL3d256c}). Considering $N=257,$ the complex to real ratio
+of the average DFT execution time is 0.67 for $P=1$ with $thr=16,$
+2.26 for $P=4$ with $thr=4,$ and 3.22 for $P=16$ with $thr=1$
+(Table~\ref{Tbl:MKL3d257}).
+
+Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input signals with $N=256,$ the optimal choice for $P$ and $thr$ is $P=4$ with $thr=4$ with respect to initialisation time and $P=16$ with $thr=1$ with respect to DFT execution time. [ADD]
+
 
 
 
