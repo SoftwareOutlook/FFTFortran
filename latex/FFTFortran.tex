@@ -1266,10 +1266,10 @@ the initialisation times increase and we observe that when $P=1,$ the
 initialisation times are generally larger when $N$ is prime compared
 to when $N$ is a power of 2 but for $P=4$ or 16, the converse is
 true. For some of the larger values of $N,$ we ran out of memory on
-the node. In Tables~\ref{Tbl:FFTW2d256} and \ref{Tbl:FFTWd256c}, we
+the node. In Tables~\ref{Tbl:FFTW3d256} and \ref{Tbl:FFTW3d256c}, we
 provide the benchmark data for $N=256$ with real and complex input
 signals, respectively. The benchmark data for $N=257$ is provided in
-Table~\ref{Tbl:FFTW2d257}. We observe that for $N=256$ the
+Table~\ref{Tbl:FFTW3d257}. We observe that for $N=256$ the
 initialisation times for the complex case with $thr=1$ are roughly
 double those of the real case. For $N=257,$ there is no consistant
 behaviour when comparing the intialisation times for real and complex
@@ -1289,13 +1289,13 @@ Looking at the DFT execution times in Figure~\ref{3DDistFFTW}, for $N$
 greater than 120, increasing $P$ from 1 to 4 to 16 decreases the times
 for both the real and complex input signals. The execution times for
 prime values of $N$ are significantly larger for $N$ a prime number
-compared to $N$ a power of 2. From Tables~\ref{Tbl:FFTW2d256} and
-\ref{Tbl:FFTW2d257}, we see that in the real case, the DFT execution
+compared to $N$ a power of 2. From Tables~\ref{Tbl:FFTW3d256} and
+\ref{Tbl:FFTW3d257}, we see that in the real case, the DFT execution
 times with $thr=1$ are between 4.9 and 6.9 times larger for $N=257$
 compared to $N=256.$ For complex signals with $thr=1,$ the DFT
 execution times are between 3.1 and 4.2 times larger for $N=257$
-compared to $N=256,$ see Tables~\ref{Tbl:FFTW2d256c} and
-\ref{Tbl:FFTW2d257}.
+compared to $N=256,$ see Tables~\ref{Tbl:FFTW3d256c} and
+\ref{Tbl:FFTW3d257}.
 
 \begin{figure}[htb]
     \centering
@@ -1406,7 +1406,7 @@ exhibiting better scalabiling than the complex case.
 \end{figure}
 
 In Figure~\ref{3DDistMKL16}, we compare the results for
-$P\times\thr=16$ for $P=1,$ 4 and 16. As before, the behaviour of the
+$P\times thr=16$ for $P=1,$ 4 and 16. As before, the behaviour of the
 initialisation times for $P=1$ and $thr=16$ differs between the real
 and complex input cases: in the real case, increasing $N$ beyond 100
 increases the initialisation time but for the complex case the
@@ -1429,13 +1429,51 @@ of the average DFT execution time is 0.67 for $P=1$ with $thr=16,$
 2.26 for $P=4$ with $thr=4,$ and 3.22 for $P=16$ with $thr=1$
 (Table~\ref{Tbl:MKL3d257}).
 
-Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input signals with $N=256,$ the optimal choice for $P$ and $thr$ is $P=4$ with $thr=4$ with respect to initialisation time and $P=16$ with $thr=1$ with respect to DFT execution time. [ADD]
+Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input
+signals with $N=256,$ the optimal choice for $P$ and $thr$ is $P=4$
+with $thr=4$ with respect to initialisation time and $P=16$ with
+$thr=1$ with respect to DFT execution time. Suppose that a single
+initialisation is followed by $k$ DFT calculations, then, on average,
+$P=16$ with $thr=1$ will outperform $P=4$ with $thr=4$ for all $k>1.$
+For $N=256$ and the complex case (Table~\ref{Tbl:MKL3d256c}), $P=1$
+with $thr=24$ outperforms the other combinations with respect to both
+initialisation and DFT execution times. For real input signals with
+$N=257,$ $P=8$ with $thr=2$ has the lowest initialisation time and
+$P=16$ with $thr=1$ has the best DFT execution time
+(Table~\ref{Tbl:MKL3d257}). Comparing the total (average) time to
+perform a single initiailisation and $k$ DFT executions, the latter
+combination is faster for all $k\ge 3.$ For $N=257$ and complex input
+signals, $P=1$ with $thr=24$ is optimal with respect to initialisation
+time and $P=1$ with $thr=16$ is optimal with respect to DFT execution
+time: the latters total time to perform a single initialisation and
+$k$ DFT executions is best for all $k>0.$
 
 
 
 
 
 \subsection{3D Distributed P3DFFT Library}\label{Sec:3DDistP3DFFT}
+
+As mentioned earlier on, the P3DFFT library is restricted to real
+input signals. In Figure~\ref{3DDistP3DFFT}, we compare the
+initialisation and DFT executions for $N$ a power of 2 and $N$ prime,
+and use $P$ MPI processes, $P=1,$ 4 and 16, with 1 OpenMP thread,
+$thr.$ Increasing $N$ increases both the initialisation and DFT
+execution times for all values of $P$ considered in the figure. For
+$N\le 32,$ increasing $P$ is showing little effect on the
+initialisation time. For larger values of $N,$ we see that increasing
+the number of MPI processes is decreasing the initialisation time. In
+Table~\ref{Tbl:P3DFFT3d256}, we provide the benchmark data for
+$N=256.$ We see that, in general, increasing $P$ decreases the
+initialisation time for all values of $thr$ considered. For $P=16$ and
+$thr=1,$ there has been an 85\% reduction in initialisation time
+compared to $P=1$ and $thr=1.$ The benchmark data for $N=257$ is
+provided in Table~\ref{Tbl:P3DFFT3d257} and we see that increasing $P$
+but keeping $thr$ constant results in a reduction in initialisation
+time with an 85\% reduction when switching from $P=1$ with $thr=1$ to
+$P=16$ with $thr=1.$ The initialisation times for $thr=1$ and varying
+values of $P$ are roughly twice as large for $N=257$ as they are for
+$N=256.$
 
 \begin{figure}[htb]
     \centering
@@ -1445,6 +1483,17 @@ Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input signals with $N=
   \label{3DDistP3DFFT}
 \end{figure}
 
+Comparing the DFT execution times in Figure~\ref{3DDistP3DFFT}, for
+$N$ equal to 7 or 8, $P=1$ has the optimal time over those compared in
+the figure. For $N=16,$ the DFT execution times are almost identical
+for $P=1$ and $P=4$ but significantly larger for $P=16;$ for $N=17,$
+$P=4$ has a lower DFT time than $P=1$ and $P=16$ is significantly
+higher than both $P=1$ and 4. For $N>32,$ $P=16$ starts to outperform
+the other values in the figure. Looking at the values of the DFT
+execution times in Tables~\ref{Tbl:P3DFFT3d256} and
+\ref{Tbl:P3DFFT3d257}, we observe that, with respect to $P,$ P3DFFT
+has good strong scaling properties.
+
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../results/p3dfft_3d_mpi_thr.eps}
@@ -1452,6 +1501,28 @@ Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input signals with $N=
     number of points, $N,$ and varying the number of MPI processes, $P,$ and threads, $thr,$ whilst maintaining $P\times thr=16.$}
   \label{3DDistP3DFFT16}
 \end{figure}
+
+In Figure~\ref{3DDistP3DFFT16}, we compare P3DFFT's initialisation
+times for $P\times thr=16,$ where $P=1,$ 4 and 16. For $N$ a power of
+2, we see little difference in terms of initialisation times but when
+$N$ is prime, $P=16$ with $thr=1$ is normally the optimal choice for
+the values of $N$ considered. If we consider the DFT execution times,
+then for $N>32,$ it is better increase the number of MPI processes and
+reduce the number of OpenMP threads.
+
+If we consider the benchmark data for $N=256$
+(Tables~\ref{Tbl:P3DFFT3d256}), we see that the best initialisation
+time was achieved with $P=2$ with $thr=12$ and the smallest average
+DFT execution time occured when $P=24$ with $thr=1.$ As in previous
+sections, if we consider the (average) time to perform a single
+initialisation followed by $k$ DFT calculations, then $P=24$ with
+$thr=1$ will outperform $P=2$ with $thr=12$ for all $k>3.$ When
+$N=257,$ $P=16$ with $thr=1$ gives the lowest initialisation and DFT
+execution times.
+
+
+
+
 
 \subsection{Comparison of distributed libraries for 3D benchmark}\label{Sec:3DDistComp}
 
@@ -2738,7 +2809,7 @@ Software Outlook activity.
              &             &  itime &    2.44  &      - &      - &      - &      - &      - &      - \\
              &             &  iratio &    0.15 &      - &      - &      - &      - &      - &      - \\\hline
    24 &   R &   ftime &    2.63e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    6.53e-02 &     - &      - &      - &      - &      - &      - \\
+             &             &  fratio &    0.07 &     - &      - &      - &      - &      - &      - \\
              &             &  itime &    2.07  &      - &      - &      - &      - &      - &      - \\
              &             &  iratio &    0.12 &      - &      - &      - &      - &      - &      - \\\hline
 
@@ -2763,7 +2834,7 @@ Software Outlook activity.
              &             &  itime &    3.29e+1 &   4.66e+1 &   2.53e+1 &   1.33e+1 &   1.02e+1 &   8.17  &    6.81  \\
              &             &  iratio &    1.00 &    1.42  &    0.77 &    0.40 &    0.31 &    0.25 &   0.21 \\\hline
    2 &  R &   ftime &    6.40e-1 &    3.70e-1 &    2.38e-1 &    1.74e-1 &    1.70e-1 &      - &      - \\
-             &             &  fratio &    5.00e-1 &   0.29 &   0.19 &    0.14 &    0.13 &      - &      - \\
+             &             &  fratio &    0.50 &   0.29 &   0.19 &    0.14 &    0.13 &      - &      - \\
              &             &  itime &    2.14e+1 &   2.47e+1 &   1.29e+1 &   8.23  &    6.67  &      - &      - \\
              &             &  iratio &    0.65 &    0.75 &    0.39 &    0.25 &    0.20 &      - &      - \\\hline
    4 &  R &   ftime &    3.32e-1 &    2.09e-1 &    1.35e-1 &      - &      - &      - &      - \\
@@ -2771,11 +2842,11 @@ Software Outlook activity.
              &             &  itime &    1.25e+1 &   1.37e+1 &   8.50  &      - &      - &      - &      - \\
              &             &  iratio &    0.38 &   0.42 &    0.26 &      - &      - &      - &      - \\\hline
    8 &   R &   ftime &    1.73e-1 &    1.11e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.14 &    8.67e-02 &     - &      - &      - &      - &      - \\
+             &             &  fratio &    0.14 &    0.09 &     - &      - &      - &      - &      - \\
              &             &  itime &    7.49  &    9.22  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.23 &    0.28 &      - &      - &      - &      - &      - \\
-   16 &  R &   ftime &   9.77e-2 &      - &      - &      - &      - &      - &      - \\\hline
-             &             &  fratio &    7.63e-02 &     - &      - &      - &      - &      - &      - \\
+             &             &  iratio &    0.23 &    0.28 &      - &      - &      - &      - &      - \\\hline
+   16 &  R &   ftime &   9.77e-2 &      - &      - &      - &      - &      - &      - \\
+             &             &  fratio &    0.08 &     - &      - &      - &      - &      - &      - \\
              &             &  itime &    4.89  &      - &      - &      - &      - &      - &      - \\
              &             &  iratio &    0.15 &      - &      - &      - &      - &      - &      - \\\hline
 
