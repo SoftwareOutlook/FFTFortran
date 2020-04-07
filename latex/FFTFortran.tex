@@ -1320,8 +1320,8 @@ $N=256$ and the input signal is real, the best DFT time occurs when
 $P=1$ and $thr=24$ whilst the best initialisation time is when $P=24$
 and $thr=1.$ Comparing the average time to perform a single
 initialisation and $k$ DFT calculations for these two combinations, if
-$k$ is smaller than 94, then $P=24$ and $thr=1$ is best but for larger
-values of $k$ the user should switch to $P=1$ and $thr=24.$ For
+$k$ is smaller than 94, then $P=24$ and $thr=1$ is best but, for larger
+values of $k,$ the user should switch to $P=1$ and $thr=24.$ For
 $N=256$ with complex input signals, from Table~\ref{Tbl:FFTW3d256c} we
 observe that the best DFT execution time occurs when $P=1$ and
 $thr=16$ but the best initialisation time is when $P=16$ and $thr=1.$
@@ -1526,6 +1526,20 @@ execution times.
 
 \subsection{Comparison of distributed libraries for 3D benchmark}\label{Sec:3DDistComp}
 
+For $N$ a multiple of 2 and $N$ prime, we compare the FFTW, MKL and
+P3DFFT libraries in Figures~\ref{3DDistFFTWMKLP3DFFT2} and
+\ref{3DDistFFTWMKLP3DFFTprime}, respectively, for $P=1,$ 4 and 16 MPI
+processes and $thr=1$ OpenMP threads. In terms of initialisation
+times, in all but the smallest values of $N$ considered, MKL has the
+best initialisation times and, in the real case, P3DFFT has the worst
+(in general). In Table~\ref{Tbl:3DCompP}, we provide the
+initialisation and DFT execution times for the three libraries,
+$N=256$ and 257, for $P=1,$ 4 and 16 (8 instead of 16 in the case of
+FFTW for $N=257$) with a single thread per process. We observe the
+stark differences in initialisation times with MKL having times
+several orders of magnitude smaller than FFTW and P3DFFT.
+
+
 
 \begin{figure}[htb]
     \centering
@@ -1545,6 +1559,89 @@ execution times.
 \end{figure}
 
 
+\begin{table}[!htbp]
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r||r|r|r|r|r|r|}\hline
+R/C & $N$ & $P$ & Library & Init & DFT & R/C & $N$ & $P$ & Library & Init & DFT\\ \hline
+ R & 256 & 1 & FFTW &   2.57   &  2.65e-1  & C & 256 & 1 & FFTW &  5.36   &  3.37e-1  \\
+  &  &  & MKL &   6.22e-2   &   5.20e-1  &   &  &  & MKL &   3.44e-3   &  4.69e-1   \\
+  &  &  & P3DFFT &  1.67e+1   &   4.03e-1  &   &  &  & P3DFFT &  -   &  -  \\ \hline
+ R & 256 & 4 & FFTW &   3.68    &   1.04e-1  &  C & 256 & 4 & FFTW &   7.36   &  1.68e-1  \\
+  &  &  & MKL &  5.68e-2   &   1.31e-1  &  &  &  & MKL &   4.11e-2   &   3.99e-1  \\
+  &  &  & P3DFFT &  6.92   &   9.21e-2 &  &  &  & P3DFFT &  -   &  -  \\ \hline
+ R & 256 & 16 & FFTW &  1.48   &  3.70e-2  & C & 256 & 16 & FFTW &  2.80   &  6.58e-2  \\
+  &  &  & MKL &   1.10e-1   &    5.99e-2 &  &  &  & MKL &   7.73e-2   &   3.26e-1  \\
+  &  &  & P3DFFT &  2.44   &  3.00e-2  &  &  &  & P3DFFT &  -   &  -  \\ \hline\hline
+ R & 257 & 1 & FFTW &  3.16e+1   &  1.83  & C & 257 & 1 & FFTW &   1.06e+1   &  1.40   \\
+  &  &  & MKL &   6.38e-2   &   1.42  &  &  &  & MKL &   3.54e-3   &   1.24  \\
+  &  &  & P3DFFT & 3.29e+1    &   1.28  &  &  &  & P3DFFT &  -   & -   \\ \hline
+ R & 257 & 4 & FFTW &   2.82    &   6.10e-1  & C & 257 & 4 & FFTW &  2.46   &  6.46e-1  \\
+  &  &  & MKL &   5.72e-2   &   3.61e-1  &  &  &  & MKL &  4.12e-2    &   5.97e-1  \\
+  &  &  & P3DFFT &   1.25e+1   &  3.32e-1 &  &  &  & P3DFFT &  -   &  -  \\ \hline
+ R & 257 & 8 & FFTW &  1.61   &  3.35e-1  & C & 257 & 8 & FFTW &  2.06   &   3.50e-1  \\
+  &  & 16 & MKL &    9.23e-2  &  1.19e-1  &  &  & 16 & MKL &   8.93e-2   &  3.83e-1   \\
+  &  & 16 & P3DFFT &   4.89   &   9.77e-2  &  &  & 16 & P3DFFT &  -   &  -  \\ \hline\hline
+\end{tabular}
+\caption{ Initialisation (Init) and DFT execution times (DFT) for FFTW, MKL and P3DFFT with $N=256$ and 257, $thr=1,$ real (R) or complex (C) input signals for different numbers of MPI processes, $P.$ }\label{Tbl:3DCompP}
+%\end{small}
+\end{center}
+\end{table}
+
+
+ Comparing DFT execution times in Figures~\ref{3DDistFFTWMKLP3DFFT2}
+ and \ref{3DDistFFTWMKLP3DFFTprime}, there does not appear to be such
+ a marked difference between the libraries for the larger values of
+ $N.$ This is confirmed in Table~\ref{Tbl:3DCompP}, where we see that
+ for $N=256$ the FFTW library outperforms the MKL library but, in the
+ real case, only outperforms P3DFFT in our table when $P=1:$ looking
+ at the DFT times for $thr=1$ in Tables~\ref{Tbl:FFTW3d256} and
+ \ref{Tbl:P3DFFT3d256}, we see that this holds for all of the values
+ of $P>1$ considered. For $N=257,$ P3DFFT outperforms both FFTW and
+ MKL in the real case in the benchmarks provided in
+ Table~\ref{Tbl:3DCompP} and MKL outperforms FFTW; in the complex
+ case, MKL outperforms FFTW for $P=1$ and 4 and, using
+ Tables~\ref{Tbl:FFTW3d257} and \ref{Tbl:P3DFFT3d257}, we observe that
+ FFTW only outperforms MKL when $P=1.$
+
+ In each of the previous sections, we identified the combinations of
+ $P$ and $thr$ that gave optimal initialisation and DFT execution
+ times for $N=256$ and $N=257$ with real and complex input
+ signals. For these combinations, we can compare the (average) time to
+ perform a single initialisation and $k$ DFT calculations across the
+ libraries, see Table~\ref{Tbl:3DCompk}. We can see that in the real
+ case, P3DFFT using 24 MPI processes on the node with a single thread
+ per process out performs the other libraries for large enough values
+ of $k$ and, for the smaller values of $k$ that are greater than 1,
+ MKL is the optimal library with $P=16$ and $thr=1.$ In the complex
+ case, for larger values of $k$ it is better to use FFTW with a single
+ MPI process and a large number of threads; for small values of $k,$
+ we would recommend using the MKL with a single MPI process and large
+ number of threads. 
+
+ \begin{table}[!htbp]
+\begin{center}
+%\being{small}
+\begin{tabular}{|r|r|r|r|r|r||r|r|r|r|r|r|}\hline
+R/C & $N$ & $k$ & Optimal Library \\ \hline
+R & 256 & 1 & MKL($P=4,$ $thr=4$) \\
+  &     & $[2,58]$ & MKL($P=16,$ $thr=1$) \\
+  &     & $[59,\infty)$ & P3DFFT($P=24,$ $thr=1$) \\\hline
+C & 256 & $[1,20]$ & MKL($P=1,$ $thr=24$) \\
+  &     & $[21,182]$ & FFTW($P=16,$ $thr=1$) \\
+  &     & $[183,\infty)$ & FFTW($P=1,$ $thr=16$) \\\hline
+R & 257 & 1 & MKL($P=4,$ $thr=4$) \\
+  &     & $[2,223]$ & MKL($P=16,$ $thr=1$) \\
+  &     & $[224,\infty)$ & P3DFFT($P=16,$ $thr=1$) \\\hline
+C & 257 & $[1,113]$ & MKL($P=1,$ $thr=16$) \\
+  &     & $[114,\infty)$ & FFTW($P=1,$ $thr=24$) \\\hline
+\end{tabular}
+\caption{ Library that gives optimal time to perform a single initialisation and $k$ DFT calculations. For the comparison, for each library we used the set of values of $P$ and $thr$ that gave either the optimal initialisation time or the optimal DFT execution time.  }\label{Tbl:3DCompk}
+%\end{small}
+\end{center}
+\end{table}
+
+ 
 
 \section{Conclusions}\label{Sec:Conclusions}
 
