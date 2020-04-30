@@ -56,8 +56,8 @@ for i=1:5
         case 5
             r = res5;
     end
-    res(:,j) = r(:,12);
-    resi(:,j) = r(:,8);  
+    res(:,j) = r(:,m-2);
+    resi(:,j) = r(:,m-6);  
     
     j=j+1;
 end

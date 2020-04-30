@@ -1,5 +1,8 @@
 for i=[1,4,16]
-    I = find(R(:,1)==lib & R(:,2)==i );
+  %  I = find(R(:,1)==lib & R(:,2)==i & R(:,3)==16/i);
+  %  I = find(R(:,1)==lib & R(:,2)==i & R(:,3)==1);
+    I = find(R(:,1)==lib & R(:,2)==1 & R(:,3)==i);
+  %  I = find(R(:,1)==lib & R(:,2)==i);
     switch i
         case 1
            ll='o'; cc=[0 0.4470 0.7410];
@@ -15,5 +18,6 @@ for i=[1,4,16]
     end
     ll = strcat(lls,ll);
     loglog(R(I,4),R(I,11),ll,'linewidth',2,'MarkerSize',8.0,'color',cc)
+    set(gca,'fontsize',12)
     hold on
 end

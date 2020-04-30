@@ -120,7 +120,7 @@ P3DFFT & R $\rightarrow$ H & 3   & Any & OpenMP+MPI & GPL v3 & \cite{P3DFFT} \\
 \end{center}
 \end{table}
 
-All benchmark runs were run on ARCHER **ADD REF**, where each compute
+All benchmark runs were run on ARCHER~\cite{ARCHER}, where each compute
 node contains two 2.7 GHz, 12-core E5-2697 v2 (Ivy Bridge) series
 processors. Each of the cores in these processors can support 2
 hardware threads (Hyperthreads) but we do not activate hyperthreading
@@ -160,9 +160,13 @@ this was accessed via the PrgEnv-intel module (version 5.2.82)
 calling the compiler via the command \texttt{ftn} with flags
 \texttt{-O3 -openmp}.
 
-
-
-[ADD INFO ABOUT wallclock, median value, accuracy checked, etc]
+For each benchmark run, we recorded the mean initialisation time for
+the FFT library and the mean (forward) DFT computation time: all times
+reported are wallclock times. Each benchmark was run five times and,
+in the figures and tables, we report the median across the
+benchmarks. The quality of the output of the library was checking the
+accuracy of the FFT computation (this additional calculation time is
+not included in the timings).
 
 \section{Effect of domain size and multithreading for 1D benchmarks}\label{Sec:1DMulti}
 
@@ -1644,6 +1648,42 @@ C & 257 & $[1,113]$ & MKL($P=1,$ $thr=16$) \\
  
 
 \section{Conclusions}\label{Sec:Conclusions}
+
+We planned to benchmark three FFT libraries that have interfaces for
+Fortran: FFTE, FFTW, MKL and P3DFFT. Unfortunately, FFTE was found to
+be undocumented and when we tested it, we found that the OpenMP
+version was unreliable and the MPI version had restrictions on the
+number of MPI processes that can be used but the library does not
+return error states so the user is unaware that the returned answer is
+not correct. Hence, we excluded FFTE from our benchmarks.
+
+All of the three remaining libraries were found to have limitations:
+\begin{itemize}
+\item FFTW is written in C and a Fortran interface has been created
+  that uses C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. In the
+  Fortran interface, the dimensions of the arrays that are being
+  operated on are type C\_INTPTR\_T, so the size of problem is
+  restricted. The distributed version of the FFTW library for 1D input
+  signals only has an interface for complex arrays.
+ \item The distributed version of the MKL library has restrictions on
+   the lengths of transforms. For the 1D interface, the length must be the
+   product of two integers and each of these integers must not be less
+   than the number of MPI processes, which means that the transform
+   length cannot be prime if multiple MPI processes are being
+   used. For multi-dimensional transforms, the lengths of the last two
+   dimensions must not be less than the number of processes.
+ \item P3DFFT only allows real 3D input signals and, due to the nature
+   of its underlying data structures, we can not set the redundant
+   dimensions to 1 to compute a 1D or 2D transform.
+
+\end{itemize}
+Hence, if one of the dimensions exceeds the range of values that
+C\_INTPTR\_T can store, FFTW will not be suitable for use on
+ARCHER. If you want to perform the FFT of a 1D signal with length that
+is prime using multiple MPI processes, then this is not possible to do
+with either the MKL library or the P3DFFT library.
+
+Due to the limitations in problem sizes, we see little advantage in using either multithreading or multiple MPI processes 
 
 
 \section*{Acknowledgements}
