@@ -188,7 +188,7 @@ computations up to $2^{14}$ due to the Fortran to C interface relying on
 C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. This similarly
 restricted how large we could take $N$ when it was prime.
 
-In Figure~\ref{1DFFTW}, we compare single node experiments for FFTW
+In Figure~\ref{fig:1DFFTW}, we compare single node experiments for FFTW
 with 1, 4 and 16 OpenMP threads ($thr$). We provide both the initialisation
 time ``INIT'' for the FFT library call and the DFT computation time
 ``DFT''.  The initialisation times for prime values of $N$ are
@@ -208,7 +208,7 @@ there is a small improvement using 16 threads when $N=2^{14}$.
     \includegraphics[width=0.9\linewidth]{../results/fftw_1d_thr.eps}
   \caption{Initialisation and DFT execution times of FFTW library applied to 1D signal as a function of the
     number of points, $N,$ and varying the number of threads, $thr.$ }
-  \label{1DFFTW}
+  \label{fig:1DFFTW}
 \end{figure}
 
 To further understand the results, we provide Table~\ref{Tbl:FFTW1d}
@@ -323,7 +323,7 @@ to overcome the increase in initialisation time.
 \subsection{Comparison of libraries for 1D benchmarks}\label{Sec:1DComp}
 
 In Figure~\ref{1DFFTWMKL2}, we compare the 1D FFTW and MKL libraries
-with multithreading for values of $N$ that are prime numbers. Our
+with multithreading for values of $N$ that are powers of 2. Our
 first observation is that, in our computing environment, the MKL
 library can perform DFT computations for larger values of $N.$ For the
 values of $N$ where we can compare the libraries, MKL has
@@ -780,8 +780,8 @@ DFT time when $N$ is prime compared on $N$ being a power of 2.
 \subsection{Comparison of libraries for 3D benchmarks}\label{Sec:3DComp}
 
 We compare the initialisation and DFT wallclock times for FFTW, MKL
-and P3DFFT in Figures~\ref{3DFFTWMKL2} ($N$ a power of 2) and
-\ref{3DFFTWMKLPrime} ($N$ prime). Considering the initialisation
+and P3DFFT in Figures~\ref{fig:3DComp2} ($N$ a power of 2) and
+\ref{fig:3DFFTWMKLPrime} ($N$ prime). Considering the initialisation
 times, MKL is the fastest and P3DFFT is, in general, the slowest in
 the real input signal cases: for large values of $N$ there is between
 3 and 4 orders of magnitude in difference.
@@ -792,23 +792,19 @@ the MKL library is, in general, outperforming both the FFTW and P3DFFT
 libraries.
 
 
-
-
-\begin{figure}[htb]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.9\linewidth]{../results/fftw_mkl_p3dfft_2_3d_thr.eps}
-  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
-    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2.}
-  \label{3DFFTWMKL2}
+  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2. }
+  \label{fig:3DComp2}
 \end{figure}
 
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.9\linewidth]{../results/fftw_mkl_p3dfft_prime_3d_thr.eps}
-  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the
-    number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
-  \label{3DFFTWMKLPrime}
+  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
+  \label{fig:3DFFTWMKLPrime}
 \end{figure}
 
 
@@ -999,7 +995,7 @@ $P$ & 1 & 2 & 4 & 8 & 12 & 16 & 24 \\ \hline
   1 &    2309 &   1868 &  1978 &  2079 &  2904 &  3385 & $\infty$   \\
   2 &     4981 &  7463 &  28941 & $\infty$ &  $\infty$ &           - &           - \\
   4 &     1329 &  4099 &   7575 &           - &          - &          - &          - \\
-  8 &    1101 &   2979           - &          - &          - &          - &          - \\
+  8 &    1101 &   2979  &         - &          - &          - &          - &          - \\
   16 &    401 &          - &          - &          - &          - &          - &          - \\ \hline
 \end{tabular}
 \caption{ For the complex case and $N=16384,$ we provide the minimal value of $l$ such that the overall initialisation time plus time to perform $l$ DFT calculations is lower for FFTW than MKL.  }\label{Tbl:1Dl}
@@ -1649,9 +1645,9 @@ C & 257 & $[1,113]$ & MKL($P=1,$ $thr=16$) \\
 
 \section{Conclusions}\label{Sec:Conclusions}
 
-We planned to benchmark three FFT libraries that have interfaces for
+We planned to benchmark four FFT libraries that have interfaces for
 Fortran: FFTE, FFTW, MKL and P3DFFT. Unfortunately, FFTE was found to
-be undocumented and when we tested it, we found that the OpenMP
+be undocumented and when we tested it, we discovered that the OpenMP
 version was unreliable and the MPI version had restrictions on the
 number of MPI processes that can be used but the library does not
 return error states so the user is unaware that the returned answer is
@@ -1663,8 +1659,9 @@ All of the three remaining libraries were found to have limitations:
   that uses C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. In the
   Fortran interface, the dimensions of the arrays that are being
   operated on are type C\_INTPTR\_T, so the size of problem is
-  restricted. The distributed version of the FFTW library for 1D input
-  signals only has an interface for complex arrays.
+  restricted to all dimensions being at most 4 bytes in size. The
+  distributed version of the FFTW library for 1D input signals only
+  has an interface for complex arrays.
  \item The distributed version of the MKL library has restrictions on
    the lengths of transforms. For the 1D interface, the length must be the
    product of two integers and each of these integers must not be less
@@ -1673,17 +1670,33 @@ All of the three remaining libraries were found to have limitations:
    used. For multi-dimensional transforms, the lengths of the last two
    dimensions must not be less than the number of processes.
  \item P3DFFT only allows real 3D input signals and, due to the nature
-   of its underlying data structures, we can not set the redundant
+   of its underlying data structures, we cannot set the redundant
    dimensions to 1 to compute a 1D or 2D transform.
 
 \end{itemize}
 Hence, if one of the dimensions exceeds the range of values that
-C\_INTPTR\_T can store, FFTW will not be suitable for use on
-ARCHER. If you want to perform the FFT of a 1D signal with length that
-is prime using multiple MPI processes, then this is not possible to do
-with either the MKL library or the P3DFFT library.
+C\_INTPTR\_T can store, FFTW will not be suitable for use on ARCHER or
+other systems where C\_INTPTR\_T has size 4 bytes. If you want to
+perform the FFT of a 1D signal that has length that is prime and wish
+to use multiple MPI processes, then this is not possible to do with
+either the MKL library or the P3DFFT library.
 
-Due to the limitations in problem sizes, we see little advantage in using either multithreading or multiple MPI processes 
+In our multithreading investigations, we revealed that MKL is
+generally performing better than FFTW and, in the 3D case, also
+outperforming P3DFFT. For larger problems, the use of multiple threads
+was advantageous across all of the libraries.
+
+The three libraries considered all have distributed versions of the
+library that have MPI and OpenMP capabilities. For 1D problems, when
+the MKL library can be used, it outperforms FFTW. In both cases,
+increasing the number of MPI processes was advantageous for the larger
+problem size. For 2D and 3D problems, it was advantageous to use
+larger numbers of MPI process for larger problems sizes but the choice
+of favourable library will depend on the properties of the underlying
+problems and how many DFTS are being performed per initialisation.
+
+
+
 
 
 \section*{Acknowledgements}
