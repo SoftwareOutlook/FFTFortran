@@ -176,7 +176,7 @@ of these benchmarks.
 
 \end{algorithm}
 
-The Fortran versions of the benchmark codes are located  in Software Outlook's GitHub repository: \url{https://github.com/SoftwareOutlook/FFTFortran}.
+The Fortran versions of the benchmark codes are located  in Software Outlook's GitHub repository: \newline \url{https://github.com/SoftwareOutlook/FFTFortran}.
 
 
 \section{FFT Libraries and testing environment}\label{Sec:libs}
@@ -195,7 +195,7 @@ that the MPI version was restrictive on the number of processes that
 it could handle, which is not documented, and the OpenMP version was
 not reliable. For these reasons, we do not recommend using FFTE.
 
-\begin{table}[h]
+\begin{table}[ht]
 \begin{center}
 \begin{small}
 \begin{tabular}{|l|c|c|c|l|l|c|}
@@ -206,7 +206,7 @@ FFTW & R $\rightarrow$ H & Any   & Any but optimised for  & OpenMP, & GPL v3 & \
      & H $\rightarrow$ R & Any      & with $e+f = 0$ or $1$ & & & \\ \hline
 MKL  & R $\rightarrow$ H & Any   & Any & OpenMP, & Intel & \cite{MKL} \\
      & C $\rightarrow$ C & Any      & & OpenMP+MPI &  Simplified & \\
-     & H $\rightarrow$ R & Any   & & & Software  & \\ \hline
+     & H $\rightarrow$ R & Any   & & & Software  & \\ 
      &  &    & & &  License  & \\ \hline
 P3DFFT & R $\rightarrow$ H & 3   & Any & OpenMP+MPI & GPL v3 & \cite{P3DFFT} \\
      & H $\rightarrow$ R & 3   & & & & \\ \hline
