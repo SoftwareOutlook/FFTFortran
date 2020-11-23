@@ -73,7 +73,9 @@ vector $x$ of length $n$ is defined as
 \begin{equation}\label{Eqn:fft}
   z(k) = \sum_{m=1}^{n} x(m) \exp(-2\pi i (k-1) (m-1) / n), \quad l=1,\ldots,n.
 \end{equation}
-It is assumed that $x$ is representing the input data of a continuous function with measurements taken at equally spaced intervals. In this work, we consider FFT libraries that have both multi-threading
+It is assumed that $x$ is representing the input data of a continuous
+function with measurements taken at equally spaced intervals. In this
+work, we consider FFT libraries that have both multi-threading
 (OpenMP) and MPI capabilities.
 
 \subsection{Half-complex format}
@@ -176,13 +178,15 @@ of these benchmarks.
 
 \end{algorithm}
 
-The Fortran versions of the benchmark codes are located  in Software Outlook's GitHub repository: \newline \url{https://github.com/SoftwareOutlook/FFTFortran}.
+The Fortran versions of the benchmark codes are located in Software
+Outlook's GitHub repository: \newline
+\url{https://github.com/SoftwareOutlook/FFTFortran}.
 
 
 \section{FFT Libraries and testing environment}\label{Sec:libs}
 
 In this work, we planned to compare the libraries listed in
-Table~\ref{Tbl:libs}. We chose libraries that have multithreading
+Table~\ref{Tbllibs}. We chose libraries that have multithreading
 capabilities as well as MPI provision.  The datatypes listed are real
 (R), complex (C) and half-complex (H). The column "Dimensions"
 indicates the dimensions for which interfaces are provided.  We had
@@ -215,7 +219,7 @@ P3DFFT & R $\rightarrow$ H & 3   & Any & OpenMP+MPI & GPL v3 & \cite{P3DFFT} \\
 %     & H $\rightarrow$ R & 1,3   & & & & \\ \hline
 
 \end{tabular}
-\caption{Libraries being benchmarked.  For ``valid $n$'', the values $a,$ $b,$ $c,$ $d,$ $e$ and $f$ are all assumed to be non-negative integers.}\label{Tbl:libs}
+\caption{Libraries being benchmarked.  For ``valid $n$'', the values $a,$ $b,$ $c,$ $d,$ $e$ and $f$ are all assumed to be non-negative integers.}\label{Tbllibs}
 \end{small}
 \end{center}
 \end{table}
@@ -288,7 +292,7 @@ computations up to $2^{14}$ due to the Fortran to C interface relying on
 C\_INTPTR\_T, which, on ARCHER, has size 4 bytes. This similarly
 restricted how large we could take $N$ when it was prime.
 
-In Figure~\ref{fig:1DFFTW}, we compare single node experiments for FFTW
+In Figure~\ref{fig1DFFTW}, we compare single node experiments for FFTW
 with 1, 4 and 16 OpenMP threads ($thr$). We provide both the initialisation
 time ``INIT'' for the FFT library call and the DFT computation time
 ``DFT''.  The initialisation times for prime values of $N$ are
@@ -308,10 +312,10 @@ there is a small improvement using 16 threads when $N=2^{14}$.
     \includegraphics[width=0.9\linewidth]{../results/fftw_1d_thr.eps}
   \caption{Initialisation and DFT execution times of FFTW library applied to 1D signal as a function of the
     number of points, $N,$ and varying the number of threads, $thr.$ }
-  \label{fig:1DFFTW}
+  \label{fig1DFFTW}
 \end{figure}
 
-To further understand the results, we provide Table~\ref{Tbl:FFTW1d}
+To further understand the results, we provide Table~\ref{TblFFTW1d}
 (Appendix~\ref{App:1Dthr}), which provides the (wall clock) execution
 times of the initialisation stage and the DFT calculations along with
 their ratio with respect to one thread for $thr=1,$ 2, 4, 8, 12, 16
@@ -351,14 +355,14 @@ of $thr,$ the ratio is larger for $N=2053$ than that of $n=2048.$
 
 \subsection{1D MKL Library}\label{Sec:1DMKL}
 
-The 1D MKL library benchmark runs for 1, 4 and 16 threads ($thr$) are compared
-in Figure~\ref{1DMKL}. Initialisation times for $N$ a power of 2 are
-nearly always lower than when $N$ is a prime number. For a single
-thread, the initialisation time increased as the value of $N$
-increased but the rate of increase was much larger when $N$ was
-prime. For 4 or 16 threads and $N$ a power of 2, the initialisation
-time stays almost constant for $N\le 2^{17}$ and then drops: in the
-real case, it then starts rising again for the largest values of $N$
+The 1D MKL library benchmark runs for 1, 4 and 16 threads ($thr$) are
+compared in Figure~\ref{1DMKL}. Initialisation times for $N$ a power
+of 2 are nearly always lower than when $N$ is a prime number. For a
+single thread, the initialisation time increased as the value of $N$
+increased but the rate of increase was much larger when $N$ was prime.
+For 4 or 16 threads and $N$ a power of 2, the initialisation time
+stays almost constant for $N\le 2^{17}$ and then drops: in the real
+case, it then starts rising again for the largest values of $N$
 considered. When $N$ is a prime value and 4 or 16 threads are used,
 the initialisation times remain almost constant for $N\le 2^{14}$ and
 then rises with problem size for larger values of $N.$ For the smaller
@@ -380,7 +384,7 @@ $N$ being a power of 2. There is little effect on the DFT time when
 the number of threads is varied but $N$ is prime. However, when $N$ is
 a power of 2 and greater than $2^{14}$ (real case) or $2^{17}$
 (complex case), there is an advantage to using musing multiple threads
-with respect to DFT wallclock time. In Table~\ref{Tbl:MKL1d}
+with respect to DFT wallclock time. In Table~\ref{TblMKL1d}
 (Appendix~\ref{App:1Dthr}, we provide the (wall clock) execution times
 of the initialisation stage and the DFT calculations along with their
 ratio with respect to one thread for $thr=1,$ 2, 4, 8, 12, 16 and
@@ -497,8 +501,8 @@ difference between 4 and 16 threads generally diminishes. For further
 clarity of the benchmark results, we provide the (wall clock)
 execution times of the initialisation stage and the DFT calculations
 along with their ratio with respect to one thread for $thr=1,$ 2, 4,
-8, 12, 16 and 24 in Tables~\ref{Tbl:FFTW2d} and
-\ref{Tbl:FFTW2dc} (Appendix~\ref{App:2Dthr}). Results for both real and complex input signals are
+8, 12, 16 and 24 in Tables~\ref{TblFFTW2d} and
+\ref{TblFFTW2dc} (Appendix~\ref{App:2Dthr}). Results for both real and complex input signals are
 given for $N=31,$ 32, 256, 257, 2048 and 2053. These confirm that the
 initialisation times are lower for the real case compared to the
 complex case. Additionally, increasing the number of threads has less
@@ -510,7 +514,7 @@ of $N,$ increasing the number of threads is always improving the
 wallclock time. When $N$ is a power of 2, a single thread is
 prefereable for $N\le 128.$ The DFT times are larger when $N$ is a
 prime number instead of being a power of 2. Using
-Tables~\ref{Tbl:FFTW2d} and \ref{Tbl:FFTW2dc}, we see observe that
+Tables~\ref{TblFFTW2d} and \ref{TblFFTW2dc}, we see observe that
 increasing the number of threads results in lower ratios when $N$ is a
 prime compared to when $N$ is a power of 2. Given that the
 initialisation times are at least one order of magnitude larger than
@@ -554,7 +558,7 @@ between $N$ being a power of two and $N$ being prime has little effect
 on the initialisation time when one or four threads is used. For the
 larger problem sizes, increasing the number of threads has a positive
 affect on the initialisation time.  This is confirmed in
-Table~\ref{Tbl:MKL2d}, where we see that the initialisation time is
+Table~\ref{TblMKL2d}, where we see that the initialisation time is
 roughly halved when 24 threads are used compared to a single thread.
 
 
@@ -578,7 +582,7 @@ time in both the real and complex cases. For $N$ a power of 2 and
 smaller than 256 (real case) or 128 (complex case), using multiple
 threads increases the DFT time. For larger values of $N,$ multiple
 threads decreases the DFT times. This is confirmed in
-Table~\ref{Tbl:MKL2d} but we see that there is little gain with
+Table~\ref{TblMKL2d} but we see that there is little gain with
 respect to DFT time in going above 12 threads. However, the additional
 reduction in initialisation time for using more than 12 threads for
 large values of $N$ leads us to conclude that, on a single node of
@@ -588,7 +592,7 @@ is greater than 2000 (real case or complex case with $N$ prime) or
 out the number of DFT calculations, $k,$ that would be required for
 $thr$ threads to have a lower time than a single thread when
 performing a single initialisation and $k$ DFT calculations. We
-provide this information in Table~\ref{Tbl:MKL2dk} and observe that
+provide this information in Table~\ref{TblMKL2dk} and observe that
 multithreading can be positively utilised for lower values of $k$ when
 $N$ was prime because of the greater time to perform a DFT calculation
 (a factor of 4-5 difference) but the initialisation times are, in
@@ -611,7 +615,7 @@ $thr$ &  Real & Complex &  Real & Complex  \\ \hline
   16 & 77 & 8  & 7 & 4 \\
   24 & 83 & 31 &10 & 6  \\ \hline
 \end{tabular}
-\caption{ For $N=256$ and $N=257,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations are performed with the 2D interface to the FFTW library.  }\label{Tbl:MKL2dk}
+\caption{ For $N=256$ and $N=257,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations are performed with the 2D interface to the FFTW library.  }\label{TblMKL2dk}
 %\end{small}
 \end{center}
 \end{table}
@@ -694,15 +698,15 @@ than 31 with respect to DFT times.
 
 To further analyse the benchmark results, we provide the DFT and
 initialisation wall clock times for $N=7,$ 8, 31, 32, 509 and 512 with
-1,2,4,8,16 and 24 threads in Tables~\ref{Tbl:FFTW3d} and
-\ref{Tbl:FFTW3dc} (Appendix~\ref{App:3Dthr}). When $N=7$ or 8, the use of multiple threads has a
+1,2,4,8,16 and 24 threads in Tables~\ref{TblFFTW3d} and
+\ref{TblFFTW3dc} (Appendix~\ref{App:3Dthr}). When $N=7$ or 8, the use of multiple threads has a
 catastrophic affect on the DFT time: 24 threads results in a factor of
 62 (real case) or 75 (complex case) increase in DFT time when $N=7$
 and a factor 47 (real case) or 82 (complex case) when $N=8;$
 additionally, the initialisation times triple in the complex case and
 increase by a factor of 5 for the real case. When $N=31,$ increasing
 the number of threads results in the DFT wallclock time decreasing but
-the initialisation time increases: in Table~\ref{Tbl:FFTW3dk} we
+the initialisation time increases: in Table~\ref{TblFFTW3dk} we
 provide the number of DFT calculations, $k,$ (on average) that would
 be required for $thr$ threads to have a lower time than a single
 thread when performing a single initialisation and $k$ DFT
@@ -746,7 +750,7 @@ $thr$ &  Real & Complex &  Real & Complex &  Real & Complex &  Real & Complex \\
   16 & 146 & -  &  -    & 1935 & 1 &  2   & 1  & 2  \\
   24 & 242 & -  &  -    &  -   & 0 &  1   & 3  & 3  \\ \hline
 \end{tabular}
-\caption{ For $N=31,$ 32, 509 and $N=512,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations are performed with the 3D interface to the FFTW library.  }\label{Tbl:FFTW3dk}
+\caption{ For $N=31,$ 32, 509 and $N=512,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations are performed with the 3D interface to the FFTW library.  }\label{TblFFTW3dk}
 %\end{small}
 \end{center}
 \end{table}
@@ -764,7 +768,7 @@ significantly as the value of $N$ increases from 7 to 256. For $N=509$
 and 512, the initialisation times are very similar to when a single
 thread is used. In all cases, the initialisation time decreases when
 moving from 4 to 16 threads. For further analysis, we provide the data
-for $N=7,$ 8, 64, 67, 509 and 512 in Table~\ref{Tbl:MKL3d}. For $N=7,$
+for $N=7,$ 8, 64, 67, 509 and 512 in Table~\ref{TblMKL3d}. For $N=7,$
 there is a factor of 6 difference in initialisation times when
 comparing 1 and 16 threads. For a single thread and real input
 signals, increasing $N$ from 7 to 509 increases the initialisation
@@ -784,7 +788,7 @@ prime number. In Figure~\ref{3DMKL}, we observe that when $N$ is
 prime, the DFT decreases as the number of threads increases from 1 to
 4 and then to 16 but there appears to be a bigger impact for larger
 $N,$ and this is certainly the case for the values of $N$ provided in
-Table~\ref{Tbl:MKL3d}. Additionally, multithreading has a lesser
+Table~\ref{TblMKL3d}. Additionally, multithreading has a lesser
 impact when $N$ is a power of 2 than when $N$ is the nearest prime
 number to a power of 2.
 
@@ -805,7 +809,7 @@ calculations, $k,$ (on average) that would be required for $thr$
 threads to have a lower time than a single thread when performing a
 single initialisation and $k$ DFT calculations for $N=31,$ 32, 509 and
 $N=512:$ these values are provided in
-Table~\ref{Tbl:MKL3dk}. Comparing the results for $N=31$ and $N=32,$
+Table~\ref{TblMKL3dk}. Comparing the results for $N=31$ and $N=32,$
 multithreading becomes more advantageous far sooner for the prime
 value of $N$ and this is primarily because of multithreading having
 more affect on the DFT wallclock time. For $N=509$ and $N=512,$ the
@@ -818,8 +822,8 @@ results.
 %\being{small}
 \begin{tabular}{|r||r|r||r|r||r|r||r|r|}
   \hline
- & \multicolumn{2}{|c||}{$k(N=31)$} & \multicolumn{2}{|c||}{$k(N=32)$} & \multicolumn{2}{|c||}{$k(N=509)$} & \multicolumn{2}{|c|}{$k(N=512)$} \\
-$thr$ &  Real & Complex &  Real & Complex &  Real & Complex &  Real & Complex  \\ \hline
+  & \multicolumn{2}{|c||}{$k(N=31)$} & \multicolumn{2}{|c||}{$k(N=32)$} & \multicolumn{2}{|c||}{$k(N=509)$} & \multicolumn{2}{|c|}{$k(N=512)$} \\
+  $thr$ &  Real & Complex &  Real & Complex &  Real & Complex &  Real & Complex  \\ \hline
   2 & 32    & 25  & 446   & 119  & 1 &  1   & 1  &  1 \\
   4 & 48    & 26  & 292   & 225  & 1 &  1   & 1  &  1 \\
   8 & 44    & 26  & 242   & 152  & 1 &  1   & 0  &  1 \\
@@ -827,7 +831,11 @@ $thr$ &  Real & Complex &  Real & Complex &  Real & Complex &  Real & Complex  \
   16 & 24   & 19  & 129   & 91   & 0 &  1   & 1  &  1 \\
   24 & 26   & 17  & 250   & 101  & 1 &  0   & 1  &  1 \\ \hline
 \end{tabular}
-\caption{ For $N=31,$ 32, 509 and $N=512,$ the number of DFT calculations, $k,$ required for $thr$ threads to have a lower wallclock time than a single thread when performing  a single initialisation and $k$ DFT calculations are performed with the 3D interface to the MKL library.  }\label{Tbl:MKL3dk}
+\caption{For $N=31,$ 32, 509 and $N=512,$ the number of DFT
+  calculations, $k,$ required for $thr$ threads to have a lower 
+  wallclock time than a single thread when performing a single
+  initialisation and $k$ DFT calculations are performed with the 3D
+  interface to the MKL library.}\label{TblMKL3dk}
 %\end{small}
 \end{center}
 \end{table}
@@ -841,7 +849,7 @@ number. With the exception of the 3 lowest values of $N$ is the two
 different classes of $N,$ in general, multithreading reduces the
 initialisation time as we move from 1 to 4 and then 4 to 16
 threads. Increasing the problem size increases the initialisation
-time. In Table~\ref{Tbl:P3DFFT3d}, we provide the benchmark data for
+time. In Table~\ref{TblP3DFFT3d}, we provide the benchmark data for
 $N=7,$ 8, 31, 32, 509 and 512. For the largest values of $N$
 considered, the effect of multithreading on the wallclock
 initialisation time is greater when $N$ is a power 2 than when $N$ is
@@ -852,7 +860,7 @@ power of 2 and less than or equal to 64, increasing the number of
 threads is also increasing the DFT time; for the larger values of $N$
 increasing the number of threads decreases the wallclock DFT time but
 there appears to be little difference between 4 and 16 threads,
-however, Table~\ref{Tbl:P3DFFT3d} reveals that the DFT time for four
+however, Table~\ref{TblP3DFFT3d} reveals that the DFT time for four
 threads is 31\% higher than that of sixteen threads. For prime values
 of $N,$ when $N$ is smaller than 31 we observe that increasing the
 number of threads increases the DFT time but for larger values of $N$
@@ -865,7 +873,7 @@ DFT time when $N$ is prime compared on $N$ being a power of 2.
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.9\linewidth]{../results/p3dfft_3d_thr.eps}
+    \includegraphics[width=10cm]{../results/p3dfft_3d_thr.eps}
   \caption{Initialisation and DFT execution times of P3DFFT library applied to 3D signal as a function of the
     number of points, $N,$ and varying the number of threads, $thr.$ }
   \label{3DP3DFFT}
@@ -880,8 +888,8 @@ DFT time when $N$ is prime compared on $N$ being a power of 2.
 \subsection{Comparison of libraries for 3D benchmarks}\label{Sec:3DComp}
 
 We compare the initialisation and DFT wallclock times for FFTW, MKL
-and P3DFFT in Figures~\ref{fig:3DComp2} ($N$ a power of 2) and
-\ref{fig:3DFFTWMKLPrime} ($N$ prime). Considering the initialisation
+and P3DFFT in Figures~\ref{fig3DComp2} ($N$ a power of 2) and
+\ref{fig3DFFTWMKLPrime} ($N$ prime). Considering the initialisation
 times, MKL is the fastest and P3DFFT is, in general, the slowest in
 the real input signal cases: for large values of $N$ there is between
 3 and 4 orders of magnitude in difference.
@@ -892,11 +900,13 @@ the MKL library is, in general, outperforming both the FFTW and P3DFFT
 libraries.
 
 
-\begin{figure}[htbp]
+\begin{figure}[hp]
     \centering
-    \includegraphics[width=0.9\linewidth]{../results/fftw_mkl_p3dfft_2_3d_thr.eps}
-  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a power of 2. }
-  \label{fig:3DComp2}
+ \includegraphics[width=0.9\linewidth]{../results/fftw_mkl_p3dfft_2_3d_thr.eps}
+  \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries 
+ applied to 3D signal as a function of the number of points, $N,$ and varying the 
+ number of threads, $thr.$ $N$ is a power of 2. }
+  \label{fig3DComp2}
 \end{figure}
 
 
@@ -904,7 +914,7 @@ libraries.
     \centering
     \includegraphics[width=0.9\linewidth]{../results/fftw_mkl_p3dfft_prime_3d_thr.eps}
   \caption{Initialisation and DFT execution times of FFTW, MKL and P3DFFT libraries applied to 3D signal as a function of the number of points, $N,$ and varying the number of threads, $thr.$ $N$ is a prime number.}
-  \label{fig:3DFFTWMKLPrime}
+  \label{fig3DFFTWMKLPrime}
 \end{figure}
 
 
@@ -960,8 +970,8 @@ when $P\times thr=16$ and $P=1,$ 4 and 16, and observe that it was, in
 general, better to use a single thread with 16 MPI processes in the
 benchmarks compared. For $N=16381,$ we provide all of the data and
 ratios relative to using $P=1$ and $thr=1$ in
-Table~\ref{Tbl:FFT1d16381} (Appendix~\ref{App:1Ddist}) and find that the combination of one MPI
-process with four threads was optimal. In Table~\ref{Tbl:FFT1d16384}
+Table~\ref{TblFFT1d16381} (Appendix~\ref{App:1Ddist}) and find that the combination of one MPI
+process with four threads was optimal. In Table~\ref{TblFFT1d16384}
 we provide the data for $N=16384$ and discover that 16 MPI processes
 and a single thread per MPI process was optimal. However, we cannot
 take $N$ large enough to find a general trend.
@@ -994,7 +1004,7 @@ initialisation times remain almost constant as the size of $N$
 increases with $P=4$ having an initialisation time that is roughly 15
 times larger than that of a single process and $P=16$ being roughly 30
 times larger that the single process, with the real and complex
-benchmarks having very similar values. In Table~\ref{Tbl:MKL1d16384},
+benchmarks having very similar values. In Table~\ref{TblMKL1d16384},
 we provide the data for $N=16384$ and ratios with respect to $P=1$ and
 $thr=1.$ We start by observing that, for a single thread per MPI
 process, increasing the number of processes has a larger effect on
@@ -1003,9 +1013,9 @@ complex and, hence, the initialisation times are slightly lower for
 the complex case when a large number of processes are used. For
 $N>10^4,$ the difference in initialisation times for different numbers
 of MPI processes appears to narrow in Figure~\ref{1DDistMKL}: the data
-for $N=1048576$ is provided for in Table~\ref{Tbl:MKL1d1048576} and
+for $N=1048576$ is provided for in Table~\ref{TblMKL1d1048576} and
 the values of iratio are much lower than those in
-Table~\ref{Tbl:MKL1d16384} but increasing the number of processes
+Table~\ref{TblMKL1d16384} but increasing the number of processes
 still, in general, increases the initialisation times.
 
 Comparing the DFT wallclock execution times in Figure~\ref{1DDistMKL},
@@ -1013,19 +1023,19 @@ for $N\le 10^5$ (real case) or $N\le 2\times 10^4$ (complex case), a
 single process gives the optimal wallclock execution time. For larger
 vales of $N,$ we observe that increasing the number of processes from
 1 to 4 and then to 16 decreases the DFT time. In
-Table~\ref{Tbl:MKL1d16384}, we observe that, in the complex case with
+Table~\ref{TblMKL1d16384}, we observe that, in the complex case with
 $N=16384,$ there is an improvement in DFT time when two or four
-processes are used. When $N=1048576$ (Table~\ref{Tbl:MKL1d1048576}),
+processes are used. When $N=1048576$ (Table~\ref{TblMKL1d1048576}),
 increasing the number of processes (with a single thread per process)
 produces a monotonic decrease in DFT time.
 
 We compare our results for the case $P\times thr=16$ with $P=1,$ 4 and
 16 in Figure~\ref{1DDistMKL16}. For all values of $N$ considrered,
 increasing the value of $P$ increases the initialisation time: using
-Table~\ref{Tbl:MKL1d16384}, when $N=16384$ with real input signal,
+Table~\ref{TblMKL1d16384}, when $N=16384$ with real input signal,
 switching from $P=1$ and $thr=16$ to $P=16$ and $thr=1$ increases the
 initialisation time by a factor of 4.9; for $N=1048576$
-(Table~~\ref{Tbl:MKL1d1048576}), the increase is a factor of 2.5. In
+(Table~~\ref{TblMKL1d1048576}), the increase is a factor of 2.5. In
 terms of DFT times, when $N$ is small, Figure~\ref{1DDistMKL16}
 reveals that a single MPI process with 16 threads is better than the
 other combinations considered. For the larger values of $N,$ 16 MPI
@@ -1073,7 +1083,7 @@ see an overall gain (initialisation time plus $l$ DFT calculations) to
 using FFTW if $l$ is large. For the complex case and $N=16384,$ we
 provide the minimal value of $l$ such that the overall initialisation
 time plus time to perform $l$ DFT calculations is lower for FFTW than
-MKL in Table~\ref{Tbl:1Dl}. We conclude, that when the 1D MKL
+MKL in Table~\ref{Tbl1Dl}. We conclude, that when the 1D MKL
 interface can be used, it is generally best to use the MKL library.
 
 \begin{figure}[htb]
@@ -1098,7 +1108,7 @@ $P$ & 1 & 2 & 4 & 8 & 12 & 16 & 24 \\ \hline
   8 &    1101 &   2979  &         - &          - &          - &          - &          - \\
   16 &    401 &          - &          - &          - &          - &          - &          - \\ \hline
 \end{tabular}
-\caption{ For the complex case and $N=16384,$ we provide the minimal value of $l$ such that the overall initialisation time plus time to perform $l$ DFT calculations is lower for FFTW than MKL.  }\label{Tbl:1Dl}
+\caption{ For the complex case and $N=16384,$ we provide the minimal value of $l$ such that the overall initialisation time plus time to perform $l$ DFT calculations is lower for FFTW than MKL.  }\label{Tbl1Dl}
 %\end{small}
 \end{center}
 \end{table}
@@ -1148,8 +1158,8 @@ prime compared to when $N$ is a power of 2.
 
 Apart from the very smallest values of $N$ considered, increasing the
 number of MPI processes always results in a reduction in DFT
-calculation time. In Tables~\ref{Tbl:FFTW2d2048},
-\ref{Tbl:FFTW2d2048c} and \ref{Tbl:FFTW2d2053}, we provide the data
+calculation time. In Tables~\ref{TblFFTW2d2048},
+\ref{TblFFTW2d2048c} and \ref{TblFFTW2d2053}, we provide the data
 for $N=2048$ with real input signals, $N=2048$ with complex input
 signals, and $N=2053$ with real and complex signals, respectively. For
 $N=2048$ with real input signals, 16 MPI processes with single threads
@@ -1172,10 +1182,10 @@ prime $N$ are generally lower than when $N$ is a power of 2,
 particularly in the real case. The initialisation times in the complex
 case appear to be higher than the real case for $N$ a power of 2: this
 is confirmed for the $N=2048$ and $N=2053$ in
-Tables~\ref{Tbl:FFTW2d2048} and \ref{Tbl:FFTW2d2048c} and we see that
+Tables~\ref{TblFFTW2d2048} and \ref{TblFFTW2d2048c} and we see that
 the difference is roughly a factor of 2. When $N$ is a prime number,
 the initialisation times are similar for the real and complex cases,
-see Table~\ref{Tbl:FFTW2d2053}. Considering the DFT times, we observe that
+see Table~\ref{TblFFTW2d2053}. Considering the DFT times, we observe that
 16 MPI processes with 1 thread per process is nearly always the best
 option out of those considered in Figure~\ref{2DDistFFTW16} and 4 MPI
 processes with four threads per process is normally the worse. In
@@ -1205,9 +1215,9 @@ observe that increasing the number of MPI processes increases with
 initialisation time. For $N=2048,$ the initialisation times, relative
 to a single process and thread, are a factor of 14.2 and 23.1 times
 larger for 4 and 16 MPI processes (single thread per process),
-respectively, for real signals (see Table~\ref{Tbl:MKL2d2048}); for
+respectively, for real signals (see Table~\ref{TblMKL2d2048}); for
 complex input signals the factors are 12.4 and 46.7 (see
-Table~\ref{Tbl:MKL2d2048c}). In Table~\ref{Tbl:FFTW2d2053}, we provide
+Table~\ref{TblMKL2d2048c}). In Table~\ref{TblFFTW2d2053}, we provide
 the date for $N=2053:$ for real input signals the initialisation times
 increase by a factor of 13.2 and 18.2 for 4 and 16 MPI processes
 (single thread per process), respectively, over that for a single
@@ -1228,9 +1238,9 @@ observe that when the input signal is real, in all but the smallest
 values of $N,$ increasing the number of processes from 1 to 4 and then
 to 16 decreases the execution times: when $N=2048$ the DFT time
 decreases by a factor of 3.33 and 9.00 (compared to a single process)
-for 4 and 16 MPI processes, respectively (Table~\ref{Tbl:MKL2d2048});
+for 4 and 16 MPI processes, respectively (Table~\ref{TblMKL2d2048});
 for $N=2053$ the reduction factors are 3.57 and 11.0, respectively
-(Table~\ref{Tbl:FFTW2d2053}). Additionally, the DFT execution times
+(Table~\ref{TblFFTW2d2053}). Additionally, the DFT execution times
 are between 2 and 4 times larger when $N$ is prime compared to $N$
 being a power of 2 for similar values of $N.$ For complex input
 signals, if $N$ is prime and greater than 128, then we see an
@@ -1239,7 +1249,7 @@ execution time (for $N=2053,$ afactor of 2.53 and 5.06 reduction for 4
 and 16 MPI processes, respectively, relative to single process); if
 $N$ is a power of 2, then the value of increasing the number of MPI
 processes is not so clear from the figure but
-Table~\ref{Tbl:MKL2d2048c} reveals that using 4 processes instead of a
+Table~\ref{TblMKL2d2048c} reveals that using 4 processes instead of a
 single process reduces the DFT time by a factor of 1.47 and if 16
 processes is used, then the DFT time is half of that for a single
 process.
@@ -1270,7 +1280,7 @@ used; for the complex case, the optimal choice is one MPI process with
 
 
 
-In Table~\ref{Tbl:MKL2d2048}, we see that, across all our benchmark
+In Table~\ref{TblMKL2d2048}, we see that, across all our benchmark
 runs, for $N=2048$ and real input signals, the smallest initialisation
 time occured when $P=1$ and $thr=16$ whilst the smallest DFT time was
 when $P=16$ and $thr=1:$ considering the time to do a single
@@ -1280,7 +1290,7 @@ be lower for $P=16$ with $thr=1$ when $k$ is greater than 1.
 For
 $N=2048$ and complex input signals, $P=1$ with $thr=24$ exhibited the
 lowest initialisation and DFT computation times. For $N=2053$
-(Table~\ref{Tbl:MKL2d2053}), in both the real and complex cases,
+(Table~\ref{TblMKL2d2053}), in both the real and complex cases,
 $P=24$ with $thr=1$ exhibits the lowest initialisation time; in the
 real case, the lowest DFT time is produced when $P=16$ and $thr=1$
 and, in the complex case, $P=1$ with $thr=16$ has the lowest DFT
@@ -1305,13 +1315,13 @@ Figures~\ref{2DDistFFTWMKL2} and \ref{2DDistFFTWMKLprime} for $N$ a
 power of 2 and $N$ a prime number, respectively. For the larger values
 of $N,$ MKL outperforms the FFTW library in terms of initialisation
 times. When $N$ is a power of 2, the converse is true with respect to
-DFT times and, comparing DFT times from Tables~\ref{Tbl:FFTW2d2048}
-and \ref{Tbl:MKL2d2048} for real input signals with $N=2048,$ FFTW
+DFT times and, comparing DFT times from Tables~\ref{TblFFTW2d2048}
+and \ref{TblMKL2d2048} for real input signals with $N=2048,$ FFTW
 takes roughly half the time of MKL. In this case, the average total
 time for performing an initialisation followed by atleast 3 DFT
 calculations will be lower for FFTW than MKL when $P=24$ and $thr=1.$
-For the complex case with $N=2048$ (Tables~\ref{Tbl:FFTW2d2048c} and
-\ref{Tbl:MKL2d2048c}), FFTW will, on average, outperform MKL when
+For the complex case with $N=2048$ (Tables~\ref{TblFFTW2d2048c} and
+\ref{TblMKL2d2048c}), FFTW will, on average, outperform MKL when
 doing a single initialisation and at least 8 DFT calculations for
 $P=24$ and $thr=1.$ When $N$ is prime and has real input signals, MKL
 is outperforming FFTW in terms of DFT execution times although the two
@@ -1366,10 +1376,10 @@ the initialisation times increase and we observe that when $P=1,$ the
 initialisation times are generally larger when $N$ is prime compared
 to when $N$ is a power of 2 but for $P=4$ or 16, the converse is
 true. For some of the larger values of $N,$ we ran out of memory on
-the node. In Tables~\ref{Tbl:FFTW3d256} and \ref{Tbl:FFTW3d256c}, we
+the node. In Tables~\ref{TblFFTW3d256} and \ref{TblFFTW3d256c}, we
 provide the benchmark data for $N=256$ with real and complex input
 signals, respectively. The benchmark data for $N=257$ is provided in
-Table~\ref{Tbl:FFTW3d257}. We observe that for $N=256$ the
+Table~\ref{TblFFTW3d257}. We observe that for $N=256$ the
 initialisation times for the complex case with $thr=1$ are roughly
 double those of the real case. For $N=257,$ there is no consistant
 behaviour when comparing the intialisation times for real and complex
@@ -1389,13 +1399,13 @@ Looking at the DFT execution times in Figure~\ref{3DDistFFTW}, for $N$
 greater than 120, increasing $P$ from 1 to 4 to 16 decreases the times
 for both the real and complex input signals. The execution times for
 prime values of $N$ are significantly larger for $N$ a prime number
-compared to $N$ a power of 2. From Tables~\ref{Tbl:FFTW3d256} and
-\ref{Tbl:FFTW3d257}, we see that in the real case, the DFT execution
+compared to $N$ a power of 2. From Tables~\ref{TblFFTW3d256} and
+\ref{TblFFTW3d257}, we see that in the real case, the DFT execution
 times with $thr=1$ are between 4.9 and 6.9 times larger for $N=257$
 compared to $N=256.$ For complex signals with $thr=1,$ the DFT
 execution times are between 3.1 and 4.2 times larger for $N=257$
-compared to $N=256,$ see Tables~\ref{Tbl:FFTW3d256c} and
-\ref{Tbl:FFTW3d257}.
+compared to $N=256,$ see Tables~\ref{TblFFTW3d256c} and
+\ref{TblFFTW3d257}.
 
 \begin{figure}[htb]
     \centering
@@ -1415,14 +1425,14 @@ and $thr=4$ also has the highest times for those combinations
 considered in the figures; for $N$ prime, $P=1$ and $thr=16$ has the
 worse initialisation times and increasing $P$ reduces the time.
 
-Looking at all the data in Table~\ref{Tbl:FFTW3d256}, we see that when
+Looking at all the data in Table~\ref{TblFFTW3d256}, we see that when
 $N=256$ and the input signal is real, the best DFT time occurs when
 $P=1$ and $thr=24$ whilst the best initialisation time is when $P=24$
 and $thr=1.$ Comparing the average time to perform a single
 initialisation and $k$ DFT calculations for these two combinations, if
 $k$ is smaller than 94, then $P=24$ and $thr=1$ is best but, for larger
 values of $k,$ the user should switch to $P=1$ and $thr=24.$ For
-$N=256$ with complex input signals, from Table~\ref{Tbl:FFTW3d256c} we
+$N=256$ with complex input signals, from Table~\ref{TblFFTW3d256c} we
 observe that the best DFT execution time occurs when $P=1$ and
 $thr=16$ but the best initialisation time is when $P=16$ and $thr=1.$
 Comparing these two combinations when performing a single
@@ -1430,7 +1440,7 @@ initialisation and $k$ DFT calculations, we find that the average time
 is better for $P=16$ and $thr=1$ when $k<183$ but $P=1$ and $thr=16$
 is optimal for larger values of $k.$
 
-For $N=257,$ we see from Table~\ref{Tbl:FFTW3d257} that for both the
+For $N=257,$ we see from Table~\ref{TblFFTW3d257} that for both the
 real and complex cases, the smallest initialisation time occurs when
 $P=8$ and $thr=1$ and the smallest DFT execution time has $P=1$ and
 $thr=24.$ As above, we compare the two combinations with respect to
@@ -1459,12 +1469,12 @@ real signals, increasing the number of MPI processes appears to, in
 general, increase the initialisation times for both real and complex
 input signals (this is also true for the larger values of $N$ in the
 complex case). The benchmark data for $N=256$ is provided in
-Tables~\ref{Tbl:MKL3d256} (real) and \ref{Tbl:MKL3d256c} (complex). We
+Tables~\ref{TblMKL3d256} (real) and \ref{TblMKL3d256c} (complex). We
 observe that for $P=1$ and $thr=1$, the initialisation time in the
 real case is 18 times larger than the complex case and increasing $P$
 whilst keeping $thr=1$ results in the difference becoming smaller:
 when $P=24$ the initialisation times are similar. The benchmark data
-for $N=257$ is available in Table~\ref{Tbl:MKL3d257} and we observe
+for $N=257$ is available in Table~\ref{TblMKL3d257} and we observe
 similar behaviour.
 
 \begin{figure}[htb]
@@ -1481,12 +1491,12 @@ MPI processes is suboptimal for small values of $N$ but for $N\ge 64$
 it exhibits the lowest execution times for the three values of $P$
 considered in the figure. Additionally, the DFT execution times are
 lower when $N$ is a power of 2 compared to when it is prime: from
-Tables~\ref{Tbl:MKL3d256} and \ref{Tbl:MKL3d257}, we find that there
+Tables~\ref{TblMKL3d256} and \ref{TblMKL3d257}, we find that there
 is between a factor of 2 and 3 difference for $thr=1.$ Considering the
 complex case, as $N$ increases, when $P=4$ or 16, the DFT execution
 times appear to be similar for both $N$ a power of 2 and $N$
-prime. However, when analysing the data in Tables~\ref{Tbl:MKL3d256c}
-and \ref{Tbl:MKL3d257} for $N=256$ and 257, respectively, (with
+prime. However, when analysing the data in Tables~\ref{TblMKL3d256c}
+and \ref{TblMKL3d257} for $N=256$ and 257, respectively, (with
 $thr=1$) we see that the latter is 50\% larger for $P=4$ and 20\%
 larger for $P=16.$ The results for $N=257$ have better strong
 scalability with respect to $P$ when $thr=1$ than when $N=256.$ When
@@ -1512,8 +1522,8 @@ and complex input cases: in the real case, increasing $N$ beyond 100
 increases the initialisation time but for the complex case the
 initialisation time decreases. This is highlighted when we see that
 real to complex ratio of the initialisation time for $N=256,$ $P=1$
-and $thr=16$ is 32.0 (Tables~\ref{Tbl:MKL3d256} and
-\ref{Tbl:MKL3d256c}) but for the same value of $N$ with $P=4$ and
+and $thr=16$ is 32.0 (Tables~\ref{TblMKL3d256} and
+\ref{TblMKL3d256c}) but for the same value of $N$ with $P=4$ and
 $thr=4$ we have a ratio of 3.19. For the $P=4$ and 16, increasing the
 size of $N$ is, in general, having little effect on the initialisation
 time. The log-log axis for the DFT execution times mean that the
@@ -1523,24 +1533,24 @@ and 16, respectively; for complex signals the ratios are 1.12, 1.15
 and 1.17, respectively. Let $N=256$ then, for $P=1$ with $thr=16,$ the
 complex to real ratio of the average DFT execution time is 0.72, for
 $P=4$ with $thr=4$ the ratio is 3.19, and for $P=16$ with $thr=1$ the
-ratio is 5.44 (Tables~\ref{Tbl:MKL3d256} and
-\ref{Tbl:MKL3d256c}). Considering $N=257,$ the complex to real ratio
+ratio is 5.44 (Tables~\ref{TblMKL3d256} and
+\ref{TblMKL3d256c}). Considering $N=257,$ the complex to real ratio
 of the average DFT execution time is 0.67 for $P=1$ with $thr=16,$
 2.26 for $P=4$ with $thr=4,$ and 3.22 for $P=16$ with $thr=1$
-(Table~\ref{Tbl:MKL3d257}).
+(Table~\ref{TblMKL3d257}).
 
-Looking at the data in Table~\ref{Tbl:MKL3d256}, for real input
+Looking at the data in Table~\ref{TblMKL3d256}, for real input
 signals with $N=256,$ the optimal choice for $P$ and $thr$ is $P=4$
 with $thr=4$ with respect to initialisation time and $P=16$ with
 $thr=1$ with respect to DFT execution time. Suppose that a single
 initialisation is followed by $k$ DFT calculations, then, on average,
 $P=16$ with $thr=1$ will outperform $P=4$ with $thr=4$ for all $k>1.$
-For $N=256$ and the complex case (Table~\ref{Tbl:MKL3d256c}), $P=1$
+For $N=256$ and the complex case (Table~\ref{TblMKL3d256c}), $P=1$
 with $thr=24$ outperforms the other combinations with respect to both
 initialisation and DFT execution times. For real input signals with
 $N=257,$ $P=8$ with $thr=2$ has the lowest initialisation time and
 $P=16$ with $thr=1$ has the best DFT execution time
-(Table~\ref{Tbl:MKL3d257}). Comparing the total (average) time to
+(Table~\ref{TblMKL3d257}). Comparing the total (average) time to
 perform a single initiailisation and $k$ DFT executions, the latter
 combination is faster for all $k\ge 3.$ For $N=257$ and complex input
 signals, $P=1$ with $thr=24$ is optimal with respect to initialisation
@@ -1563,12 +1573,12 @@ execution times for all values of $P$ considered in the figure. For
 $N\le 32,$ increasing $P$ is showing little effect on the
 initialisation time. For larger values of $N,$ we see that increasing
 the number of MPI processes is decreasing the initialisation time. In
-Table~\ref{Tbl:P3DFFT3d256}, we provide the benchmark data for
+Table~\ref{TblP3DFFT3d256}, we provide the benchmark data for
 $N=256.$ We see that, in general, increasing $P$ decreases the
 initialisation time for all values of $thr$ considered. For $P=16$ and
 $thr=1,$ there has been an 85\% reduction in initialisation time
 compared to $P=1$ and $thr=1.$ The benchmark data for $N=257$ is
-provided in Table~\ref{Tbl:P3DFFT3d257} and we see that increasing $P$
+provided in Table~\ref{TblP3DFFT3d257} and we see that increasing $P$
 but keeping $thr$ constant results in a reduction in initialisation
 time with an 85\% reduction when switching from $P=1$ with $thr=1$ to
 $P=16$ with $thr=1.$ The initialisation times for $thr=1$ and varying
@@ -1590,8 +1600,8 @@ for $P=1$ and $P=4$ but significantly larger for $P=16;$ for $N=17,$
 $P=4$ has a lower DFT time than $P=1$ and $P=16$ is significantly
 higher than both $P=1$ and 4. For $N>32,$ $P=16$ starts to outperform
 the other values in the figure. Looking at the values of the DFT
-execution times in Tables~\ref{Tbl:P3DFFT3d256} and
-\ref{Tbl:P3DFFT3d257}, we observe that, with respect to $P,$ P3DFFT
+execution times in Tables~\ref{TblP3DFFT3d256} and
+\ref{TblP3DFFT3d257}, we observe that, with respect to $P,$ P3DFFT
 has good strong scaling properties.
 
 \begin{figure}[htb]
@@ -1611,7 +1621,7 @@ then for $N>32,$ it is better increase the number of MPI processes and
 reduce the number of OpenMP threads.
 
 If we consider the benchmark data for $N=256$
-(Tables~\ref{Tbl:P3DFFT3d256}), we see that the best initialisation
+(Tables~\ref{TblP3DFFT3d256}), we see that the best initialisation
 time was achieved with $P=2$ with $thr=12$ and the smallest average
 DFT execution time occured when $P=24$ with $thr=1.$ As in previous
 sections, if we consider the (average) time to perform a single
@@ -1632,7 +1642,7 @@ P3DFFT libraries in Figures~\ref{3DDistFFTWMKLP3DFFT2} and
 processes and $thr=1$ OpenMP threads. In terms of initialisation
 times, in all but the smallest values of $N$ considered, MKL has the
 best initialisation times and, in the real case, P3DFFT has the worst
-(in general). In Table~\ref{Tbl:3DCompP}, we provide the
+(in general). In Table~\ref{Tbl3DCompP}, we provide the
 initialisation and DFT execution times for the three libraries,
 $N=256$ and 257, for $P=1,$ 4 and 16 (8 instead of 16 in the case of
 FFTW for $N=257$) with a single thread per process. We observe the
@@ -1683,7 +1693,7 @@ R/C & $N$ & $P$ & Library & Init & DFT & R/C & $N$ & $P$ & Library & Init & DFT\
   &  & 16 & MKL &    9.23e-2  &  1.19e-1  &  &  & 16 & MKL &   8.93e-2   &  3.83e-1   \\
   &  & 16 & P3DFFT &   4.89   &   9.77e-2  &  &  & 16 & P3DFFT &  -   &  -  \\ \hline\hline
 \end{tabular}
-\caption{ Initialisation (Init) and DFT execution times (DFT) for FFTW, MKL and P3DFFT with $N=256$ and 257, $thr=1,$ real (R) or complex (C) input signals for different numbers of MPI processes, $P.$ }\label{Tbl:3DCompP}
+\caption{ Initialisation (Init) and DFT execution times (DFT) for FFTW, MKL and P3DFFT with $N=256$ and 257, $thr=1,$ real (R) or complex (C) input signals for different numbers of MPI processes, $P.$ }\label{Tbl3DCompP}
 %\end{small}
 \end{center}
 \end{table}
@@ -1692,16 +1702,16 @@ R/C & $N$ & $P$ & Library & Init & DFT & R/C & $N$ & $P$ & Library & Init & DFT\
  Comparing DFT execution times in Figures~\ref{3DDistFFTWMKLP3DFFT2}
  and \ref{3DDistFFTWMKLP3DFFTprime}, there does not appear to be such
  a marked difference between the libraries for the larger values of
- $N.$ This is confirmed in Table~\ref{Tbl:3DCompP}, where we see that
+ $N.$ This is confirmed in Table~\ref{Tbl3DCompP}, where we see that
  for $N=256$ the FFTW library outperforms the MKL library but, in the
  real case, only outperforms P3DFFT in our table when $P=1:$ looking
- at the DFT times for $thr=1$ in Tables~\ref{Tbl:FFTW3d256} and
- \ref{Tbl:P3DFFT3d256}, we see that this holds for all of the values
+ at the DFT times for $thr=1$ in Tables~\ref{TblFFTW3d256} and
+ \ref{TblP3DFFT3d256}, we see that this holds for all of the values
  of $P>1$ considered. For $N=257,$ P3DFFT outperforms both FFTW and
  MKL in the real case in the benchmarks provided in
- Table~\ref{Tbl:3DCompP} and MKL outperforms FFTW; in the complex
+ Table~\ref{Tbl3DCompP} and MKL outperforms FFTW; in the complex
  case, MKL outperforms FFTW for $P=1$ and 4 and, using
- Tables~\ref{Tbl:FFTW3d257} and \ref{Tbl:P3DFFT3d257}, we observe that
+ Tables~\ref{TblFFTW3d257} and \ref{TblP3DFFT3d257}, we observe that
  FFTW only outperforms MKL when $P=1.$
 
  In each of the previous sections, we identified the combinations of
@@ -1709,7 +1719,7 @@ R/C & $N$ & $P$ & Library & Init & DFT & R/C & $N$ & $P$ & Library & Init & DFT\
  times for $N=256$ and $N=257$ with real and complex input
  signals. For these combinations, we can compare the (average) time to
  perform a single initialisation and $k$ DFT calculations across the
- libraries, see Table~\ref{Tbl:3DCompk}. We can see that in the real
+ libraries, see Table~\ref{Tbl3DCompk}. We can see that in the real
  case, P3DFFT using 24 MPI processes on the node with a single thread
  per process out performs the other libraries for large enough values
  of $k$ and, for the smaller values of $k$ that are greater than 1,
@@ -1736,7 +1746,7 @@ R & 257 & 1 & MKL($P=4,$ $thr=4$) \\
 C & 257 & $[1,113]$ & MKL($P=1,$ $thr=16$) \\
   &     & $[114,\infty)$ & FFTW($P=1,$ $thr=24$) \\\hline
 \end{tabular}
-\caption{ Library that gives optimal time to perform a single initialisation and $k$ DFT calculations. For the comparison, for each library we used the set of values of $P$ and $thr$ that gave either the optimal initialisation time or the optimal DFT execution time.  }\label{Tbl:3DCompk}
+\caption{ Library that gives optimal time to perform a single initialisation and $k$ DFT calculations. For the comparison, for each library we used the set of values of $P$ and $thr$ that gave either the optimal initialisation time or the optimal DFT execution time.  }\label{Tbl3DCompk}
 %\end{small}
 \end{center}
 \end{table}
@@ -1857,7 +1867,7 @@ Software Outlook activity.
      & itime & &  5.30e-1 &   5.01e-1 &   5.07e-1 &   5.22e-1 &   5.37e-1 &   5.53e-1 &   6.53e-1   \\ 
  & iratio & &  1.00 &   0.95 &  0.96 &  0.98 &  1.01 &   1.04 &   1.23  \\  \hline 
 \end{tabular}
-\caption{1D FFTW applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381, 16384, 1048573 and 1048576 using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW1d}
+\caption{1D FFTW applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381, 16384, 1048573 and 1048576 using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblFFTW1d}
 \end{small}
 \end{center}
 \end{table}
@@ -1922,7 +1932,7 @@ Software Outlook activity.
  & iratio & &  1.00 &   0.30 &   0.30 &   1.19 &   1.16 &   0.32 &   1.32 
   \\  \hline 
 \end{tabular}
-\caption{1D MKL applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381, 16384, 1048573 and 1048576  using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:MKL1d}
+\caption{1D MKL applied to real (R) and complex (C) valued one-dimensional arrays of length $N=2048,$ 2053, 16381, 16384, 1048573 and 1048576  using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblMKL1d}
 \end{small}
 \end{center}
 \end{table}
@@ -1964,7 +1974,7 @@ Software Outlook activity.
      & itime & &        6.62e0 &   7.76e0 &   5.77e0 &   4.95e0 &   4.03e0 &   4.61e0 &   4.96e0     \\ 
      & iratio & &       1.00 &   1.17 &   0.87 &   0.75 &   0.61 &   0.70 &   0.75      \\ \hline 
 \end{tabular}
-\caption{2D FFTW applied to real (R)  valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW2d}
+\caption{2D FFTW applied to real (R)  valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblFFTW2d}
 \end{small}
 \end{center}
 \end{table}
@@ -2004,7 +2014,7 @@ Software Outlook activity.
      & itime & &        8.30e0 &   1.11e+1 &   7.21e0 &   6.07e0 &   5.49e0 &   5.78e0 &   6.33e0     \\ 
      & iratio & &       1.00 &   1.34 &   0.87 &   0.73 &   0.66 &   0.70 &   0.76      \\ \hline
 \end{tabular}
-\caption{2D FFTW applied to complex (C) valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW2dc}
+\caption{2D FFTW applied to complex (C) valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblFFTW2dc}
 \end{small}
 \end{center}
 \end{table}
@@ -2068,7 +2078,7 @@ Software Outlook activity.
      & itime & &        3.75e-3 &   3.36e-3 &   3.14e-3 &   2.86e-3 &   2.51e-3 &   2.34e-3 &   2.02e-3     \\ 
      & iratio & &       1.00 &   0.90 &   0.84 &   0.76 &   0.67 &   0.62 &   0.54       \\ \hline
 \end{tabular}
-\caption{2D MKL applied to real (R) and complex (C) valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:MKL2d}
+\caption{2D MKL applied to real (R) and complex (C) valued two-dimensional square arrays with length $N=31,$ 32, 256, 257, 2048 and 2053 along each side and using $thr$ threads. The wallclock DFT computation time, ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblMKL2d}
 \end{small}
 \end{center}
 \end{table}
@@ -2115,7 +2125,7 @@ Software Outlook activity.
 \caption{3D FFTW applied to real (R) valued three-dimensional square arrays with length
   $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
   ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
-  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW3d}
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblFFTW3d}
 \end{small}
 \end{center}
 \end{table}
@@ -2158,7 +2168,7 @@ Software Outlook activity.
 \caption{3D FFTW applied to complex (C) valued three-dimensional square arrays with length
   $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
   ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
-  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:FFTW3dc}
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblFFTW3dc}
 \end{small}
 \end{center}
 \end{table}
@@ -2225,7 +2235,7 @@ Software Outlook activity.
 \caption{3D MKL applied to real (R) and complex (C) valued three-dimensional square arrays with length
   $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
   ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
-  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:MKL3d}
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblMKL3d}
 \end{small}
 \end{center}
 \end{table}
@@ -2268,7 +2278,7 @@ Software Outlook activity.
 \caption{3D P3DFFT applied to real (R) valued three-dimensional square arrays with length
   $N=7,$ 8, 64, 67, 509 and 512 along each side and using $thr$ threads. The wallclock DFT computation time,
   ftime, and wallclock DFT initialisation time, itime, both in seconds, are provided. Additionally,  the ratio,
-  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{Tbl:P3DFFT3d}
+  fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) is provided. }\label{TblP3DFFT3d}
 \end{small}
 \end{center}
 \end{table}
@@ -2282,32 +2292,32 @@ Software Outlook activity.
 \begin{table}[htbp]
 \begin{center}
 \begin{small}
-\begin{tabular}{|r|r|r|r|r|r|r|r|r|}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
 \hline 
-     &  & \multicolumn{7}{c|}{$thr$} \\ \hline
-    $P$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  ftime &   8.32e-4 &   6.22e-4 &   5.72e-4 &   6.10e-4 &   7.86e-4 &   7.58e-4 &   9.64e-4 \\
-   &  fratio &   1.00 &   0.75 &   0.69 &   0.73 &   0.94 &   0.91 &   1.16 \\
-   &  itime &   1.57e+0 &   1.51e+0 &   1.45e+0 &   1.50e+0 &   1.60e+0 &   1.58e+0 &   1.85e+0 \\
-   &  iratio &   1.00 &   0.96 &   0.92 &   0.96 &   1.02 &   1.01 &   1.18 \\\hline
-   2 &  ftime &   7.86e-4 &   6.30e-4 &   6.28e-4 &   6.10e-4 &   8.72e-4 &  - &  - \\
-   &  fratio &   0.94 &   0.76 &   0.75 &   0.73 &   1.05 &  - &  - \\
-   &  itime &   1.58e+0 &   1.54e+0 &   1.51e+0 &   1.49e+0 &   1.66e+0 &  - &  - \\
-   &  iratio &   1.01 &   0.98 &   0.96 &   0.95 &   1.06 &  - &  - \\\hline
-   4 &  ftime &   8.53e-4 &   6.36e-4 &   6.21e-4 &  - &  - &  - &  - \\
-   &  fratio &   1.03 &   0.76 &   0.75 &  - &  - &  - &  - \\
-   &  itime &   1.62e+0 &   1.60e+0 &   1.48e+0 &  - &  - &  - &  - \\
-   &  iratio &   1.03 &   1.02 &   0.94 &  - &  - &  - &  - \\\hline
-   8 &  ftime &   8.56e-4 &   6.89e-4 &  - &  - &  - &  - &  -\\ 
-   &  fratio &   1.03 &   0.83 &  - &  - &  - &  - &  - \\
-   &  itime &   1.71e+0 &   1.71e+0 &  - &  - &  - &  - &  - \\
-   &  iratio &   1.09 &   1.09 &  - &  - &  - &  - &  - \\\hline
-   16 &  ftime &   9.55e-4 &  - &  - &  - &  - &  - &  - \\
-   &  fratio &   1.15 &  - &  - &  - &  - &  - &  - \\
-   &  itime &   1.78e+0 &  - &  - &  - &  - &  - &  - \\
-   &  iratio &   1.13 &  - &  - &  - &  - &  - &  - \\\hline
+     & & & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+     1 & C & ftime & 8.32e-04 & 6.22e-04 & 5.72e-04 & 6.10e-04 & 7.86e-04 & 7.58e-04 & 9.64e-04 \\   
+          &      & fratio & 0.81 & 0.60 & 0.56 & 0.59 & 0.76 & 0.74 & 0.94 \\   
+          &      & itime & 1.57e+00 & 1.51e+00 & 1.45e+00 & 1.50e+00 & 1.60e+00 & 1.58e+00 & 1.85e+00 \\   
+          &      & iratio & 0.91 & 0.88 & 0.84 & 0.87 & 0.93 & 0.92 & 1.08 \\ \hline 
+     2 & C & ftime & 7.86e-04 & 6.30e-04 & 6.28e-04 & 6.10e-04 & 8.72e-04 &     -     &     -     \\   
+          &      & fratio & 0.76 & 0.61 & 0.61 & 0.59 & 0.85 &     -     &     -     \\   
+          &      & itime & 1.58e+00 & 1.54e+00 & 1.51e+00 & 1.49e+00 & 1.66e+00 &     -     &     -     \\   
+          &      & iratio & 0.92 & 0.90 & 0.88 & 0.87 & 0.97 &     -     &     -     \\ \hline 
+     4 & C & ftime & 8.53e-04 & 6.36e-04 & 6.21e-04 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.83 & 0.62 & 0.60 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.62e+00 & 1.60e+00 & 1.48e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.94 & 0.93 & 0.86 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 8.56e-04 & 6.89e-04 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.83 & 0.67 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.71e+00 & 1.71e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.99 & 0.99 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 9.55e-04 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.93 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.78e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 1.03 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
    \end{tabular}
-\caption{1D FFTW applied to complex valued one-dimensional arrays of length $N=16381$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFT1d16381}
+\caption{1D FFTW applied to complex valued one-dimensional arrays of length $N=16381$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided. }\label{TblFFT1d16381}
 \end{small}
 \end{center}
 \end{table}
@@ -2316,32 +2326,32 @@ Software Outlook activity.
 \begin{table}[htbp]
 \begin{center}
 \begin{small}
-\begin{tabular}{|r|r|r|r|r|r|r|r|r|}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|}
 \hline 
-     &  & \multicolumn{7}{c|}{$thr$} \\ \hline
-    $P$  &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  ftime &   1.12e-4 &   7.98e-5 &   8.45e-5 &   8.29e-5 &   2.08e-4 &   1.90e-4 &   5.81e-4 \\
-     &  fratio &   1.00 &   0.71 &   0.75 &   0.74 &   1.86 &   1.70 &   5.19 \\
-     &  itime &   4.86e-1 &   4.61e-1 &   4.95e-1 &   5.49e-1 &   6.33e-1 &   6.53e-1 &   7.95e-1 \\
-     &  iratio &   1.00 &   0.95 &   1.02 &   1.13 &   1.30 &   1.34 &   1.64 \\ \hline
-   2 &  ftime &   1.92e-4 &   2.66e-4 &   2.98e-4 &   4.07e-4 &   9.86e-4 &  - &  - \\
-     &  fratio &   1.71 &   2.38 &   2.66 &   3.63 &   8.80 &  - &  - \\
-     &  itime &   5.12e-1 &   6.60e-1 &   8.99e-1 &   8.97e-1 &   1.45e+0 &  - &  - \\
-     &  iratio &   1.05 &   1.36 &   1.85 &   1.85 &   2.98 &  - &  - \\\hline
-   4 &  ftime &   1.14e-4 &   1.98e-4 &   2.47e-4 &  - &  - &  - &  - \\
-     &  fratio &   1.02 &   1.77 &   2.21 &  - &  - &  - &  - \\
-     &  itime &   3.35e-1 &   4.77e-1 &   5.24e-1 &  - &  - &  - &  - \\
-     &  iratio &   0.69 &   0.98 &   1.08 &  - &  - &  - &  - \\ \hline
-   8 &  ftime &   8.31e-5 &   1.55e-4 &  - &  - &  - &  - &  - \\
-     &  fratio &   0.74 &   1.38 &  - &  - &  - &  - &  - \\
-     &  itime &   2.33e-1 &   3.51e-1 &  - &  - &  - &  - &  - \\
-     &  iratio &   0.48 &   0.72 &  - &  - &  - &  - &  - \\ \hline
-  16 &  ftime &   7.64e-5 &  - &  - &  - &  - &  - &  - \\
-     &  fratio &   0.68 &  - &  - &  - &  - &  - &  - \\
-     &  itime &   2.03e-1 &  - &  - &  - &  - &  - &  - \\
-     &  iratio &   0.42 &  - &  - &  - &  - &  - &  - \\ \hline
+     & & & \multicolumn{7}{c|}{$thr$} \\ \hline
+    $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+     1 & C & ftime & 1.12e-04 & 7.98e-05 & 8.45e-05 & 8.29e-05 & 2.08e-04 & 1.90e-04 & 5.81e-04 \\   
+          &      & fratio & 0.93 & 0.66 & 0.70 & 0.69 & 1.72 & 1.57 & 4.80 \\   
+          &      & itime & 4.86e-01 & 4.61e-01 & 4.95e-01 & 5.49e-01 & 6.33e-01 & 6.53e-01 & 7.95e-01 \\   
+          &      & iratio & 0.92 & 0.87 & 0.93 & 1.04 & 1.19 & 1.23 & 1.50 \\ \hline 
+     2 & C & ftime & 1.92e-04 & 2.66e-04 & 2.98e-04 & 4.07e-04 & 9.86e-04 &     -     &     -     \\   
+          &      & fratio & 1.59 & 2.20 & 2.46 & 3.36 & 8.15 &     -     &     -     \\   
+          &      & itime & 5.12e-01 & 6.60e-01 & 8.99e-01 & 8.97e-01 & 1.45e+00 &     -     &     -     \\   
+          &      & iratio & 0.97 & 1.25 & 1.70 & 1.69 & 2.74 &     -     &     -     \\ \hline 
+     4 & C & ftime & 1.14e-04 & 1.98e-04 & 2.47e-04 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.94 & 1.64 & 2.04 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.35e-01 & 4.77e-01 & 5.24e-01 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.63 & 0.90 & 0.99 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 8.31e-05 & 1.55e-04 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.69 & 1.28 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.33e-01 & 3.51e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.44 & 0.66 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 7.64e-05 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.63 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.03e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.38 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{1D FFTW applied to complex valued one-dimensional arrays of length $N=16384$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFT1d16384}
+\caption{1D FFTW applied to complex valued one-dimensional arrays of length $N=16384$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFT1d16384}
 \end{small}
 \end{center}
 \end{table}
@@ -2360,48 +2370,48 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &  ftime &   1.84e-4 &   2.03e-4 &   2.12e-4 &   2.37e-4 &   2.44e-4 &   2.45e-4 &   3.12e-4 \\
-           &          & fratio &   1.00 &   1.10 &   1.15 &   1.29 &   1.33 &   1.33 &   1.70 \\
-           &          & itime &   3.35e-3 &   1.32e-2 &   1.98e-2 &   1.71e-2 &   1.72e-2 &   1.79e-2 &   1.60e-2 \\
-           &          & iratio &   1.00 &   3.94 &   5.91 &   5.10 &   5.13 &   5.34 &   4.78 \\\hline
-   2 &  R &  ftime &   2.15e-4 &   2.34e-4 &   2.43e-4 &   2.46e-4 &   2.63e-4 &  - &  - \\
-           &          & fratio &   1.17 &   1.27 &   1.32 &   1.34 &   1.43 &  - &  - \\
-           &          & itime &   2.13e-2 &   2.64e-2 &   3.12e-2 &   3.52e-2 &   2.50e-2 &  - &  - \\
-           &          & iratio &   6.36 &   7.88 &   9.31 &   10.5 &   7.46 &  - &  - \\\hline
-   4 &  R &  ftime &   2.65e-4 &   2.20e-4 &   2.17e-4 &  - &  - &  - &  - \\
-           &          & fratio &   1.44 &   1.20 &   1.18 &  - &  - &  - &  - \\
-           &          & itime &   4.05e-2 &   5.12e-2 &   4.95e-2 &  - &  - &  - &  - \\
-           &          & iratio &   12.1 &   15.3 &   14.8 &  - &  - &  - &  - \\\hline
-   8 &  R &  ftime &   2.67e-4 &   2.61e-4 &  - &  - &  - &  - &  - \\
-           &          & fratio &   1.45 &   1.42 &  - &  - &  - &  - &  - \\
-           &          & itime &   6.85e-2 &   5.52e-2 &  - &  - &  - &  - &  - \\
-           &          & iratio &   20.4 &   16.5 &  - &  - &  - &  - &  - \\\hline
-   16 & R &  ftime &   3.06e-4 &  - &  - &  - &  - &  - &  - \\
-           &          & fratio &   1.66 &  - &  - &  - &  - &  - &  - \\
-           &          & itime &   1.10e-1 &  - &  - &  - &  - &  - &  - \\
-           &          & iratio &   32.8 &  - &  - &  - &  - &  - &  - \\\hline\hline
-   1 &  C &  ftime &   3.21e-4 &   3.20e-4 &   3.25e-4 &   3.39e-4 &   4.20e-4 &   3.79e-4 &   4.47e-4 \\
-           &          & fratio &   1.00 &   0.00 &   1.01 &   1.06 &   1.31 &   1.18 &   1.39 \\
-           &          & itime &   3.51e-3 &   1.24e-2 &   1.94e-2 &   1.67e-2 &   1.74e-2 &   1.33e-2 &   1.68e-2 \\
-           &          & iratio &   1.00 &   3.53 &   5.53 &   4.76 &   4.96 &   3.79 &   4.79 \\\hline
-   2 &  C &  ftime &   2.91e-4 &   3.50e-4 &   3.28e-4 &   3.66e-4 &   3.51e-4 &  - &  - \\
-           &          & fratio &   0.91 &   1.09 &   1.02 &   1.14 &   1.09 &  - &  - \\
-           &          & itime &   1.89e-2 &   3.32e-2 &   3.08e-2 &   3.35e-2 &   2.66e-2 &  - &  - \\
-           &          & iratio &   5.38 &   9.46 &   8.77 &   9.54 &   7.58 &  - &  - \\\hline
-   4 &  C &  ftime &   3.29e-4 &   3.02e-4 &   3.09e-4 &  - &  - &  - &  - \\
-           &          & fratio &   1.02 &   0.94 &   0.96 &  - &  - &  - &  - \\
-           &          & itime &   4.93e-2 &   5.08e-2 &   5.44e-2 &  - &  - &  - &  - \\
-           &          & iratio &   14.0 &   14.5 &   15.5 &  - &  - &  - &  - \\\hline
-   8 &  C &  ftime &   2.55e-4 &   2.53e-4 &  - &  - &  - &  - &  - \\
-           &          & fratio &   0.79 &   0.79 &  - &  - &  - &  - &  - \\
-           &          & itime &   4.38e-2 &   5.91e-2 &  - &  - &  - &  - &  - \\
-           &          & iratio &   12.5 &   16.8 &  - &  - &  - &  - &  - \\\hline
-   16 & C &  ftime &   3.76e-4 &  - &  - &  - &  - &  - &  - \\
-           &          & fratio &   1.17 &  - &  - &  - &  - &  - &  - \\
-           &          & itime &   8.30e-2 &  - &  - &  - &  - &  - &  - \\
-           &          & iratio &   23.6 &  - &  - &  - &  - &  - &  - \\\hline
+     1 & R & ftime & 1.84e-04 & 2.03e-04 & 2.12e-04 & 2.37e-04 & 2.44e-04 & 2.45e-04 & 3.12e-04 \\   
+          &      & fratio & 2.92 & 3.22 & 3.37 & 3.76 & 3.87 & 3.89 & 4.95 \\   
+          &      & itime & 3.35e-03 & 1.32e-02 & 1.98e-02 & 1.71e-02 & 1.72e-02 & 1.79e-02 & 1.60e-02 \\   
+          &      & iratio & 1.20 & 4.71 & 7.07 & 6.11 & 6.14 & 6.39 & 5.71 \\ \hline 
+     2 & R & ftime & 2.15e-04 & 2.34e-04 & 2.43e-04 & 2.46e-04 & 2.63e-04 &     -     &     -     \\   
+          &      & fratio & 3.41 & 3.71 & 3.86 & 3.90 & 4.17 &     -     &     -     \\   
+          &      & itime & 2.13e-02 & 2.64e-02 & 3.12e-02 & 3.52e-02 & 2.50e-02 &     -     &     -     \\   
+          &      & iratio & 7.61 & 9.43 & 11.14 & 12.57 & 8.93 &     -     &     -     \\ \hline 
+     4 & R & ftime & 2.65e-04 & 2.20e-04 & 2.17e-04 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 4.21 & 3.49 & 3.44 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.05e-02 & 5.12e-02 & 4.95e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 14.46 & 18.29 & 17.68 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 2.67e-04 & 2.61e-04 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 4.24 & 4.14 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 6.85e-02 & 5.52e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 24.46 & 19.71 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 3.06e-04 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 4.86 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.10e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 39.29 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline\hline
+     1 & C & ftime & 3.21e-04 & 3.20e-04 & 3.25e-04 & 3.39e-04 & 4.20e-04 & 3.79e-04 & 4.47e-04 \\   
+          &      & fratio & 2.61 & 2.60 & 2.64 & 2.76 & 3.41 & 3.08 & 3.63 \\   
+          &      & itime & 3.51e-03 & 1.24e-02 & 1.94e-02 & 1.67e-02 & 1.74e-02 & 1.33e-02 & 1.68e-02 \\   
+          &      & iratio & 1.07 & 3.77 & 5.90 & 5.08 & 5.29 & 4.04 & 5.11 \\ \hline 
+     2 & C & ftime & 2.91e-04 & 3.50e-04 & 3.28e-04 & 3.66e-04 & 3.51e-04 &     -     &     -     \\   
+          &      & fratio & 2.37 & 2.85 & 2.67 & 2.98 & 2.85 &     -     &     -     \\   
+          &      & itime & 1.89e-02 & 3.32e-02 & 3.08e-02 & 3.35e-02 & 2.66e-02 &     -     &     -     \\   
+          &      & iratio & 5.74 & 10.09 & 9.36 & 10.18 & 8.09 &     -     &     -     \\ \hline 
+     4 & C & ftime & 3.29e-04 & 3.02e-04 & 3.09e-04 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 2.67 & 2.46 & 2.51 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.93e-02 & 5.08e-02 & 5.44e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 14.98 & 15.44 & 16.53 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 2.55e-04 & 2.53e-04 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 2.07 & 2.06 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.38e-02 & 5.91e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 13.31 & 17.96 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 3.76e-04 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 3.06 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 8.30e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 25.23 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{1D MKL applied to real and complex valued one-dimensional arrays of length $N=16384$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL1d16384}
+\caption{1D MKL applied to real and complex valued one-dimensional arrays of length $N=16384$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL1d16384}
 \end{small}
 \end{center}
 \end{table}
@@ -2416,48 +2426,48 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &  ftime &   1.63e-2 &   1.51e-2 &   1.56e-2 &   1.56e-2 &   1.59e-2 &   1.56e-2 &   1.70e-2 \\
-           &          & fratio &   1.00 &   0.93 &   0.96 &   0.96 &   0.98 &   0.96 &   1.04 \\
-           &          & itime &   2.08e-2 &   2.14e-2 &   2.43e-2 &   2.11e-2 &   2.31e-2 &   2.53e-2 &   2.58e-2 \\
-           &          & iratio &   1.00 &   1.03 &   1.17 &   1.01 &   1.11 &   1.22 &   1.24 \\\hline
-   2 &  R &  ftime &   1.35e-2 &   1.34e-2 &   1.34e-2 &   1.37e-2 &   1.43e-2 &  - &  - \\
-           &          & fratio &   0.83 &   0.82 &   0.82 &   0.84 &   0.88 &  - &  - \\
-           &          & itime &   2.75e-2 &   3.62e-2 &   2.98e-2 &   2.61e-2 &   2.81e-2 &  - &  - \\
-           &          & iratio &   1.32 &   1.74 &   1.43 &   1.25 &   1.35 &  - &  - \\\hline
-   4 &  R &  ftime &   1.18e-2 &   1.16e-2 &   1.20e-2 &  - &  - &  - &  - \\
-           &          & fratio &   0.72 &   0.71 &   0.74 &  - &  - &  - &  - \\
-           &          & itime &   6.47e-2 &   5.68e-2 &   4.64e-2 &  - &  - &  - &  - \\
-           &          & iratio &   3.11 &   2.73 &   2.23 &  - &  - &  - &  - \\\hline
-   8 &  R &  ftime &   1.09e-2 &   1.10e-2 &  - &  - &  - &  - &  - \\
-           &          & fratio &   0.67 &   0.67 &  - &  - &  - &  - &  - \\
-           &          & itime &   4.17e-2 &   9.07e-2 &  - &  - &  - &  - &  - \\
-           &          & iratio &   2.00 &   4.36 &  - &  - &  - &  - &  - \\\hline
-   16 & R &  ftime &   1.02e-2 &  - &  - &  - &  - &  - &  - \\
-           &          & fratio &   0.63 &  - &  - &  - &  - &  - &  - \\
-           &          & itime &   8.70e-2 &  - &  - &  - &  - &  - &  - \\
-           &          & iratio &   4.18 &  - &  - &  - &  - &  - &  - \\\hline\hline
-   1 &  C &  ftime &   3.64e-2 &   3.04e-2 &   2.91e-2 &   2.80e-2 &   2.87e-2 &   2.84e-2 &   2.93e-2 \\
-           &          & fratio &   1.00 &   0.84 &   0.80 &   0.77 &   0.79 &   0.78 &   0.80 \\
-           &          & itime &   3.83e-2 &   3.88e-2 &   4.24e-2 &   5.09e-2 &   4.47e-2 &   4.40e-2 &   5.22e-2 \\
-           &          & iratio &   1.00 &   1.01 &   1.11 &   1.33 &   1.17 &   1.15 &   1.36 \\\hline
-   2 &  C &  ftime &   2.09e-2 &   1.86e-2 &   2.06e-2 &   2.04e-2 &   2.12e-2 &  - &  - \\
-           &          & fratio &   0.57 &   0.51 &   0.57 &   0.56 &   0.58 &  - &  - \\
-           &          & itime &   3.61e-2 &   3.53e-2 &   3.77e-2 &   3.76e-2 &   3.70e-2 &  - &  - \\
-           &          & iratio &   0.94 &   0.92 &   0.98 &   0.98 &   0.97 &  - &  - \\\hline
-   4 &  C &  ftime &   1.49e-2 &   1.56e-2 &   1.62e-2 &  - &  - &  - &  - \\
-           &          & fratio &   0.41 &   0.43 &   0.45 &  - &  - &  - &  - \\
-           &          & itime &   5.87e-2 &   5.15e-2 &   4.71e-2 &  - &  - &  - &  - \\
-           &          & iratio &   1.53 &   1.34 &   1.23 &  - &  - &  - &  - \\\hline
-   8 &  C &  ftime &   1.29e-2 &   1.36e-2 &  - &  - &  - &  - &  - \\
-           &          & fratio &   0.35 &   0.37 &  - &  - &  - &  - &  - \\
-           &          & itime &   9.15e-2 &   8.33e-2 &  - &  - &  - &  - &  - \\
-           &          & iratio &   2.39 &   2.17 &  - &  - &  - &  - &  - \\\hline
-   16 & C &  ftime &   1.18e-2 &  - &  - &  - &  - &  - &  - \\
-           &          & fratio &   0.32 &  - &  - &  - &  - &  - &  - \\
-           &          & itime &   1.28e-1 &  - &  - &  - &  - &  - &  - \\
-           &          & iratio &   3.34 &  - &  - &  - &  - &  - &  - \\\hline
+     1 & R & ftime & 1.63e-02 & 1.51e-02 & 1.56e-02 & 1.56e-02 & 1.59e-02 & 1.56e-02 & 1.70e-02 \\   
+          &      & fratio & 2.43 & 2.25 & 2.32 & 2.32 & 2.37 & 2.32 & 2.53 \\   
+          &      & itime & 2.08e-02 & 2.14e-02 & 2.43e-02 & 2.11e-02 & 2.31e-02 & 2.53e-02 & 2.58e-02 \\   
+          &      & iratio & 2.06 & 2.12 & 2.41 & 2.09 & 2.29 & 2.50 & 2.55 \\ \hline 
+     2 & R & ftime & 1.35e-02 & 1.34e-02 & 1.34e-02 & 1.37e-02 & 1.43e-02 &     -     &     -     \\   
+          &      & fratio & 2.01 & 2.00 & 2.00 & 2.04 & 2.13 &     -     &     -     \\   
+          &      & itime & 2.75e-02 & 3.62e-02 & 2.98e-02 & 2.61e-02 & 2.81e-02 &     -     &     -     \\   
+          &      & iratio & 2.72 & 3.58 & 2.95 & 2.58 & 2.78 &     -     &     -     \\ \hline 
+     4 & R & ftime & 1.18e-02 & 1.16e-02 & 1.20e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.76 & 1.73 & 1.79 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 6.47e-02 & 5.68e-02 & 4.64e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 6.41 & 5.62 & 4.59 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 1.09e-02 & 1.10e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.62 & 1.64 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.17e-02 & 9.07e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 4.13 & 8.98 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 1.02e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.52 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 8.70e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 8.61 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline\hline
+     1 & C & ftime & 3.64e-02 & 3.04e-02 & 2.91e-02 & 2.80e-02 & 2.87e-02 & 2.84e-02 & 2.93e-02 \\   
+          &      & fratio & 2.70 & 2.25 & 2.16 & 2.07 & 2.13 & 2.10 & 2.17 \\   
+          &      & itime & 3.83e-02 & 3.88e-02 & 4.24e-02 & 5.09e-02 & 4.47e-02 & 4.40e-02 & 5.22e-02 \\   
+          &      & iratio & 2.99 & 3.03 & 3.31 & 3.98 & 3.49 & 3.44 & 4.08 \\ \hline 
+     2 & C & ftime & 2.09e-02 & 1.86e-02 & 2.06e-02 & 2.04e-02 & 2.12e-02 &     -     &     -     \\   
+          &      & fratio & 1.55 & 1.38 & 1.53 & 1.51 & 1.57 &     -     &     -     \\   
+          &      & itime & 3.61e-02 & 3.53e-02 & 3.77e-02 & 3.76e-02 & 3.70e-02 &     -     &     -     \\   
+          &      & iratio & 2.82 & 2.76 & 2.95 & 2.94 & 2.89 &     -     &     -     \\ \hline 
+     4 & C & ftime & 1.49e-02 & 1.56e-02 & 1.62e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.10 & 1.16 & 1.20 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 5.87e-02 & 5.15e-02 & 4.71e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 4.59 & 4.02 & 3.68 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 1.29e-02 & 1.36e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.96 & 1.01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 9.15e-02 & 8.33e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 7.15 & 6.51 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 1.18e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.87 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.28e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 10.00 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
    \end{tabular}
-\caption{1D MKL applied to real and complex valued one-dimensional arrays of length $N=1048576$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL1d1048576}
+\caption{1D MKL applied to real and complex valued one-dimensional arrays of length $N=1048576$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL1d1048576}
 \end{small}
 \end{center}
 \end{table}
@@ -2475,36 +2485,36 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-      1  &   R &   ftime &   5.54e-2 &    3.06e-2 &    1.68e-2 &    1.08e-2 &    9.46e-3 &    7.59e-3 &    8.22e-3 \\
-           &            &  fratio &    1.00 &    0.55 &    0.30 &    0.19 &    0.17 &    0.14 &    0.15 \\
-           &            &  itime &   7.82e-1 &    1.18  &    1.05  &    1.02  &    1.30  &    1.02  &    1.25  \\
-           &            &  iratio &    1.00 &    1.51 &    1.34 &    1.30 &    1.66 &    1.30 &    1.60  \\\hline
-   2  &   R &   ftime &   3.46e-2 &    3.77e-2 &    3.45e-2 &    2.95e-2 &    3.07e-2 &   - &   - \\
-           &            &  fratio &   0.62 &    0.68 &    0.62 &    0.53 &    0.55 &   - &   - \\
-           &            &  itime &   1.69  &    2.82  &    2.63  &    2.50  &    2.88  &   - &   - \\
-           &            &  iratio &   2.16 &    3.61 &    3.36 &    3.20 &    3.68 &   - &   - \\\hline
-   4  &   R &   ftime &   1.88e-2 &    2.34e-2 &    2.03e-2 &   - &   - &   - &   - \\
-           &            &  fratio &   0.34 &    0.42 &    0.37 &   - &   - &   - &   - \\
-           &            &  itime &   9.04e-1 &    1.37  &    1.33  &   - &   - &   - &   - \\
-           &            &  iratio &   1.16 &    1.75 &    1.70 &   - &   - &   - &   - \\\hline
-   8  &   R &   ftime &   1.08e-2 &    1.28e-2 &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.19 &    0.23 &   - &   - &   - &   - &   - \\
-           &            &  itime &   6.16e-1 &    1.04  &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.79 &    1.33 &   - &   - &   - &   - &   - \\\hline
-   12 &   R &   ftime &   1.20e-2 &    2.35e-2 &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.22 &    0.42 &   - &   - &   - &   - &   - \\
-           &            &  itime &   2.09e-1 &    2.89e-1 &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.27 &    0.37 &   - &   - &   - &   - &   - \\\hline
-   16 &   R &   ftime &   6.28e-3 &   - &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.11 &   - &   - &   - &   - &   - &   - \\
-           &            &  itime &   4.56e-1 &   - &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.58 &   - &   - &   - &   - &   - &   - \\\hline
-   24 &   R &   ftime &   6.35e-3 &   - &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.11 &   - &   - &   - &   - &   - &   - \\
-           &            &  itime &   1.67e-1 &   - &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.21 &   - &   - &   - &   - &   - &   - \\\hline
+     1 & R & ftime & 5.54e-02 & 3.06e-02 & 1.68e-02 & 1.08e-02 & 9.46e-03 & 7.59e-03 & 8.22e-03 \\   
+          &      & fratio & 0.97 & 0.54 & 0.29 & 0.19 & 0.17 & 0.13 & 0.14 \\   
+          &      & itime & 7.82e-01 & 1.18e+00 & 1.05e+00 & 1.02e+00 & 1.30e+00 & 1.02e+00 & 1.25e+00 \\   
+          &      & iratio & 0.97 & 1.46 & 1.30 & 1.26 & 1.61 & 1.26 & 1.55 \\ \hline 
+     2 & R & ftime & 3.46e-02 & 3.77e-02 & 3.45e-02 & 2.95e-02 & 3.07e-02 &     -     &     -     \\   
+          &      & fratio & 0.61 & 0.66 & 0.60 & 0.52 & 0.54 &     -     &     -     \\   
+          &      & itime & 1.69e+00 & 2.82e+00 & 2.63e+00 & 2.50e+00 & 2.88e+00 &     -     &     -     \\   
+          &      & iratio & 2.09 & 3.49 & 3.25 & 3.09 & 3.56 &     -     &     -     \\ \hline 
+     4 & R & ftime & 1.88e-02 & 2.34e-02 & 2.03e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.33 & 0.41 & 0.36 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 9.04e-01 & 1.37e+00 & 1.33e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 1.12 & 1.69 & 1.64 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 1.08e-02 & 1.28e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.19 & 0.22 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 6.16e-01 & 1.04e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.76 & 1.29 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & R & ftime & 1.20e-02 & 2.35e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.21 & 0.41 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.09e-01 & 2.89e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.26 & 0.36 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 6.28e-03 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.11 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.56e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.56 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & R & ftime & 6.35e-03 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.11 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.67e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.21 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{2D FFTW applied to real valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW2d2048}
+\caption{2D FFTW applied to real valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW2d2048}
 \end{small}
 \end{center}
 \end{table}
@@ -2518,37 +2528,36 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-
-      1  &   C &   ftime &   6.64e-2 &    4.00e-2 &    2.26e-2 &    1.59e-2 &    1.31e-2 &    1.30e-2 &    1.20e-2 \\
-           &            &  fratio &    1.00 &    0.60 &    0.34 &    0.24 &    0.20 &    0.20 &    0.18 \\
-           &            &  itime &   2.23  &    3.84  &    3.35  &    3.31  &    3.48  &    3.43  &    3.94  \\
-           &            &  iratio &    1.00 &    1.72 &    1.50 &    1.48 &    1.56 &    1.54 &    1.77  \\\hline
-   2  &   C &   ftime &   5.56e-2 &    4.05e-2 &    5.79e-2 &    6.04e-2 &    6.06e-2 &   - &   - \\
-           &            &  fratio &   0.84 &    0.61 &    0.87 &    0.91 &    0.91 &   - &   - \\
-           &            &  itime &   3.03  &    3.38  &    4.55  &    4.50  &    5.02  &   - &   - \\
-           &            &  iratio &   1.36 &    1.52 &    2.04 &    2.02 &    2.25 &   - &   - \\\hline
-   4  &   C &   ftime &   3.08e-2 &    4.41e-2 &    3.95e-2 &   - &   - &   - &   - \\
-           &            &  fratio &   0.46 &    0.66 &    0.59 &   - &   - &   - &   - \\
-           &            &  itime &   1.79  &    3.02  &    2.91  &   - &   - &   - &   - \\
-           &            &  iratio &   0.80 &    1.35 &    1.30 &   - &   - &   - &   - \\\hline
-   8  &   C &   ftime &   1.88e-2 &    2.21e-2 &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.28 &    0.33 &   - &   - &   - &   - &   - \\
-           &            &  itime &   1.40  &    1.98  &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.63 &    0.89 &   - &   - &   - &   - &   - \\\hline
-   12 &   C &   ftime &   2.61e-2 &    4.69e-2 &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.39 &    0.71 &   - &   - &   - &   - &   - \\
-           &            &  itime &   3.98e-1 &    5.20e-1 &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.18 &    0.23 &   - &   - &   - &   - &   - \\\hline
-   16 &   C &   ftime &   1.28e-2 &   - &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.19 &   - &   - &   - &   - &   - &   - \\
-           &            &  itime &   1.21  &   - &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.54 &   - &   - &   - &   - &   - &   - \\\hline
-   24 &   C &   ftime &   1.88e-2 &   - &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.28 &   - &   - &   - &   - &   - &   - \\
-           &            &  itime &   3.75e-1 &   - &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.17 &   - &   - &   - &   - &   - &   - \\\hline
+     1 & C & ftime & 6.64e-02 & 4.00e-02 & 2.26e-02 & 1.59e-02 & 1.31e-02 & 1.30e-02 & 1.20e-02 \\   
+          &      & fratio & 0.99 & 0.60 & 0.34 & 0.24 & 0.20 & 0.19 & 0.18 \\   
+          &      & itime & 2.23e+00 & 3.84e+00 & 3.35e+00 & 3.31e+00 & 3.48e+00 & 3.43e+00 & 3.94e+00 \\   
+          &      & iratio & 0.99 & 1.70 & 1.48 & 1.46 & 1.54 & 1.52 & 1.74 \\ \hline 
+     2 & C & ftime & 5.56e-02 & 4.05e-02 & 5.79e-02 & 6.04e-02 & 6.06e-02 &     -     &     -     \\   
+          &      & fratio & 0.83 & 0.60 & 0.86 & 0.90 & 0.90 &     -     &     -     \\   
+          &      & itime & 3.03e+00 & 3.38e+00 & 4.55e+00 & 4.50e+00 & 5.02e+00 &     -     &     -     \\   
+          &      & iratio & 1.34 & 1.50 & 2.01 & 1.99 & 2.22 &     -     &     -     \\ \hline 
+     4 & C & ftime & 3.08e-02 & 4.41e-02 & 3.95e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.46 & 0.66 & 0.59 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.79e+00 & 3.02e+00 & 2.91e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.79 & 1.34 & 1.29 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 1.88e-02 & 2.21e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.28 & 0.33 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.40e+00 & 1.98e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.62 & 0.88 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & C & ftime & 2.61e-02 & 4.69e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.39 & 0.70 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.98e-01 & 5.20e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.18 & 0.23 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 1.28e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.19 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.21e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.54 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & C & ftime & 1.88e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.28 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.75e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.17 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{2D FFTW applied to complex valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW2d2048c}
+\caption{2D FFTW applied to complex valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW2d2048c}
 \end{small}
 \end{center}
 \end{table}
@@ -2562,48 +2571,48 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    3.95e-1 &    2.28e-1 &    1.37e-1 &    8.18e-2 &    6.30e-2 &    4.58e-2 &    3.46e-2 \\
-             &             &  fratio &    1.00 &    0.58 &    0.35 &   0.21 &    0.16 &   0.12 &    8.76e-02\\
-             &             &  itime &    1.94e+1 &   2.08e+1 &   1.33e+1 &   1.04e+1 &   7.22  &    7.76  &    7.59  \\
-             &             &  iratio &    1.00 &    1.07  &   0.69 &    0.54 &    0.37 &    0.40 &    0.39 \\\hline
-   2 &  R &   ftime &    2.19e-1 &    1.56e-1 &    1.40e-1 &    1.66e-1 &    1.90e-1 &      - &      - \\
-             &             &  fratio &    0.55 &    0.39 &    0.35 &    0.42 &    0.48 &      - &      - \\
-             &             &  itime &    3.54  &    4.61  &    4.27  &    3.23  &    3.69  &      - &      - \\
-             &             &  iratio &    0.18 &    0.24 &    0.22 &    0.17 &    0.19 &      - &      - \\\hline
-   4 &  R &   ftime &    1.15e-1 &    1.27e-1 &    1.36e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.29 &    0.32 &    0.34 &      - &      - &      - &      - \\
-             &             &  itime &    2.34  &    2.75  &    3.03  &      - &      - &      - &      - \\
-             &             &  iratio &    0.12 &    0.14 &    0.16 &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    6.18e-2 &    8.34e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.16 &    0.21 &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.78  &    2.54  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    9.18e-02 &   0.13 &      - &      - &      - &      - &      - \\\hline
-   16 &   R &   ftime &    3.31e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    8.38e-02 &     - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.39  &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    7.16e-02 &     - &      - &      - &      - &      - &      - \\\hline\hline
-      1  &   C &   ftime &   3.13e-1 &    1.95e-1 &    1.28e-1 &    6.70e-2 &    4.87e-2 &    4.07e-2 &    3.51e-2 \\
-           &            &  fratio &    1.00 &    0.62 &    0.41 &    0.21 &    0.16 &    0.13 &    0.11 \\
-           &            &  itime &   8.31  &    1.14e+1 &    7.70  &    6.15  &    5.59  &    5.79  &    6.85  \\
-           &            &  iratio &    1.00 &    1.37 &    0.93 &    0.74 &    0.67 &    0.70 &    0.82   \\\hline
-   2  &   C &   ftime &   2.19e-1 &    2.51e-1 &    2.59e-1 &    2.58e-1 &    2.70e-1 &   - &   - \\
-           &            &  fratio &   0.70 &    0.80 &    0.83 &    0.82 &    0.86 &   - &   - \\
-           &            &  itime &   3.22  &    4.40  &    3.76  &    3.41  &    3.72  &   - &   - \\
-           &            &  iratio &   0.39 &    0.53 &    0.45 &    0.41 &    0.45 &   - &   -   \\\hline
-   4  &   C &   ftime &   1.14e-1 &    1.85e-1 &    2.06e-1 &   - &   - &   - &   - \\
-           &            &  fratio &   0.36 &    0.59 &    0.66 &   - &   - &   - &   - \\
-           &            &  itime &   2.11  &    2.31  &    2.40  &   - &   - &   - &   - \\
-           &            &  iratio &   0.25 &    0.28 &    0.29 &   - &   - &   - &   -   \\\hline
-   8  &   C &   ftime &   6.14e-2 &    1.02e-1 &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.20 &    0.33 &   - &   - &   - &   - &   - \\
-           &            &  itime &   1.64  &    2.22  &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.20 &    0.27 &   - &   - &   - &   - &   -  \\\hline
-   16 &   C &   ftime &   3.76e-2 &   - &   - &   - &   - &   - &   - \\
-           &            &  fratio &   0.12 &   - &   - &   - &   - &   - &   - \\
-           &            &  itime &   1.40  &   - &   - &   - &   - &   - &   - \\
-           &            &  iratio &   0.17 &   - &   - &   - &   - &   - &   -   \\\hline
+     1 & R & ftime & 3.95e-01 & 2.28e-01 & 1.37e-01 & 8.18e-02 & 6.30e-02 & 4.58e-02 & 3.46e-02 \\   
+          &      & fratio & 0.98 & 0.56 & 0.34 & 0.20 & 0.16 & 0.11 & 0.09 \\   
+          &      & itime & 1.94e+01 & 2.08e+01 & 1.33e+01 & 1.04e+01 & 7.22e+00 & 7.76e+00 & 7.59e+00 \\   
+          &      & iratio & 2.93 & 3.14 & 2.01 & 1.57 & 1.09 & 1.17 & 1.15 \\ \hline 
+     2 & R & ftime & 2.19e-01 & 1.56e-01 & 1.40e-01 & 1.66e-01 & 1.90e-01 &     -     &     -     \\   
+          &      & fratio & 0.54 & 0.39 & 0.35 & 0.41 & 0.47 &     -     &     -     \\   
+          &      & itime & 3.54e+00 & 4.61e+00 & 4.27e+00 & 3.23e+00 & 3.69e+00 &     -     &     -     \\   
+          &      & iratio & 0.53 & 0.70 & 0.65 & 0.49 & 0.56 &     -     &     -     \\ \hline 
+     4 & R & ftime & 1.15e-01 & 1.27e-01 & 1.36e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.28 & 0.31 & 0.34 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.34e+00 & 2.75e+00 & 3.03e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.35 & 0.42 & 0.46 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 6.18e-02 & 8.34e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.15 & 0.21 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.78e+00 & 2.54e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.27 & 0.38 &     -     &     -     &     -     &     -     &     -     \\ \hline  
+     16 & R & ftime & 3.31e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.08 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.39e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.21 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline  \hline
+      1 & C & ftime & 3.13e-01 & 1.95e-01 & 1.28e-01 & 6.70e-02 & 4.87e-02 & 4.07e-02 & 3.51e-02 \\   
+          &      & fratio & 1.00 & 0.62 & 0.41 & 0.21 & 0.16 & 0.13 & 0.11 \\   
+          &      & itime & 8.31e+00 & 1.14e+01 & 7.70e+00 & 6.15e+00 & 5.59e+00 & 5.79e+00 & 6.85e+00 \\   
+          &      & iratio & 1.00 & 1.37 & 0.93 & 0.74 & 0.67 & 0.70 & 0.83 \\ \hline 
+     2 & C & ftime & 2.19e-01 & 2.51e-01 & 2.59e-01 & 2.58e-01 & 2.70e-01 &     -     &     -     \\   
+          &      & fratio & 0.70 & 0.80 & 0.82 & 0.82 & 0.86 &     -     &     -     \\   
+          &      & itime & 3.22e+00 & 4.40e+00 & 3.76e+00 & 3.41e+00 & 3.72e+00 &     -     &     -     \\   
+          &      & iratio & 0.39 & 0.53 & 0.45 & 0.41 & 0.45 &     -     &     -     \\ \hline 
+     4 & C & ftime & 1.14e-01 & 1.85e-01 & 2.06e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.36 & 0.59 & 0.66 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.11e+00 & 2.31e+00 & 2.40e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.25 & 0.28 & 0.29 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 6.14e-02 & 1.02e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.20 & 0.32 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.64e+00 & 2.22e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.20 & 0.27 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 3.76e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.12 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.40e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.17 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{2D FFTW applied to real and complex valued two-dimensional square arrays with sides of length $N=2053$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW2d2053}
+\caption{2D FFTW applied to real and complex valued two-dimensional square arrays with sides of length $N=2053$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW2d2053}
 \end{small}
 \end{center}
 \end{table}
@@ -2618,38 +2627,38 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &   R &   ftime &    1.11e-1 &    8.37e-2 &    6.65e-2 &    5.88e-2 &    5.73e-2 &    5.68e-2 &    5.60e-2 \\
-            &            &  fratio &    1.00 &    0.75 &    0.60 &    0.53 &    0.52 &    0.51 &    0.50 \\
-            &            &  itime &    3.44e-3 &    3.04e-3 &    2.80e-3 &    2.51e-3 &    2.15e-3 &    1.93e-3 &    2.10e-3 \\
-            &            &  iratio &    1.00 &    0.88 &    0.81 &    0.73 &    0.63 &    0.56 &    0.61 \\\hline
-   2 &   R &   ftime &    5.81e-2 &    5.44e-2 &    4.48e-2 &    4.11e-2 &    4.09e-2 &   - &   - \\
-            &            &  fratio &    0.52 &    0.49 &    0.40 &    0.37 &    0.37 &   - &   - \\
-            &            &  itime &    1.72e-2 &    1.33e-2 &    2.22e-2 &    1.62e-2 &    1.45e-2 &   - &   - \\
-            &            &  iratio &    5.00 &    3.87 &    6.45 &    4.71 &    4.22 &   - &   - \\\hline
-   4 &   R &   ftime &    3.36e-2 &    3.19e-2 &    2.86e-2 &   - &   - &   - &   - \\
-            &            &  fratio &    0.30 &    0.29 &    0.26 &   - &   - &   - &   - \\
-            &            &  itime &    4.90e-2 &    4.89e-2 &    4.14e-2 &   - &   - &   - &   - \\
-            &            &  iratio &    14.2 &  14.2 &  12.0 & - &   - &   - &   - \\\hline
-   8 &   R &   ftime &    1.94e-2 &    1.76e-2 &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.17 &    0.16 &   - &   - &   - &   - &   - \\
-            &            &  itime &    3.54e-2 &    3.33e-2 &   - &   - &   - &   - &   - \\
-            &            &  iratio &    10.3 &   9.68 &   - &   - &   - &   - &   - \\\hline
-  12 &   R &   ftime &    1.39e-2 &    1.57e-2 &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.13 &    0.14 &   - &   - &   - &   - &   - \\
-            &            &  itime &    5.44e-2 &    1.28e-1 &   - &   - &   - &   - &   - \\
-            &            &  iratio &    15.8 &   37.2 &  - &   - &   - &   - &   - \\\hline
-  16 &   R &   ftime &    1.23e-2 &   - &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.11 &   - &   - &   - &   - &   - &   - \\
-            &            &  itime &    7.95e-2 &   - &   - &   - &   - &   - &   - \\
-            &            &  iratio &    23.1 &  - &   - &   - &   - &   - &   - \\\hline
-  24 &   R &   ftime &    1.33e-2 &   - &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.12 &   - &   - &   - &   - &   - &   - \\
-            &            &  itime &    1.53e-1 &   - &   - &   - &   - &   - &   - \\
-            &            &  iratio &    44.5 &  - &   - &   - &   - &   - &   - \\\hline
+     1 & R & ftime & 1.11e-01 & 8.37e-02 & 6.65e-02 & 5.88e-02 & 5.73e-02 & 5.68e-02 & 5.60e-02 \\   
+          &      & fratio & 2.77 & 2.09 & 1.66 & 1.47 & 1.43 & 1.42 & 1.40 \\   
+          &      & itime & 3.44e-03 & 3.04e-03 & 2.80e-03 & 2.51e-03 & 2.15e-03 & 1.93e-03 & 2.10e-03 \\   
+          &      & iratio & 0.87 & 0.77 & 0.71 & 0.63 & 0.54 & 0.49 & 0.53 \\ \hline 
+     2 & R & ftime & 5.81e-02 & 5.44e-02 & 4.48e-02 & 4.11e-02 & 4.09e-02 &     -     &     -     \\   
+          &      & fratio & 1.45 & 1.36 & 1.12 & 1.03 & 1.02 &     -     &     -     \\   
+          &      & itime & 1.72e-02 & 1.33e-02 & 2.22e-02 & 1.62e-02 & 1.45e-02 &     -     &     -     \\   
+          &      & iratio & 4.33 & 3.35 & 5.59 & 4.08 & 3.65 &     -     &     -     \\ \hline 
+     4 & R & ftime & 3.36e-02 & 3.19e-02 & 2.86e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.84 & 0.80 & 0.71 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.90e-02 & 4.89e-02 & 4.14e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 12.34 & 12.32 & 10.43 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 1.94e-02 & 1.76e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.48 & 0.44 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.54e-02 & 3.33e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 8.92 & 8.39 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & R & ftime & 1.39e-02 & 1.57e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.35 & 0.39 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 5.44e-02 & 1.28e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 13.70 & 32.24 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 1.23e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.31 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.95e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 20.03 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & R & ftime & 1.33e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.33 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.53e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 38.54 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 
 
 \end{tabular}
-\caption{2D MKL applied to real valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL2d2048}
+\caption{2D MKL applied to real valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL2d2048}
 \end{small}
 \end{center}
 \end{table}
@@ -2661,37 +2670,37 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
+     1 & C & ftime & 9.15e-02 & 6.14e-02 & 4.76e-02 & 4.25e-02 & 3.93e-02 & 4.09e-02 & 3.69e-02 \\   
+          &      & fratio & 0.70 & 0.47 & 0.36 & 0.32 & 0.30 & 0.31 & 0.28 \\   
+          &      & itime & 3.38e-03 & 3.14e-03 & 2.88e-03 & 2.57e-03 & 2.53e-03 & 2.41e-03 & 1.74e-03 \\   
+          &      & iratio & 0.86 & 0.80 & 0.73 & 0.66 & 0.65 & 0.61 & 0.44 \\ \hline 
+     2 & C & ftime & 9.32e-02 & 7.27e-02 & 6.56e-02 & 6.47e-02 & 6.60e-02 &     -     &     -     \\   
+          &      & fratio & 0.71 & 0.55 & 0.50 & 0.49 & 0.50 &     -     &     -     \\   
+          &      & itime & 1.86e-02 & 2.02e-02 & 3.17e-02 & 2.12e-02 & 2.25e-02 &     -     &     -     \\   
+          &      & iratio & 4.74 & 5.15 & 8.09 & 5.41 & 5.74 &     -     &     -     \\ \hline 
+     4 & C & ftime & 6.19e-02 & 6.17e-02 & 5.59e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.47 & 0.47 & 0.43 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.20e-02 & 2.42e-02 & 2.75e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 10.71 & 6.17 & 7.02 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 5.28e-02 & 5.24e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.40 & 0.40 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 9.35e-02 & 4.62e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 23.85 & 11.79 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & C & ftime & 4.57e-02 & 4.52e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.35 & 0.35 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.43e-01 & 1.42e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 36.48 & 36.22 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 4.45e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.34 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.58e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 40.31 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & C & ftime & 4.31e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.33 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.89e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 48.21 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 
-   1 &   C &   ftime &    9.15e-2 &    6.14e-2 &    4.76e-2 &    4.25e-2 &    3.93e-2 &    4.09e-2 &    3.69e-2 \\
-            &            &  fratio &    1.00 &    0.67 &    0.52 &    0.46 &    0.43 &    0.45 &    0.40 \\
-            &            &  itime &    3.38e-3 &    3.14e-3 &    2.88e-3 &    2.57e-3 &    2.53e-3 &    2.41e-3 &    1.74e-3 \\
-            &            &  iratio &    1.00 &    0.93 &    0.85 &    0.76 &    0.75 &    0.71 &    0.51 \\\hline
-   2 &   C &   ftime &    9.32e-2 &    7.27e-2 &    6.56e-2 &    6.47e-2 &    6.60e-2 &   - &   - \\
-            &            &  fratio &    1.02 &    0.79 &    0.72 &    0.71 &    0.72 &   - &   - \\
-            &            &  itime &    1.86e-2 &    2.02e-2 &    3.17e-2 &    2.12e-2 &    2.25e-2 &   - &   - \\
-            &            &  iratio &    5.50 &    5.98 &    9.38 &    6.27 &    6.66 &   - &   - \\\hline
-   4 &   C &   ftime &    6.19e-2 &    6.17e-2 &    5.59e-2 &   - &   - &   - &   - \\
-            &            &  fratio &    0.68 &    0.67 &    0.61 &   - &   - &   - &   - \\
-            &            &  itime &    4.20e-2 &    2.42e-2 &    2.75e-2 &   - &   - &   - &   - \\
-            &            &  iratio &    12.4 &   7.16 &    8.1361 &   - &   - &   - &   - \\\hline
-   8 &   C &   ftime &    5.28e-2 &    5.24e-2 &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.58 &    0.57 &   - &   - &   - &   - &   - \\
-            &            &  itime &    9.35e-2 &    4.62e-2 &   - &   - &   - &   - &   - \\
-            &            &  iratio &    27.7 &   13.7 &  - &   - &   - &   - &   - \\\hline
-  12 &   C &   ftime &    4.57e-2 &    4.52e-2 &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.50 &    0.49 &   - &   - &   - &   - &   - \\
-            &            &  itime &    1.43e-1 &    1.42e-1 &   - &   - &   - &   - &   - \\
-            &            &  iratio &    42.3 &   42.0 &  - &   - &   - &   - &   - \\\hline
-  16 &   C &   ftime &    4.45e-2 &   - &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.49 &   - &   - &   - &   - &   - &   - \\
-            &            &  itime &    1.58e-1 &   - &   - &   - &   - &   - &   - \\
-            &            &  iratio &    46.7 &  - &   - &   - &   - &   - &   - \\\hline
-  24 &   C &   ftime &    4.31e-2 &   - &   - &   - &   - &   - &   - \\
-            &            &  fratio &    0.47 &   - &   - &   - &   - &   - &   - \\
-            &            &  itime &    1.89e-1 &   - &   - &   - &   - &   - &   - \\
-            &            &  iratio &    55.9 &  - &   - &   - &   - &   - &   - \\\hline
 \end{tabular}
-\caption{2D MKL applied to complex valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL2d2048c}
+\caption{2D MKL applied to complex valued two-dimensional square arrays with sides of length $N=2048$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL2d2048c}
 \end{small}
 \end{center}
 \end{table}
@@ -2705,48 +2714,48 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    3.03e-1 &    1.76e-1 &    1.15e-1 &    8.66e-2 &    7.49e-2 &    6.94e-2 &    6.71e-2 \\
-             &             &  fratio &    1.00 &    0.58 &    0.38 &   0.29 &    0.25 &    0.23 &    0.22 \\
-             &             &  itime &    3.83e-3 &    3.54e-3 &    3.27e-3 &    2.97e-3 &    2.63e-3 &    2.41e-3 &    2.14e-3 \\
-             &             &  iratio &    1.00 &    0.92 &    0.85 &    0.78 &   0.69 &    0.63 &    0.56 \\\hline
-   2 &  R &   ftime &    1.51e-1 &    9.84e-2 &    7.21e-2 &    5.51e-2 &    6.29e-2 &      - &      - \\
-             &             &  fratio &    0.50 &    0.32 &    0.24 &    0.18 &   0.21 &      - &      - \\
-             &             &  itime &    1.86e-2 &    2.89e-2 &    1.74e-2 &    1.55e-2 &    1.43e-2 &      - &      - \\
-             &             &  iratio &    4.86  &   7.55  &    4.54  &   4.05  &    3.73  &      - &      - \\\hline
-   4 &  R &   ftime &    8.37e-2 &    5.97e-2 &    4.24e-2 &      - &      - &      - &      - \\
-             &             &  fratio &    0.28 &    0.20 &    0.14 &      - &      - &      - &      - \\
-             &             &  itime &    5.05e-2 &    5.08e-2 &    2.87e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    13.2 &   13.3 &   7.49  &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    4.98e-2 &    3.35e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.16 &    0.11 &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.52e-2 &    5.81e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    19.6 &   15.2 &     - &      - &      - &      - &      - \\\hline
-   16 &   R &   ftime &    2.75e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.09 &     - &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.03e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    18.4 &     - &      - &      - &      - &      - &      - \\\hline\hline
-   1 &   C &  ftime &    3.06e-1 &    1.69e-1 &    9.98e-2 &    6.62e-2 &    5.51e-2 &    4.89e-2 &    5.32e-2 \\
-             &             &  fratio &    1.00 &    0.55 &    0.33 &   0.22 &    0.18 &    0.16 &    0.17 \\
-             &             &  itime &    3.83e-3 &    3.92e-3 &    3.63e-3 &    3.45e-3 &    3.77e-3 &    3.56e-3 &    2.63e-3 \\
-             &             &  iratio &    1.00 &    1.02  &    0.95 &    0.90 &    0.98 &    0.93 &   0.69 \\\hline
-   2 &  C &  ftime &    2.04e-1 &    1.29e-1 &    9.79e-2 &    7.86e-2 &    8.38e-2 &      - &      - \\
-             &             &  fratio &    0.67 &    0.42 &   0.32 &    0.26 &    0.27 &      - &      - \\
-             &             &  itime &    1.89e-2 &    2.18e-2 &    3.15e-2 &    2.18e-2 &    2.39e-2 &      - &      - \\
-             &             &  iratio &    4.93  &    5.69  &    8.22  &    5.69  &    6.24  &      - &      - \\\hline
-   4 &  C &  ftime &    1.21e-1 &    8.63e-2 &    7.08e-2 &      - &      - &      - &      - \\
-             &             &  fratio &    0.40 &    0.28 &    0.23 &      - &      - &      - &      - \\
-             &             &  itime &    4.35e-2 &    3.75e-2 &    2.73e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    11.4 &   9.79  &    7.13  &      - &      - &      - &      - \\\hline
-   8 &   C &  ftime &    8.42e-2 &    6.83e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.28 &    0.22 &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.93e-2 &    7.80e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    20.7 &   20.4 &     - &      - &      - &      - &      - \\\hline
-   16 &   C &  ftime &    6.05e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.20 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.86e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    48.6 &     - &      - &      - &      - &      - &      - \\\hline
+     1 & R & ftime & 3.03e-01 & 1.76e-01 & 1.15e-01 & 8.66e-02 & 7.49e-02 & 6.94e-02 & 6.71e-02 \\   
+          &      & fratio & 1.49 & 0.87 & 0.57 & 0.43 & 0.37 & 0.34 & 0.33 \\   
+          &      & itime & 3.83e-03 & 3.54e-03 & 3.27e-03 & 2.97e-03 & 2.63e-03 & 2.41e-03 & 2.14e-03 \\   
+          &      & iratio & 0.87 & 0.81 & 0.74 & 0.68 & 0.60 & 0.55 & 0.49 \\ \hline 
+     2 & R & ftime & 1.51e-01 & 9.84e-02 & 7.21e-02 & 5.51e-02 & 6.29e-02 &     -     &     -     \\   
+          &      & fratio & 0.74 & 0.48 & 0.36 & 0.27 & 0.31 &     -     &     -     \\   
+          &      & itime & 1.86e-02 & 2.89e-02 & 1.74e-02 & 1.55e-02 & 1.43e-02 &     -     &     -     \\   
+          &      & iratio & 4.24 & 6.58 & 3.96 & 3.53 & 3.26 &     -     &     -     \\ \hline 
+     4 & R & ftime & 8.37e-02 & 5.97e-02 & 4.24e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.41 & 0.29 & 0.21 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 5.05e-02 & 5.08e-02 & 2.87e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 11.50 & 11.57 & 6.54 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 4.98e-02 & 3.35e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.25 & 0.17 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.52e-02 & 5.81e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 17.13 & 13.23 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 2.75e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.14 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.03e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 16.01 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline  \hline
+    1 & C & ftime & 3.06e-01 & 1.69e-01 & 9.98e-02 & 6.62e-02 & 5.51e-02 & 4.89e-02 & 5.32e-02 \\   
+          &      & fratio & 1.09 & 0.60 & 0.36 & 0.24 & 0.20 & 0.17 & 0.19 \\   
+          &      & itime & 3.83e-03 & 3.92e-03 & 3.63e-03 & 3.45e-03 & 3.77e-03 & 3.56e-03 & 2.63e-03 \\   
+          &      & iratio & 1.02 & 1.05 & 0.97 & 0.92 & 1.01 & 0.95 & 0.70 \\ \hline 
+     2 & C & ftime & 2.04e-01 & 1.29e-01 & 9.79e-02 & 7.86e-02 & 8.38e-02 &     -     &     -     \\   
+          &      & fratio & 0.73 & 0.46 & 0.35 & 0.28 & 0.30 &     -     &     -     \\   
+          &      & itime & 1.89e-02 & 2.18e-02 & 3.15e-02 & 2.18e-02 & 2.39e-02 &     -     &     -     \\   
+          &      & iratio & 5.04 & 5.81 & 8.40 & 5.81 & 6.37 &     -     &     -     \\ \hline 
+     4 & C & ftime & 1.21e-01 & 8.63e-02 & 7.08e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.43 & 0.31 & 0.25 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.35e-02 & 3.75e-02 & 2.73e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 11.60 & 10.00 & 7.28 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 8.42e-02 & 6.83e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.30 & 0.24 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.93e-02 & 7.80e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 21.15 & 20.80 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 6.05e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.22 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.86e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 49.60 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{2D MKL applied to real and complex valued two-dimensional square arrays with sides of length $N=2053$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL2d2053}
+\caption{2D MKL applied to real and complex valued two-dimensional square arrays with sides of length $N=2053$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL2d2053}
 \end{small}
 \end{center}
 \end{table}
@@ -2766,36 +2775,36 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    2.65e-1 &    1.46e-1 &    7.74e-2 &    4.34e-2 &    3.96e-2 &    3.24e-2 &    2.73e-2 \\
-             &             &  fratio &    1.00 &    0.55 &    0.29 &    0.16 &    0.15 &    0.12 &    0.10 \\
-             &             &  itime &    2.57  &    4.56  &    3.94  &    3.63  &    4.42  &    3.79  &    4.56  \\
-             &             &  iratio &    1.00 &    1.77  &    1.53  &    1.41  &    1.72  &    1.47  &    1.77  \\\hline
-   2 &  R &   ftime &    2.42e-1 &    1.80e-1 &    1.49e-1 &    1.34e-1 &    1.35e-1 &      - &      - \\
-             &             &  fratio &    0.91 &    0.68 &    0.56 &   0.51 &   0.51 &      - &      - \\
-             &             &  itime &    8.76  &    9.96  &    9.43  &    8.79  &    12.1 &     - &      - \\
-             &             &  iratio &    3.41  &    3.88  &   3.67  &    3.42  &    4.71  &      - &      - \\\hline
-   4 &  R &   ftime &    1.04e-1 &    1.05e-1 &    8.80e-2 &      - &      - &      - &      - \\
-             &             &  fratio &    0.39 &    0.40 &    0.33 &      - &      - &      - &      - \\
-             &             &  itime &    3.68  &    5.74  &    5.71  &      - &      - &      - &      - \\
-             &             &  iratio &    1.43  &    2.23  &    2.22  &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    5.77e-2 &    5.61e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &   0.22 &    0.21 &      - &      - &      - &      - &      - \\
-             &             &  itime &    2.26  &    3.46  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.88 &   1.35  &      - &      - &      - &      - &      - \\\hline
-   12 &   R &   ftime &    9.23e-2 &    1.10e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.35 &   0.42 &      - &      - &      - &      - &      - \\
-             &             &  itime &    4.47e-1 &    9.65e-1 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.17 &    0.38 &      - &      - &      - &      - &      - \\\hline
-   16 &   R &   ftime &    3.70e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.14 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.48  &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.58 &      - &      - &      - &      - &      - &      - \\\hline
-   24 &   R &   ftime &    7.14e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.27 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    4.27e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.17 &      - &      - &      - &      - &      - &      - \\\hline
+     1 & R & ftime & 2.65e-01 & 1.46e-01 & 7.74e-02 & 4.34e-02 & 3.96e-02 & 3.24e-02 & 2.73e-02 \\   
+          &      & fratio & 1.01 & 0.56 & 0.30 & 0.17 & 0.15 & 0.12 & 0.10 \\   
+          &      & itime & 2.57e+00 & 4.56e+00 & 3.94e+00 & 3.63e+00 & 4.42e+00 & 3.79e+00 & 4.56e+00 \\   
+          &      & iratio & 1.00 & 1.77 & 1.53 & 1.41 & 1.72 & 1.47 & 1.77 \\ \hline 
+     2 & R & ftime & 2.42e-01 & 1.80e-01 & 1.49e-01 & 1.34e-01 & 1.35e-01 &     -     &     -     \\   
+          &      & fratio & 0.92 & 0.69 & 0.57 & 0.51 & 0.52 &     -     &     -     \\   
+          &      & itime & 8.76e+00 & 9.96e+00 & 9.43e+00 & 8.79e+00 & 1.21e+01 &     -     &     -     \\   
+          &      & iratio & 3.41 & 3.88 & 3.67 & 3.42 & 4.71 &     -     &     -     \\ \hline 
+     4 & R & ftime & 1.04e-01 & 1.05e-01 & 8.80e-02 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.40 & 0.40 & 0.34 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.68e+00 & 5.74e+00 & 5.71e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 1.43 & 2.23 & 2.22 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 5.77e-02 & 5.61e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.22 & 0.21 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.26e+00 & 3.46e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.88 & 1.35 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & R & ftime & 9.23e-02 & 1.10e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.35 & 0.42 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.47e-01 & 9.65e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.17 & 0.38 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 3.70e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.14 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.48e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.58 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & R & ftime & 7.14e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.27 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.27e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.17 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{3D FFTW applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW3d256}
+\caption{3D FFTW applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW3d256}
 \end{small}
 \end{center}
 \end{table}
@@ -2809,28 +2818,29 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &   C &  ftime &    3.37e-1 &    2.04e-1 &    1.07e-1 &    6.20e-2 &    5.04e-2 &    4.52e-2 &    4.62e-2 \\
-             &             &  fratio &    1.00 &   0.61 &   0.32 &    0.18 &    0.15 &    0.13 &    0.14 \\
-             &             &  itime &    5.36  &    8.98  &    7.30  &    6.52  &    8.20  &    6.56  &    7.52  \\
-             &             &  iratio &    1.00 &    1.68  &    1.36  &    1.22  &    1.53  &    1.22  &    1.40  \\\hline
-   2 &  C &  ftime &    3.93e-1 &    3.19e-1 &    2.71e-1 &    2.52e-1 &    2.59e-1 &      - &      - \\
-             &             &  fratio &   1.17  &    0.95 &    0.80 &    0.75 &    0.77 &      - &      - \\
-             &             &  itime &    1.67e+1 &   2.06e+1 &   1.84e+1 &   1.65e+1 &   2.11e+1 &     - &      - \\
-             &             &  iratio &    3.12  &    3.84  &    3.43  &    3.08  &    3.94  &      - &      - \\\hline
-   4 &  C &  ftime &    1.68e-1 &    1.86e-1 &    1.66e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.50 &    0.55 &    0.49 &      - &      - &      - &      - \\
-             &             &  itime &    7.36  &    1.22e+1 &   1.11e+1 &     - &      - &      - &      - \\
-             &             &  iratio &    1.37  &    2.28  &    2.07  &      - &      - &      - &      - \\\hline
-   8 &   C &  ftime &    9.51e-2 &    1.08e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.28 &    0.32 &      - &      - &      - &      - &      - \\
-             &             &  itime &    4.50  &    7.16  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.84 &    1.34  &      - &      - &      - &      - &      - \\\hline
-   16 &   C &  ftime &    6.58e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.20 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    2.80  &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.52 &      - &      - &      - &      - &      - &      - \\\hline
+     1 & C & ftime & 3.37e-01 & 2.04e-01 & 1.07e-01 & 6.20e-02 & 5.04e-02 & 4.52e-02 & 4.62e-02 \\   
+          &      & fratio & 1.01 & 0.61 & 0.32 & 0.19 & 0.15 & 0.13 & 0.14 \\   
+          &      & itime & 5.36e+00 & 8.98e+00 & 7.30e+00 & 6.52e+00 & 8.20e+00 & 6.56e+00 & 7.52e+00 \\   
+          &      & iratio & 1.01 & 1.68 & 1.37 & 1.22 & 1.54 & 1.23 & 1.41 \\ \hline 
+     2 & C & ftime & 3.93e-01 & 3.19e-01 & 2.71e-01 & 2.52e-01 & 2.59e-01 &     -     &     -     \\   
+          &      & fratio & 1.17 & 0.95 & 0.81 & 0.75 & 0.77 &     -     &     -     \\   
+          &      & itime & 1.67e+01 & 2.06e+01 & 1.84e+01 & 1.65e+01 & 2.11e+01 &     -     &     -     \\   
+          &      & iratio & 3.13 & 3.86 & 3.45 & 3.10 & 3.96 &     -     &     -     \\ \hline 
+     4 & C & ftime & 1.68e-01 & 1.86e-01 & 1.66e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.50 & 0.56 & 0.50 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.36e+00 & 1.22e+01 & 1.11e+01 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 1.38 & 2.29 & 2.08 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 9.51e-02 & 1.08e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.28 & 0.32 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.50e+00 & 7.16e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.84 & 1.34 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 6.58e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.20 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.80e+00 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.53 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+
 \end{tabular}
-\caption{3D FFTW applied to complex valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW3d256c}
+\caption{3D FFTW applied to complex valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW3d256c}
 \end{small}
 \end{center}
 \end{table}
@@ -2844,40 +2854,40 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    1.83  &    1.00 &    5.35e-1 &    3.16e-1 &    2.42e-1 &    2.02e-1 &    1.26e-1 \\
-             &             &  fratio &    1.00 &    0.55 &    0.29 &    0.17 &    0.13 &    0.11 &    6.89e-02\\
-             &             &  itime &    3.16e+1 &   4.67e+1 &   3.97e+1 &   2.80e+1 &   2.33e+1 &   2.10e+1 &   1.65e+1 \\
-             &             &  iratio &    1.00 &    1.48  &    1.26  &   0.89 &    0.74 &    0.66 &    0.52 \\\hline
-   2 &  R &   ftime &    1.20  &    9.46e-1 &    6.94e-1 &    5.44e-1 &    5.22e-1 &      - &      - \\
-             &             &  fratio &    0.66 &   0.52 &    0.38 &    0.29727 &   0.29 &      - &      - \\
-             &             &  itime &    6.87  &    9.38  &    8.91  &    6.87  &    5.83  &      - &      - \\
-             &             &  iratio &   0.22 &    0.30 &    0.28 &   0.22 &    0.18 &      - &      - \\\hline
-   4 &  R &   ftime &    6.10e-1 &    4.72e-1 &    3.60e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.33 &    0.26 &    0.20 &      - &      - &      - &      - \\
-             &             &  itime &    2.82  &    5.79  &    5.11  &      - &      - &      - &      - \\
-             &             &  iratio &    0.09 &   0.18 &    0.16 &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    3.35e-1 &    2.63e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.18 &    0.14 &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.61  &    3.24  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.05 &   0.10 &      - &      - &      - &      - &      - \\\hline\hline
-   1 &   C &  ftime &    1.40  &    7.70e-1 &    4.43e-1 &    2.46e-1 &    1.94e-1 &    1.66e-1 &    1.50e-1 \\
-             &             &  fratio &    1.00 &    0.55 &   0.32 &    0.18 &    0.14 &   0.12 &   0.11 \\
-             &             &  itime &    1.06e+1 &   2.71e+1 &   1.71e+1 &   1.28e+1 &   1.11e+1 &   1.04e+1 &   1.10e+1 \\
-             &             &  iratio &    1.00 &    2.56  &    1.61  &    1.21  &   1.05  &    0.98 &    1.04  \\\hline
-   2 &  C &  ftime &    1.23  &    9.40e-1 &    9.77e-1 &    8.17e-1 &    7.97e-1 &      - &      - \\
-             &             &  fratio &    0.88 &    0.67 &    0.70 &    0.58 &    0.57 &      - &      - \\
-             &             &  itime &    6.03  &    7.96  &    6.78  &    5.41  &    5.56  &      - &      - \\
-             &             &  iratio &    0.57 &    0.75 &    0.64 &    0.51 &    0.52 &      - &      - \\\hline
-   4 &  C &  ftime &    6.46e-1 &    6.07e-1 &    5.41e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.46 &    0.43 &   0.39 &      - &      - &      - &      - \\
-             &             &  itime &    2.46  &    5.34  &    4.07  &      - &      - &      - &      - \\
-             &             &  iratio &    0.23 &    0.50 &    0.38 &      - &      - &      - &      - \\\hline
-   8 &   C &  ftime &    3.50e-1 &    3.62e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.25 &    0.26 &      - &      - &      - &      - &      - \\
-             &             &  itime &    2.06  &    3.18  &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.19 &    0.30 &      - &      - &      - &      - &      - \\\hline
+     1 & R & ftime & 1.83e+00 & 1.00e+00 & 5.35e-01 & 3.16e-01 & 2.42e-01 & 2.02e-01 & 1.26e-01 \\   
+          &      & fratio & 1.00 & 0.55 & 0.29 & 0.17 & 0.13 & 0.11 & 0.07 \\   
+          &      & itime & 3.16e+01 & 4.67e+01 & 3.97e+01 & 2.80e+01 & 2.33e+01 & 2.10e+01 & 1.65e+01 \\   
+          &      & iratio & 4.33 & 6.40 & 5.44 & 3.84 & 3.19 & 2.88 & 2.26 \\ \hline 
+     2 & R & ftime & 1.20e+00 & 9.46e-01 & 6.94e-01 & 5.44e-01 & 5.22e-01 &     -     &     -     \\   
+          &      & fratio & 0.66 & 0.52 & 0.38 & 0.30 & 0.29 &     -     &     -     \\   
+          &      & itime & 6.87e+00 & 9.38e+00 & 8.91e+00 & 6.87e+00 & 5.83e+00 &     -     &     -     \\   
+          &      & iratio & 0.94 & 1.28 & 1.22 & 0.94 & 0.80 &     -     &     -     \\ \hline 
+     4 & R & ftime & 6.10e-01 & 4.72e-01 & 3.60e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.33 & 0.26 & 0.20 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.82e+00 & 5.79e+00 & 5.11e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.39 & 0.79 & 0.70 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 3.35e-01 & 2.63e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.18 & 0.14 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.61e+00 & 3.24e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.22 & 0.44 &     -     &     -     &     -     &     -     &     -     \\ \hline  \hline
+     1 & C & ftime & 1.40e+00 & 7.70e-01 & 4.43e-01 & 2.46e-01 & 1.94e-01 & 1.66e-01 & 1.50e-01 \\   
+          &      & fratio & 1.01 & 0.56 & 0.32 & 0.18 & 0.14 & 0.12 & 0.11 \\   
+          &      & itime & 1.06e+01 & 2.71e+01 & 1.71e+01 & 1.28e+01 & 1.11e+01 & 1.04e+01 & 1.10e+01 \\   
+          &      & iratio & 1.02 & 2.61 & 1.64 & 1.23 & 1.07 & 1.00 & 1.06 \\ \hline 
+     2 & C & ftime & 1.23e+00 & 9.40e-01 & 9.77e-01 & 8.17e-01 & 7.97e-01 &     -     &     -     \\   
+          &      & fratio & 0.89 & 0.68 & 0.71 & 0.59 & 0.58 &     -     &     -     \\   
+          &      & itime & 6.03e+00 & 7.96e+00 & 6.78e+00 & 5.41e+00 & 5.56e+00 &     -     &     -     \\   
+          &      & iratio & 0.58 & 0.77 & 0.65 & 0.52 & 0.53 &     -     &     -     \\ \hline 
+     4 & C & ftime & 6.46e-01 & 6.07e-01 & 5.41e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.47 & 0.44 & 0.39 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.46e+00 & 5.34e+00 & 4.07e+00 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.24 & 0.51 & 0.39 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 3.50e-01 & 3.62e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.25 & 0.26 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 2.06e+00 & 3.18e+00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 0.20 & 0.31 &     -     &     -     &     -     &     -     &     -     \\ \hline 
 \end{tabular}
-\caption{3D FFTW applied to real and complex valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:FFTW3d257}
+\caption{3D FFTW applied to real and complex valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblFFTW3d257}
 \end{small}
 \end{center}
 \end{table}
@@ -2892,37 +2902,38 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    5.20e-1 &    3.82e-1 &    3.44e-1 &    3.10e-1 &    3.13e-1 &    3.04e-1 &    3.09e-1 \\
-             &             &  fratio &    1.00 &    0.73 &    0.66 &    0.60 &    0.60 &    0.58 &    0.59 \\
-             &             &  itime &    6.22e-2 &    6.48e-2 &    6.49e-2 &    6.81e-2 &    7.19e-2 &    7.21e-2 &    7.84e-2 \\
-             &             &  iratio &    1.00 &    1.04  &    1.04  &    1.09  &    1.16  &    1.16  &    1.26  \\\hline
-   2 &  R &   ftime &    2.18e-1 &    1.97e-1 &    1.84e-1 &    1.69e-1 &    1.71e-1 &      - &      - \\
-             &             &  fratio &   0.42 &    0.38 &    0.35 &    0.33 &    0.33 &      - &      - \\
-             &             &  itime &    5.13e-2 &    5.08e-2 &    5.36e-2 &    5.03e-2 &    5.37e-2 &      - &      - \\
-             &             &  iratio &    0.82 &   0.82 &    0.86 &   0.81 &    0.86 &      - &      - \\\hline
-   4 &  R &   ftime &    1.31e-1 &    1.19e-1 &    1.13e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.25 &    0.23 &   0.22 &      - &      - &      - &      - \\
-             &             &  itime &    5.68e-2 &    5.48e-2 &    4.26e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    0.91 &    0.88 &    0.68 &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    8.48e-2 &    8.22e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.16 &    0.16 &      - &      - &      - &      - &      - \\
-             &             &  itime &    4.93e-2 &    9.47e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    0.79 &    1.52  &      - &      - &      - &      - &      - \\\hline
-   12 &   R &   ftime &    6.63e-2 &    9.45e-2 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.13 &    0.18 &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.18e-2 &    6.73e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    1.15  &    1.08  &      - &      - &      - &      - &      - \\\hline
-   16 &   R &   ftime &    5.99e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &   0.12 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.10e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &   1.77  &      - &      - &      - &      - &      - &      - \\\hline
-   24 &   R &   ftime &    7.03e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.14 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.42e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    2.28  &      - &      - &      - &      - &      - &      - \\\hline
+     1 & R & ftime & 5.20e-01 & 3.82e-01 & 3.44e-01 & 3.10e-01 & 3.13e-01 & 3.04e-01 & 3.09e-01 \\   
+          &      & fratio & 3.21 & 2.36 & 2.12 & 1.91 & 1.93 & 1.88 & 1.91 \\   
+          &      & itime & 6.22e-02 & 6.48e-02 & 6.49e-02 & 6.81e-02 & 7.19e-02 & 7.21e-02 & 7.84e-02 \\   
+          &      & iratio & 18.29 & 19.06 & 19.09 & 20.03 & 21.15 & 21.21 & 23.06 \\ \hline 
+     2 & R & ftime & 2.18e-01 & 1.97e-01 & 1.84e-01 & 1.69e-01 & 1.71e-01 &     -     &     -     \\   
+          &      & fratio & 1.35 & 1.22 & 1.14 & 1.04 & 1.06 &     -     &     -     \\   
+          &      & itime & 5.13e-02 & 5.08e-02 & 5.36e-02 & 5.03e-02 & 5.37e-02 &     -     &     -     \\   
+          &      & iratio & 15.09 & 14.94 & 15.76 & 14.79 & 15.79 &     -     &     -     \\ \hline 
+     4 & R & ftime & 1.31e-01 & 1.19e-01 & 1.13e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.81 & 0.73 & 0.70 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 5.68e-02 & 5.48e-02 & 4.26e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 16.71 & 16.12 & 12.53 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 8.48e-02 & 8.22e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.52 & 0.51 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.93e-02 & 9.47e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 14.50 & 27.85 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & R & ftime & 6.63e-02 & 9.45e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.41 & 0.58 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.18e-02 & 6.73e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 21.12 & 19.79 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 5.99e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.37 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.10e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 32.35 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & R & ftime & 7.03e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.43 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.42e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 41.76 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+
 
 \end{tabular}
-\caption{3D MKL applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL3d256}
+\caption{3D MKL applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL3d256}
 \end{small}
 \end{center}
 \end{table}
@@ -2936,37 +2947,37 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &   C &  ftime &    4.69e-1 &    3.36e-1 &    2.84e-1 &    2.55e-1 &    2.16e-1 &    2.20e-1 &    2.05e-1 \\
-             &             &  fratio &    1.00 &   0.72 &   0.61 &    0.54 &    0.46 &    0.47 &    0.44 \\
-             &             &  itime &    3.44e-3 &    3.07e-3 &    2.77e-3 &    2.47e-3 &    2.52e-3 &    2.25e-3 &    1.61e-3 \\
-             &             &  iratio &    1.00 &    0.89 &   0.81 &   0.72 &    0.73 &    0.65 &    0.47 \\\hline
-   2 &  C &  ftime &    5.04e-1 &    4.04e-1 &    3.68e-1 &    3.56e-1 &    3.55e-1 &      - &      - \\
-             &             &  fratio &    1.07  &    0.86 &    0.78 &    0.76 &    0.76 &      - &      - \\
-             &             &  itime &    1.76e-2 &    1.53e-2 &    1.37e-2 &    1.59e-2 &    1.55e-2 &      - &      - \\
-             &             &  iratio &    5.12  &   4.45  &    3.98  &    4.62  &    4.51  &      - &      - \\\hline
-   4 &  C &  ftime &    3.99e-1 &    3.65e-1 &    3.61e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.85 &    0.78 &    0.77 &      - &      - &      - &      - \\
-             &             &  itime &    4.11e-2 &    4.52e-2 &    3.22e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    11.9 &   13.1 &   9.36  &      - &      - &      - &      - \\\hline
-   8 &   C &  ftime &    3.37e-1 &    3.24e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &   0.72 &    0.69 &      - &      - &      - &      - &      - \\
-             &             &  itime &    3.45e-2 &    3.37e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    10.0 &   9.80  &      - &      - &      - &      - &      - \\\hline
-   12 &   C &  ftime &    3.29e-1 &    3.24e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.70 &    0.69 &      - &      - &      - &      - &      - \\
-             &             &  itime &    6.07e-2 &    4.80e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    17.6 &   14.0 &     - &      - &      - &      - &      - \\\hline
-   16 &   C &  ftime &    3.26e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.70 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.73e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &   22.5 &     - &      - &      - &      - &      - &      - \\\hline
-   24 &   C &  ftime &    3.18e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.68 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    1.25e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    36.3 &     - &      - &      - &      - &      - &      - \\\hline
+     1 & C & ftime & 4.69e-01 & 3.36e-01 & 2.84e-01 & 2.55e-01 & 2.16e-01 & 2.20e-01 & 2.05e-01 \\   
+          &      & fratio & 1.45 & 1.04 & 0.88 & 0.79 & 0.67 & 0.68 & 0.63 \\   
+          &      & itime & 3.44e-03 & 3.07e-03 & 2.77e-03 & 2.47e-03 & 2.52e-03 & 2.25e-03 & 1.61e-03 \\   
+          &      & iratio & 0.91 & 0.82 & 0.74 & 0.66 & 0.67 & 0.60 & 0.43 \\ \hline 
+     2 & C & ftime & 5.04e-01 & 4.04e-01 & 3.68e-01 & 3.56e-01 & 3.55e-01 &     -     &     -     \\   
+          &      & fratio & 1.56 & 1.25 & 1.14 & 1.10 & 1.10 &     -     &     -     \\   
+          &      & itime & 1.76e-02 & 1.53e-02 & 1.37e-02 & 1.59e-02 & 1.55e-02 &     -     &     -     \\   
+          &      & iratio & 4.68 & 4.07 & 3.64 & 4.23 & 4.12 &     -     &     -     \\ \hline 
+     4 & C & ftime & 3.99e-01 & 3.65e-01 & 3.61e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.24 & 1.13 & 1.12 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.11e-02 & 4.52e-02 & 3.22e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 10.93 & 12.02 & 8.56 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 3.37e-01 & 3.24e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.04 & 1.00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 3.45e-02 & 3.37e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 9.18 & 8.96 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     12 & C & ftime & 3.29e-01 & 3.24e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.02 & 1.00 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 6.07e-02 & 4.80e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 16.14 & 12.77 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 3.26e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 1.01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.73e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 20.56 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     24 & C & ftime & 3.18e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.98 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 1.25e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 33.24 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
 
 \end{tabular}
-\caption{3D MKL applied to complex valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL3d256c}
+\caption{3D MKL applied to complex valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL3d256c}
 \end{small}
 \end{center}
 \end{table}
@@ -2980,48 +2991,49 @@ Software Outlook activity.
 \hline 
      & & & \multicolumn{7}{c|}{$thr$} \\ \hline
     $P$ & R/C &  & 1           & 2    & 4    & 8    & 12   & 16    & 24  \\ \hline\hline
-   1 &  R &   ftime &    1.42  &    8.69e-1 &    6.01e-1 &    4.47e-1 &    3.99e-1 &    3.68e-1 &    3.53e-1 \\
-             &             &  fratio &    1.00 &    0.61 &    0.42 &    0.31 &    0.28 &    0.26 &    0.25 \\
-             &             &  itime &    6.38e-2 &    6.46e-2 &    6.57e-2 &    6.79e-2 &    7.21e-2 &    7.16e-2 &    7.74e-2 \\
-             &             &  iratio &    1.00 &    1.01  &    1.03  &    1.06  &    1.13  &    1.12  &    1.21  \\\hline
-   2 &  R &   ftime &    6.40e-1 &    4.34e-1 &    2.97e-1 &    2.21e-1 &    2.19e-1 &      - &      - \\
-             &             &  fratio &    0.45 &   0.31 &   0.21 &    0.16 &    0.15 &      - &      - \\
-             &             &  itime &    5.41e-2 &    5.12e-2 &    5.11e-2 &    4.97e-2 &    5.11e-2 &      - &      - \\
-             &             &  iratio &    0.85 &    0.80 &    0.80 &    0.78 &    0.80 &      - &      - \\\hline
-   4 &  R &   ftime &    3.61e-1 &    2.48e-1 &    1.83e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.25 &    0.17 &    0.13 &      - &      - &      - &      - \\
-             &             &  itime &    5.72e-2 &    5.14e-2 &    5.63e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    0.90 &   0.81 &    0.88 &      - &      - &      - &      - \\\hline
-   8 &   R &   ftime &    2.22e-1 &    1.37e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.16 &   0.97 &     - &      - &      - &      - &      - \\
-             &             &  itime &    9.15e-2 &    4.37e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    1.43  &    0.68 &      - &      - &      - &      - &      - \\\hline
-   16 &   R &   ftime &    1.19e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.08 &     - &      - &      - &      - &      - &      - \\
-             &             &  itime &    9.23e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &   1.45  &      - &      - &      - &      - &      - &      - \\\hline\hline
-   1 &   C &  ftime &    1.24  &    7.13e-1 &    4.49e-1 &    3.14e-1 &    2.72e-1 &    2.47e-1 &    2.66e-1 \\
-             &             &  fratio &    1.00 &    0.58 &    0.36 &    0.25 &   0.22 &    0.20 &    0.21 \\
-             &             &  itime &    3.54e-3 &    3.20e-3 &    2.97e-3 &    3.04e-3 &    2.30e-3 &    2.49e-3 &    2.27e-3 \\
-             &             &  iratio &    1.00 &    0.90 &    0.84 &    0.86 &    0.65 &    0.70 &    0.64 \\\hline
-   2 &  C &  ftime &    9.73e-1 &    6.85e-1 &    5.47e-1 &    4.85e-1 &    4.41e-1 &      - &      - \\
-             &             &  fratio &    0.78 &    0.55 &    0.44 &    0.39 &    0.36 &      - &      - \\
-             &             &  itime &    1.81e-2 &    1.24e-2 &    1.47e-2 &    1.59e-2 &    1.89e-2 &      - &      - \\
-             &             &  iratio &    5.11  &    3.50  &    4.15  &    4.49  &    5.34  &      - &      - \\\hline
-   4 &  C &  ftime &    5.97e-1 &    4.68e-1 &    4.14e-1 &      - &      - &      - &      - \\
-             &             &  fratio &    0.48 &    0.38 &    0.33 &      - &      - &      - &      - \\
-             &             &  itime &    4.12e-2 &    3.39e-2 &    4.61e-2 &      - &      - &      - &      - \\
-             &             &  iratio &    11.6 &   9.58  &    13.0 &     - &      - &      - &      - \\\hline
-   8 &   C &  ftime &    4.47e-1 &    3.83e-1 &      - &      - &      - &      - &      - \\
-             &             &  fratio &    0.36 &   0.31 &      - &      - &      - &      - &      - \\
-             &             &  itime &    7.74e-2 &    7.58e-2 &      - &      - &      - &      - &      - \\
-             &             &  iratio &    21.9 &   21.4 &     - &      - &      - &      - &      - \\\hline
-   16 &   C &  ftime &    3.83e-1 &      - &      - &      - &      - &      - &      - \\
-             &             &  fratio &   0.31 &      - &      - &      - &      - &      - &      - \\
-             &             &  itime &    8.93e-2 &      - &      - &      - &      - &      - &      - \\
-             &             &  iratio &    25.2 &     - &      - &      - &      - &      - &      - \\\hline
+     1 & R & ftime & 1.42e+00 & 8.69e-01 & 6.01e-01 & 4.47e-01 & 3.99e-01 & 3.68e-01 & 3.53e-01 \\   
+          &      & fratio & 1.86 & 1.14 & 0.79 & 0.59 & 0.52 & 0.48 & 0.46 \\   
+          &      & itime & 6.38e-02 & 6.46e-02 & 6.57e-02 & 6.79e-02 & 7.21e-02 & 7.16e-02 & 7.74e-02 \\   
+          &      & iratio & 18.55 & 18.78 & 19.10 & 19.74 & 20.96 & 20.81 & 22.50 \\ \hline 
+     2 & R & ftime & 6.40e-01 & 4.34e-01 & 2.97e-01 & 2.21e-01 & 2.19e-01 &     -     &     -     \\   
+          &      & fratio & 0.84 & 0.57 & 0.39 & 0.29 & 0.29 &     -     &     -     \\   
+          &      & itime & 5.41e-02 & 5.12e-02 & 5.11e-02 & 4.97e-02 & 5.11e-02 &     -     &     -     \\   
+          &      & iratio & 15.73 & 14.88 & 14.85 & 14.45 & 14.85 &     -     &     -     \\ \hline 
+     4 & R & ftime & 3.61e-01 & 2.48e-01 & 1.83e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.47 & 0.32 & 0.24 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 5.72e-02 & 5.14e-02 & 5.63e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 16.63 & 14.94 & 16.37 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & R & ftime & 2.22e-01 & 1.37e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.29 & 0.18 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 9.15e-02 & 4.37e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 26.60 & 12.70 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & R & ftime & 1.19e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.16 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 9.23e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 26.83 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline  \hline
+     1 & C & ftime & 1.24e+00 & 7.13e-01 & 4.49e-01 & 3.14e-01 & 2.72e-01 & 2.47e-01 & 2.66e-01 \\   
+          &      & fratio & 1.13 & 0.65 & 0.41 & 0.29 & 0.25 & 0.22 & 0.24 \\   
+          &      & itime & 3.54e-03 & 3.20e-03 & 2.97e-03 & 3.04e-03 & 2.30e-03 & 2.49e-03 & 2.27e-03 \\   
+          &      & iratio & 0.90 & 0.81 & 0.75 & 0.77 & 0.58 & 0.63 & 0.58 \\ \hline 
+     2 & C & ftime & 9.73e-01 & 6.85e-01 & 5.47e-01 & 4.85e-01 & 4.41e-01 &     -     &     -     \\   
+          &      & fratio & 0.88 & 0.62 & 0.50 & 0.44 & 0.40 &     -     &     -     \\   
+          &      & itime & 1.81e-02 & 1.24e-02 & 1.47e-02 & 1.59e-02 & 1.89e-02 &     -     &     -     \\   
+          &      & iratio & 4.59 & 3.15 & 3.73 & 4.04 & 4.80 &     -     &     -     \\ \hline 
+     4 & C & ftime & 5.97e-01 & 4.68e-01 & 4.14e-01 &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.54 & 0.43 & 0.38 &     -     &     -     &     -     &     -     \\   
+          &      & itime & 4.12e-02 & 3.39e-02 & 4.61e-02 &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 10.46 & 8.60 & 11.70 &     -     &     -     &     -     &     -     \\ \hline 
+     8 & C & ftime & 4.47e-01 & 3.83e-01 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.41 & 0.35 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 7.74e-02 & 7.58e-02 &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 19.64 & 19.24 &     -     &     -     &     -     &     -     &     -     \\ \hline 
+     16 & C & ftime & 3.83e-01 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & fratio & 0.35 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & itime & 8.93e-02 &     -     &     -     &     -     &     -     &     -     &     -     \\   
+          &      & iratio & 22.66 &     -     &     -     &     -     &     -     &     -     &     -     \\ \hline 
+
 \end{tabular}
-\caption{3D MKL applied to real and complex valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:MKL3d257}
+\caption{3D MKL applied to real and complex valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($thr=1$) and the ratio, iratio, of itime  with itime($thr=1$) are provided to compare the distributed runs with the non-distributed, single thread runs.  }\label{TblMKL3d257}
 \end{small}
 \end{center}
 \end{table}
@@ -3068,7 +3080,7 @@ Software Outlook activity.
 
 
 \end{tabular}
-\caption{3D P3DFFT applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:P3DFFT3d256}
+\caption{3D P3DFFT applied to real valued three-dimensional cubic arrays with edges of length $N=256$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided. }\label{TblP3DFFT3d256}
 \end{small}
 \end{center}
 \end{table}
@@ -3104,7 +3116,7 @@ Software Outlook activity.
              &             &  iratio &    0.15 &      - &      - &      - &      - &      - &      - \\\hline
 
 \end{tabular}
-\caption{3D P3DFFT applied to real valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided.) }\label{Tbl:P3DFFT3d257}
+\caption{3D P3DFFT applied to real valued three-dimensional cubic arrays with edges of length $N=257$ using $P$ MPI processes and $thr$ threads. The wallclock DFT computation time, ftime, and wallclock FFT initialisation time, itime, both in seconds, are provided. Additionally, the ratio, fratio, of ftime  with ftime($p=1,t=1$) and the ratio, iratio, of itime  with itime($p=1,t=1$) are provided. }\label{TblP3DFFT3d257}
 \end{small}
 \end{center}
 \end{table}
